@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { browser } from '#imports';
 import { getSettings, patchSettings, type ReadXSettings } from '@/settings';
+import { LANGUAGE_CHOICES, languageLabel } from '@/translate/languages';
 import { WebSpeechProvider } from '@/tts/webSpeech';
 import type { GetStateResponse, ReaderCommand, ReaderSnapshot, RuntimeMessage } from '@/types';
 
@@ -12,6 +13,7 @@ const STATE_LABEL: Record<ReaderSnapshot['state'], string> = {
   speaking: '朗读中',
   paused: '已暂停',
   error: '出错了',
+  'need-language-pack': '等待语言包',
 };
 
 async function sendToTab(message: RuntimeMessage): Promise<GetStateResponse> {
@@ -132,6 +134,17 @@ export default function App() {
                 {snapshot?.sentence || snapshot?.message}
               </p>
             )}
+
+            {/* 语言包必须由用户手势触发下载，页面上的控制条才是正确的入口 */}
+            {snapshot?.pendingPack && (
+              <div className="mt-2 border-t border-white/10 pt-2">
+                <p className="text-[11px] text-amber-300">
+                  {snapshot.state === 'loading'
+                    ? `正在下载 ${snapshot.pendingPack.from} → ${snapshot.pendingPack.to} 语言包… ${Math.round((snapshot.packProgress ?? 0) * 100)}%`
+                    : `${snapshot.pendingPack.from} → ${snapshot.pendingPack.to} 语言包未下载，请在页面右下角的面板上点「下载」`}
+                </p>
+              </div>
+            )}
           </section>
 
           <section className="mt-3 grid grid-cols-4 gap-2">
@@ -147,6 +160,27 @@ export default function App() {
 
       {settings && (
         <section className="mt-4 space-y-3 border-t border-white/10 pt-3">
+          <label className="block">
+            <span className="text-xs text-slate-400">朗读语言</span>
+            <select
+              value={settings.readingLang}
+              onChange={(e) => update({ readingLang: e.target.value })}
+              className="mt-1 w-full cursor-pointer rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-slate-200"
+            >
+              <option value="auto">跟随原文（各读各的）</option>
+              {LANGUAGE_CHOICES.map((code) => (
+                <option key={code} value={code}>
+                  {languageLabel(code)}
+                </option>
+              ))}
+            </select>
+            {settings.readingLang !== 'auto' && (
+              <span className="mt-1 block text-[11px] text-slate-500">
+                其它语言的帖子会先翻译再朗读；帖子本来就是该语言时直接读原文。
+              </span>
+            )}
+          </label>
+
           <label className="block">
             <span className="flex items-center justify-between text-xs text-slate-400">
               语速

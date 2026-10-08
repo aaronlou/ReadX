@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SEED, mountPost } from '../../playground/fixtures/x-dom.js';
 import type { SpeakOptions, SpeakOutcome, TtsProvider } from '../tts/provider';
+import type {
+  TranslateRequest,
+  TranslationProvider,
+  TranslationReadiness,
+} from '../translate/provider';
 import { DEFAULT_SETTINGS, type ReadXSettings } from '../settings';
 import { Reader } from './reader';
 
@@ -108,6 +113,38 @@ async function flush(rounds = 12) {
   }
 }
 
+/** 假翻译：默认已就绪，翻译结果加个前缀方便断言 */
+class FakeTranslation implements TranslationProvider {
+  readonly name = 'fake';
+  readinessValue: TranslationReadiness = 'ready';
+  prepareResult: TranslationReadiness = 'ready';
+  supported = true;
+  readonly translated: Array<{ text: string; from: string; to: string }> = [];
+  readonly prepareCalls: Array<{ from: string; to: string }> = [];
+
+  isSupported() {
+    return this.supported;
+  }
+  async readiness(): Promise<TranslationReadiness> {
+    return this.readinessValue;
+  }
+  async prepare(
+    from: string,
+    to: string,
+    onProgress?: (ratio: number) => void,
+  ): Promise<TranslationReadiness> {
+    this.prepareCalls.push({ from, to });
+    onProgress?.(0.5);
+    onProgress?.(1);
+    return this.prepareResult;
+  }
+  async translate({ text, from, to }: TranslateRequest): Promise<string> {
+    this.translated.push({ text, from, to });
+    return `【译】${text}`;
+  }
+  dispose() {}
+}
+
 function buildTimeline(posts: Array<Record<string, unknown>>): HTMLElement[] {
   document.body.innerHTML = '<div id="timeline"></div>';
   const timeline = document.getElementById('timeline')!;
@@ -116,9 +153,13 @@ function buildTimeline(posts: Array<Record<string, unknown>>): HTMLElement[] {
   return mounted.map((node) => node.querySelector('article') ?? node);
 }
 
-function makeReader(tts: TtsProvider, overrides: Partial<ReadXSettings> = {}) {
+function makeReader(
+  tts: TtsProvider,
+  translation: TranslationProvider = new FakeTranslation(),
+  overrides: Partial<ReadXSettings> = {},
+) {
   const settings: ReadXSettings = { ...DEFAULT_SETTINGS, autoAdvance: false, ...overrides };
-  return new Reader(tts, settings);
+  return new Reader(tts, translation, settings);
 }
 
 beforeEach(() => {
@@ -275,5 +316,129 @@ describe('Reader 播放控制', () => {
     expect(reader.snapshot.state).toBe('idle');
     expect(reader.currentPost).toBeNull();
     expect(reader.isActive).toBe(false);
+  });
+});
+
+describe('Reader 翻译', () => {
+  it('readingLang=auto 时完全不碰翻译', async () => {
+    const posts = buildTimeline(SEED.slice(0, 2));
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const translation = new FakeTranslation();
+    const reader = makeReader(tts, translation);
+
+    await reader.start();
+
+    expect(translation.translated).toHaveLength(0);
+    expect(reader.snapshot.translatedFrom).toBeNull();
+    expect(reader.snapshot.lang).toBe('en');
+  });
+
+  it('指定中文时，英文帖子会被翻译并用中文朗读', async () => {
+    const posts = buildTimeline(SEED.slice(0, 2));
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const translation = new FakeTranslation();
+    const reader = makeReader(tts, translation, { readingLang: 'zh' });
+
+    await reader.start();
+
+    expect(translation.translated.length).toBeGreaterThan(0);
+    expect(translation.translated[0]).toMatchObject({ from: 'en', to: 'zh' });
+    expect(tts.spoken.join(' ')).toContain('【译】');
+    // 朗读语种必须变成目标语言，否则音色会和文本对不上
+    expect(reader.snapshot.lang).toBe('zh');
+    expect(reader.snapshot.translatedFrom).toBe('en');
+  });
+
+  it('帖子本来就是目标语言时不翻译', async () => {
+    const posts = buildTimeline(SEED.slice(0, 2)); // 第 0 条是英文，第 1 条是中文
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const translation = new FakeTranslation();
+    const reader = makeReader(tts, translation, { readingLang: 'zh' });
+
+    await reader.start(); // 读第 0 条（英文）
+    await reader.next(); // 切到第 1 条（中文）
+
+    // 第 1 条本来就说中文，不该再翻一次
+    const textsForSecondPost = translation.translated.filter((t) => t.text.includes('技术的价值'));
+    expect(textsForSecondPost).toHaveLength(0);
+    expect(reader.snapshot.translatedFrom).toBeNull();
+  });
+
+  it('语言包没下载时挂起等用户手势，准备好之后自动继续', async () => {
+    const posts = buildTimeline(SEED.slice(0, 2));
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const translation = new FakeTranslation();
+    translation.readinessValue = 'need-download';
+    const reader = makeReader(tts, translation, { readingLang: 'zh' });
+
+    void reader.start();
+    await flush();
+
+    // 必须挂起：下载语言包只能由用户手势触发，不能在朗读流程里偷偷做
+    expect(reader.snapshot.state).toBe('need-language-pack');
+    expect(reader.snapshot.pendingPack).toEqual({ from: 'en', to: 'zh' });
+    expect(tts.spoken).toHaveLength(0);
+
+    // 用户点了「下载」→ 模拟语言包就绪后重试
+    translation.readinessValue = 'ready';
+    await reader.prepareLanguagePack();
+
+    expect(translation.prepareCalls).toEqual([{ from: 'en', to: 'zh' }]);
+    expect(reader.snapshot.pendingPack).toBeNull();
+    expect(tts.spoken.join(' ')).toContain('【译】');
+    expect(reader.snapshot.lang).toBe('zh');
+  });
+
+  it('翻译不可用时降级读原文，并把原因显示出来', async () => {
+    const posts = buildTimeline(SEED.slice(0, 2));
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const translation = new FakeTranslation();
+    translation.supported = false;
+    const reader = makeReader(tts, translation, { readingLang: 'zh' });
+
+    const messages: string[] = [];
+    reader.onSnapshot = (s) => {
+      if (s.message) messages.push(s.message);
+    };
+
+    await reader.start();
+
+    expect(translation.translated).toHaveLength(0);
+    expect(reader.snapshot.lang).toBe('en');
+    expect(tts.spoken.join(' ')).toContain('The best way to get startup ideas');
+    expect(reader.snapshot.translatedFrom).toBeNull();
+    // 必须告诉用户"为什么我要中文却在读英文"，不能默默降级
+    expect(messages.some((m) => /不支持/.test(m))).toBe(true);
+  });
+
+  it('翻译失败时同样降级读原文，并说明原因', async () => {
+    const posts = buildTimeline(SEED.slice(0, 2));
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const translation = new FakeTranslation();
+    vi.spyOn(translation, 'translate').mockRejectedValue(new Error('boom'));
+    const reader = makeReader(tts, translation, { readingLang: 'zh' });
+
+    const messages: string[] = [];
+    reader.onSnapshot = (s) => {
+      if (s.message) messages.push(s.message);
+    };
+
+    await reader.start();
+
+    expect(reader.snapshot.lang).toBe('en');
+    expect(tts.spoken.join(' ')).toContain('The best way to get startup ideas');
+    expect(messages.some((m) => /翻译失败/.test(m))).toBe(true);
   });
 });

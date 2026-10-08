@@ -1,6 +1,8 @@
 import type { ReadXSettings } from '../settings';
-import type { ReaderSnapshot, ReaderState } from '../types';
+import type { PendingLanguagePack, ReaderSnapshot, ReaderState } from '../types';
 import { detectLanguage } from '../lang/detect';
+import { isSameLanguage, translationPair } from '../translate/languages';
+import type { TranslationProvider } from '../translate/provider';
 import type { TtsProvider } from '../tts/provider';
 import { extractPost, type PostData } from '../x/extract';
 import {
@@ -23,12 +25,36 @@ const EMPTY_SNAPSHOT: ReaderSnapshot = {
   author: '',
   lang: '',
   langSource: 'fallback',
+  translatedFrom: null,
   sentence: '',
   sentenceIndex: 0,
   sentenceCount: 0,
   charIndex: 0,
   message: '',
+  pendingPack: null,
+  packProgress: null,
 };
+
+/** 这一条帖子最终要怎么读 */
+interface SpeechPlan {
+  /** 实际朗读用的语种（翻译开启时是目标语言） */
+  lang: string;
+  text: string;
+  quotedText: string;
+  /** 被翻译过的话，这里是原文语言 */
+  translatedFrom: string | null;
+  /**
+   * 降级说明（比如"翻译不可用，读原文"）。
+   * 必须由 SpeechPlan 带回给 run() —— 曾经在这里直接 patch，
+   * 结果立刻被后面的 `patch({ message: '' })` 覆盖，用户根本看不到。
+   */
+  note?: string;
+}
+
+/** 需要挂起等用户下载语言包时，记住要回到哪一条 */
+interface PendingPackState extends PendingLanguagePack {
+  post: HTMLElement;
+}
 
 /**
  * 朗读主控。
@@ -46,7 +72,10 @@ export class Reader {
   onFocusPost: ((post: HTMLElement | null) => void) | null = null;
 
   private readonly tts: TtsProvider;
+  private readonly translation: TranslationProvider;
   private settings: ReadXSettings;
+  /** 等用户手势下载语言包时，记着要回到哪一条帖子 */
+  private pendingPack: PendingPackState | null = null;
 
   private epoch = 0;
   private abort: AbortController | null = null;
@@ -54,8 +83,9 @@ export class Reader {
   private followUser = false;
   private snap: ReaderSnapshot = { ...EMPTY_SNAPSHOT };
 
-  constructor(tts: TtsProvider, settings: ReadXSettings) {
+  constructor(tts: TtsProvider, translation: TranslationProvider, settings: ReadXSettings) {
     this.tts = tts;
+    this.translation = translation;
     this.settings = settings;
   }
 
@@ -120,6 +150,7 @@ export class Reader {
     this.abort = null;
     this.tts.stop();
     this.setFocus(null);
+    this.pendingPack = null;
     // EMPTY_SNAPSHOT 的 state 就是 'idle'，不需要单独再赋一次
     this.push({ ...EMPTY_SNAPSHOT });
   }
@@ -225,7 +256,11 @@ export class Reader {
       const { lang, source } = await detectLanguage(data.text, data.domLang);
       if (this.stale(myEpoch, signal)) return;
 
-      const script = this.buildScript(data, lang);
+      const plan = await this.planSpeech(data, lang, myEpoch, signal);
+      // 语言包没备好 → 已经挂起等用户点按钮；循环到此为止，避免继续往下滚
+      if (!plan) return;
+
+      const script = this.buildScript(data, plan.lang, plan.text, plan.quotedText);
       if (!script.length) {
         post = await this.advance(post, myEpoch, signal);
         continue;
@@ -235,15 +270,16 @@ export class Reader {
         state: 'speaking',
         postId: data.id || null,
         author: data.author,
-        lang,
+        lang: plan.lang,
         langSource: source,
+        translatedFrom: plan.translatedFrom,
         sentenceCount: script.length,
         sentenceIndex: 0,
         charIndex: 0,
-        message: '',
+        message: plan.note ?? '',
       });
 
-      const finished = await this.speakAll(script, lang, myEpoch, signal);
+      const finished = await this.speakAll(script, plan.lang, myEpoch, signal);
       if (!finished) return;
 
       if (!this.settings.autoAdvance) {
@@ -363,13 +399,132 @@ export class Reader {
     return null;
   }
 
+  // ---------------------------------------------------------------- 翻译
+
+  /**
+   * 决定这一条帖子要怎么读：读原文，还是先翻译。
+   *
+   * 返回 null 表示**已经挂起**等用户下载语言包（调用方必须就此收手）。
+   * 翻译不可用时一律降级为读原文 —— 宁可读原文，也不要静默什么都不读。
+   */
+  private async planSpeech(
+    data: PostData,
+    detectedLang: string,
+    myEpoch: number,
+    signal: AbortSignal,
+  ): Promise<SpeechPlan | null> {
+    const original: SpeechPlan = {
+      lang: detectedLang,
+      text: data.text,
+      quotedText: data.quotedText,
+      translatedFrom: null,
+    };
+
+    const target = this.settings.readingLang;
+    if (!target || target === 'auto') return original;
+    // 帖子本来就是目标语言 —— 最常见的情况，完全不需要翻译
+    if (isSameLanguage(detectedLang, target)) return original;
+
+    const pair = translationPair(detectedLang, target);
+    if (!pair) {
+      return { ...original, note: `${detectedLang} → ${target} 暂不支持，读原文` };
+    }
+
+    if (!this.translation.isSupported()) {
+      return { ...original, note: '本机不支持设备端翻译，读原文' };
+    }
+
+    const readiness = await this.translation.readiness(detectedLang, target);
+    if (this.stale(myEpoch, signal)) return null;
+
+    // 下载语言包必须由用户手势触发，所以这里只能挂起，等用户点按钮
+    if (readiness === 'need-download') {
+      this.pendingPack = { from: pair.from, to: pair.to, post: data.element };
+      this.patch({
+        state: 'need-language-pack',
+        pendingPack: { from: pair.from, to: pair.to },
+        packProgress: null,
+        message: `需要先下载 ${pair.from} → ${pair.to} 语言包（约十几秒，只需一次）`,
+      });
+      return null;
+    }
+
+    if (readiness !== 'ready') {
+      return { ...original, note: '设备端翻译当前不可用，读原文' };
+    }
+
+    try {
+      const [text, quotedText] = await Promise.all([
+        this.translation.translate({ text: data.text, from: detectedLang, to: target, signal }),
+        data.quotedText
+          ? this.translation.translate({
+              text: data.quotedText,
+              from: detectedLang,
+              to: target,
+              signal,
+            })
+          : Promise.resolve(''),
+      ]);
+      if (this.stale(myEpoch, signal)) return null;
+
+      return {
+        // 用目标语言朗读，音色才会匹配
+        lang: target,
+        text: text || data.text,
+        quotedText,
+        translatedFrom: detectedLang,
+      };
+    } catch (error) {
+      console.warn('[ReadX] 翻译失败，改读原文', error);
+      return { ...original, note: '翻译失败，读原文' };
+    }
+  }
+
+  /**
+   * 下载语言包并继续朗读。
+   *
+   * ⚠️ 必须在用户手势（点击）里调用 —— Chrome 要求语言包下载由用户手势触发，
+   * 否则 Translator.create() 会抛 NotAllowedError。
+   */
+  async prepareLanguagePack(): Promise<void> {
+    const pending = this.pendingPack;
+    if (!pending) return;
+
+    this.patch({ state: 'loading', message: '正在下载语言包…', packProgress: 0 });
+
+    const result = await this.translation.prepare(pending.from, pending.to, (ratio) => {
+      this.patch({ packProgress: ratio });
+    });
+
+    if (result === 'ready') {
+      this.pendingPack = null;
+      this.patch({ pendingPack: null, packProgress: null, message: '语言包已就绪' });
+      const post = pending.post;
+      if (post.isConnected) {
+        await this.run(post);
+      } else {
+        await this.start();
+      }
+      return;
+    }
+
+    this.patch({
+      state: 'error',
+      packProgress: null,
+      message:
+        result === 'unsupported'
+          ? '这一对语言不受支持'
+          : '语言包下载失败。可到 chrome://on-device-translation-internals 手动安装',
+    });
+  }
+
   // ---------------------------------------------------------------- 小工具
 
-  private buildScript(data: PostData, lang: string): string[] {
+  private buildScript(data: PostData, lang: string, text: string, quotedText: string): string[] {
     const out: string[] = [];
     if (this.settings.readAuthor && data.author) out.push(data.author);
-    out.push(...splitSentences(data.text, lang));
-    if (data.quotedText) out.push(...splitSentences(data.quotedText, lang));
+    out.push(...splitSentences(text, lang));
+    if (quotedText) out.push(...splitSentences(quotedText, lang));
     return out;
   }
 
@@ -388,6 +543,9 @@ export class Reader {
     this.abort?.abort();
     this.abort = null;
     this.tts.stop();
+    // 换帖子/换指令之后，之前挂起的"等语言包"就失效了
+    this.pendingPack = null;
+    this.patch({ pendingPack: null, packProgress: null });
   }
 
   private stale(myEpoch: number, signal: AbortSignal): boolean {

@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Reader } from '@/core/reader';
 import { patchSettings, watchSettings, type ReadXSettings } from '@/settings';
+import { LANGUAGE_CHOICES, languageLabel, toApiCode } from '@/translate/languages';
 import type { ReaderSnapshot } from '@/types';
+
+/**
+ * 用户要求翻译成某语言，但这条帖子最终不是那个语言 ——
+ * 说明走了降级读原文，面板上要给个显眼的提示。
+ */
+function wantsTranslation(readingLang: string, spokenLang: string): boolean {
+  if (!readingLang || readingLang === 'auto') return false;
+  if (!spokenLang) return false;
+  return toApiCode(spokenLang) !== toApiCode(readingLang);
+}
 
 interface Box {
   top: number;
@@ -16,6 +27,7 @@ const STATE_LABEL: Record<ReaderSnapshot['state'], string> = {
   speaking: '朗读中',
   paused: '已暂停',
   error: '出错了',
+  'need-language-pack': '等待语言包',
 };
 
 const STATE_DOT: Record<ReaderSnapshot['state'], string> = {
@@ -24,6 +36,7 @@ const STATE_DOT: Record<ReaderSnapshot['state'], string> = {
   speaking: 'bg-emerald-400 animate-pulse',
   paused: 'bg-sky-400',
   error: 'bg-rose-500',
+  'need-language-pack': 'bg-amber-400 animate-pulse',
 };
 
 export function Overlay({
@@ -113,6 +126,25 @@ export function Overlay({
               </span>
             )}
 
+            {/* 翻译状态：译过就标注原文语言；被要求翻译却没译成，给个显眼的警示 */}
+            {snap.translatedFrom ? (
+              <span
+                className="shrink-0 rounded-md bg-sky-400/20 px-1.5 py-0.5 text-[11px] font-semibold text-sky-300"
+                title={`已从 ${snap.translatedFrom} 翻译`}
+              >
+                译·{snap.translatedFrom}
+              </span>
+            ) : (
+              wantsTranslation(settings.readingLang, snap.lang) && (
+                <span
+                  className="shrink-0 rounded-md bg-amber-400/20 px-1.5 py-0.5 text-[11px] font-semibold text-amber-300"
+                  title="没能翻译，正在读原文"
+                >
+                  未译
+                </span>
+              )
+            )}
+
             <div className="min-w-0 flex-1 truncate text-sm">
               {snap.author && <span className="font-semibold">{snap.author}</span>}
               {snap.author && progress && <span className="text-slate-500"> · </span>}
@@ -142,6 +174,35 @@ export function Overlay({
             </div>
           </div>
 
+          {/* 语言包下载：Chrome 要求必须由用户手势触发，所以只能做成显式按钮 */}
+          {snap.pendingPack && (
+            <div className="mt-2.5 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-amber-200">
+                  {snap.state === 'loading'
+                    ? `正在下载 ${snap.pendingPack.from} → ${snap.pendingPack.to} 语言包…`
+                    : `${snap.pendingPack.from} → ${snap.pendingPack.to} 语言包还没下载（只需一次）`}
+                </span>
+                <button
+                  type="button"
+                  disabled={snap.state === 'loading'}
+                  onClick={() => void reader.prepareLanguagePack()}
+                  className="ml-auto shrink-0 cursor-pointer rounded-lg bg-amber-400 px-2.5 py-1 text-[11px] font-semibold text-amber-950 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
+                >
+                  {snap.state === 'loading' ? '下载中…' : '下载'}
+                </button>
+              </div>
+              {snap.packProgress !== null && (
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-black/40">
+                  <div
+                    className="h-full bg-amber-400 transition-[width] duration-200"
+                    style={{ width: `${Math.round(snap.packProgress * 100)}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 第二行：当前句子 */}
           {!collapsed && (
             <>
@@ -152,6 +213,22 @@ export function Overlay({
               )}
 
               <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/10 pt-2.5 text-[11px] text-slate-400">
+                <label className="flex items-center gap-1.5">
+                  朗读语言
+                  <select
+                    value={settings.readingLang}
+                    onChange={(event) => update({ readingLang: event.target.value })}
+                    className="cursor-pointer rounded border border-white/15 bg-slate-900 px-1.5 py-0.5 text-[11px] text-slate-200"
+                  >
+                    <option value="auto">跟随原文</option>
+                    {LANGUAGE_CHOICES.map((code) => (
+                      <option key={code} value={code}>
+                        {languageLabel(code)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
                 <label className="flex items-center gap-2">
                   语速
                   <input

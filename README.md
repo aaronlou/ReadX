@@ -12,7 +12,17 @@
 
 - **自动滚动定位** —— 不用手滚，它自己把下一条帖子对准阅读位置
 - **按语种朗读** —— 英文用英文音色，中文用中文音色，日文用日文音色，全自动
+- **翻译成你想听的语言** —— 指定「朗读语言」后，外语帖子会先翻译再朗读；
+  **帖子本来就是该语言时直接读原文**，不做无谓的翻译
 - **不打断你** —— 你一旦自己滚动，它立刻让位，跟着你的位置继续读
+
+### 翻译用的是什么
+
+Chrome 138+ 内置的**设备端** Translator API：免费、离线、**模型下载之后内容完全不出本机**。
+代价是可用性受硬件门槛限制（官方要求 16GB 内存 / 22GB 空闲磁盘 / 4 核），
+用不了时**自动降级读原文并说明原因**，绝不会静默什么都不读。
+
+`TranslationProvider` 是接口化的，后续接 LLM（自备 Key，社媒文本的译文质量更好）不影响上层。
 
 ---
 
@@ -118,18 +128,30 @@ npm run mock
 回答的问题：**这台机器到底能不能跑设备端翻译。**
 它会显示 Chrome 版本、API 是否存在、`availability` 状态，并且可以**真的下载语言包并翻译一句话**（下载必须在按钮点击里触发，这正是 `Translator.create()` 的硬性要求）。
 
-#### 实测结论（2026-10，Chrome 153 / macOS）
+#### 实测结论（Chrome 153 / 154，macOS）
 
 | 项目 | 结果 |
 | --- | --- |
 | `typeof Translator` | `function` |
-| `Translator.availability(en→zh)` | `downloadable` → 下载后变 `available` |
-| `LanguageDetector.availability()` | `available` |
+| `Translator.availability(en→zh)` | `downloadable` → 下载后 `available` |
 | 首次下载 en→zh 语言包 | **12.2 秒**，136 次 `downloadprogress` 事件（约 11 次/秒，进度条很顺） |
 | 翻译质量 | 可用（"获得创业想法的最好方法是不要考虑创业的想法。它是寻找问题，最好是你自己遇到的问题。"） |
 
+**三种 JS 上下文的可见性**（扩展「能力检测」页实测）：
+
+| 上下文 | `Translator` | 结论 |
+| --- | --- | --- |
+| 扩展页面（选项页） | `function` | 也能在设置页预下载语言包 |
+| **内容脚本 isolated world** | **`function`** | ✅ **翻译直接写在 content script 里，不需要 MAIN world 桥接** |
+| 页面 MAIN world | `function` | 作为退路存在（`main-world-probe.content.ts`） |
+
+⚠️ 同一份数据里 **`LanguageDetector.availability() = unavailable`** —— 这个 API 要么模型已就绪要么直接不可用，
+**没有 `downloadable` 中间态**（另一台 profile 上它曾显示 `available`）。
+所以它不能作为可靠的「第 4 层语种识别」，三层识别方案保持不变。
+
 👉 **产品含义：首次使用必须给用户一个可见的下载进度，否则会有十几秒的"点了没反应"。**
-这个下载是**一次性**的，之后 `availability` 直接是 `available`。另外 `downloadprogress` 的 `e.loaded` 是 0~1 的**比例**（不是字节数），`total` 恒为 1。
+这个下载是**一次性**的，之后 `availability` 直接是 `available`。
+另外 `downloadprogress` 的 `e.loaded` 是 0~1 的**比例**（不是字节数），`total` 恒为 1。
 
 #### 如果卡在「下载中」
 
@@ -172,7 +194,7 @@ npm run mock
 npm run dev        # 开发模式（热更新）
 npm run build      # 构建
 npm run zip        # 打包
-npm run test       # 单元测试（35 个）
+npm run test       # 单元测试（77 个）
 npm run compile    # 类型检查
 npm run mock       # 启动本地 mock 时间线
 ```
@@ -195,6 +217,10 @@ src/
 │   ├── probe.ts               # 探测 Translator / LanguageDetector 在当前 realm 的可见性
 │   ├── pageProbe.ts           # isolated world + MAIN world 双 realm 探测
 │   └── events.ts              # 跨 world 的 DOM 事件名
+├── translate/                 # 翻译层
+│   ├── provider.ts            # 引擎接口（为了以后接 LLM / 云 MT）
+│   ├── chromeTranslator.ts    # Chrome 设备端翻译实现
+│   └── languages.ts           # ⭐ BCP-47 ↔ Translator API 语言代码的归一化
 ├── x/                         # X 站点的适配层
 │   ├── selectors.ts           # ⭐ 所有选择器的「降级链」，X 改版只改这里
 │   ├── extract.ts             # 抽正文（含 emoji / 引用帖）、作者、status id
@@ -303,12 +329,11 @@ X 是 React 管理的，往里插节点随时会被重渲染冲掉。
 
 ## 下一步（P2+）
 
-- [x] **机器可用性已验证**：这台机器上设备端翻译可用（见上表）。**还剩一个问题**：
-  内容脚本的 isolated world 里能不能拿到 `Translator` —— 用扩展的「能力检测」页确认，这决定翻译放在哪一层
-- [ ] `TranslationProvider` 接口 + `readingLang` 设置（`'auto'` | 指定语言），与音色绑定保持正交
-- [ ] **首次使用的语言包下载 UX**：实测要 12 秒，必须有可见进度，不能让用户以为卡死了
-      （而且 `Translator.create()` 触发下载**必须在用户手势里**，所以放在控制条的按钮上最自然）
-- [ ] `ChromeTranslatorProvider`：语言包准备 / 下载进度 UI + 翻译预取队列（翻译延迟会直接毁掉听感）
+- [x] **机器可用性已验证**：设备端翻译可用，且内容脚本的 isolated world 里 `Translator` 可见
+- [x] `translationProvider` 接口 + `readingLang` 设置 + 语言包下载进度 UI
+- [ ] **翻译预取**：现在是"读完一条才翻下一条"，翻译延迟会直接体现在听感上。
+      应当在朗读第 N 条时就把第 N+1 条翻好（复用 `advance()` 的时机）
+- [ ] 翻译结果缓存：按内容 hash 去重，转推和重复帖不必重翻
 - [ ] `LlmTranslateProvider`：自备 Key，社媒文本（俚语 / 反讽 / 梗）的译文质量明显更好
 - [ ] 预取队列显式化（当前是逐条推进，靠 X 自身加载速度）
 - [ ] 逐词高亮（`onboundary` 已在回传，需要渲染到浮层上）
@@ -331,7 +356,7 @@ Built with **WXT + TypeScript + React + Tailwind CSS v4**, using the browser's b
 npm install
 npm run mock     # offline playground at http://localhost:5174 — no X login needed
 npm run dev      # dev build with HMR, then open https://x.com/home
-npm run test     # 35 unit tests
+npm run test     # 77 unit tests
 npm run build    # → .output/chrome-mv3
 ```
 

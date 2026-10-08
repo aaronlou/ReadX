@@ -19,6 +19,14 @@ export interface ReadXSettings {
   skipMediaOnly: boolean;
   /** 手动绑定的音色：lang -> voiceURI */
   voiceOverrides: Record<string, string>;
+  /**
+   * 朗读使用的语言。
+   *
+   * - `'auto'`：各读各的 —— 帖子是什么语言就用对应音色读原文（默认）
+   * - 其它值（BCP-47 或 API 代码，如 `zh` / `ja`）：统一翻译成该语言再朗读。
+   *   与帖子的语言相同时不翻译，直接读原文。
+   */
+  readingLang: string;
 }
 
 export const DEFAULT_SETTINGS: ReadXSettings = {
@@ -31,6 +39,7 @@ export const DEFAULT_SETTINGS: ReadXSettings = {
   skipAds: true,
   skipMediaOnly: true,
   voiceOverrides: {},
+  readingLang: 'auto',
 };
 
 export const settingsItem = storage.defineItem<ReadXSettings>('sync:settings', {

@@ -4,7 +4,22 @@
  */
 
 /** 朗读器的运行状态 */
-export type ReaderState = 'idle' | 'loading' | 'speaking' | 'paused' | 'error';
+export type ReaderState =
+  | 'idle'
+  | 'loading'
+  | 'speaking'
+  | 'paused'
+  | 'error'
+  /** 当前帖子需要翻译，但语言包还没下载，等用户手势触发 */
+  | 'need-language-pack';
+
+/** 待下载的语言包 */
+export interface PendingLanguagePack {
+  /** Translator API 代码，如 'en' */
+  from: string;
+  /** 同上，如 'zh' */
+  to: string;
+}
 
 /** 面板上展示的一份快照 */
 export interface ReaderSnapshot {
@@ -12,10 +27,12 @@ export interface ReaderSnapshot {
   /** 当前帖子的 status id（取不到时为空） */
   postId: string | null;
   author: string;
-  /** 最终用于朗读的 BCP-47 语种标签，如 en / zh / ja */
+  /** 实际用于朗读的语种：翻译开启时是目标语言 */
   lang: string;
   /** 语种是怎么判出来的，便于排查误判 */
   langSource: 'dom' | 'script' | 'cld' | 'fallback';
+  /** 这条帖子被翻译过的话，这里是原文语言；否则为 null */
+  translatedFrom: string | null;
   /** 当前正在读的这一句 */
   sentence: string;
   sentenceIndex: number;
@@ -24,6 +41,10 @@ export interface ReaderSnapshot {
   charIndex: number;
   /** 给用户看的提示（跳过广告、已到底等） */
   message: string;
+  /** 非 null 时表示需要用户点一下才能下载语言包 */
+  pendingPack: PendingLanguagePack | null;
+  /** 语言包下载进度 0~1；null 表示当前没在下载 */
+  packProgress: number | null;
 }
 
 /** TTS 音色（对我们的场景只暴露需要的字段） */

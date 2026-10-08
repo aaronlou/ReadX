@@ -4,6 +4,7 @@ import { Reader } from '@/core/reader';
 import { probePageContexts } from '@/diagnostics/pageProbe';
 import { DEV_MATCHES, X_MATCHES } from '@/matches';
 import { getSettings, watchSettings } from '@/settings';
+import { ChromeTranslatorProvider } from '@/translate/chromeTranslator';
 import { WebSpeechProvider } from '@/tts/webSpeech';
 import type { ReaderCommand, RuntimeMessage } from '@/types';
 import { Overlay } from './Overlay';
@@ -23,7 +24,8 @@ export default defineContentScript({
     await tts.ensureReady();
 
     const initialSettings = await getSettings();
-    const reader = new Reader(tts, initialSettings);
+    // 设备端翻译：需要用户手势才能下载语言包，所以只在这里实例化，由 UI 触发 prepare
+    const reader = new Reader(tts, new ChromeTranslatorProvider(), initialSettings);
 
     // 设置变化（来自 popup 或控制条）实时同步给朗读器
     watchSettings((next) => reader.setSettings(next));
