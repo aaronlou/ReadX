@@ -50,7 +50,6 @@ export class Reader {
 
   private epoch = 0;
   private abort: AbortController | null = null;
-  private state: ReaderState = 'idle';
   private focusPost: HTMLElement | null = null;
   private followUser = false;
   private snap: ReaderSnapshot = { ...EMPTY_SNAPSHOT };
@@ -58,6 +57,19 @@ export class Reader {
   constructor(tts: TtsProvider, settings: ReadXSettings) {
     this.tts = tts;
     this.settings = settings;
+  }
+
+  /**
+   * 状态只有一份 —— 快照里的那个。
+   *
+   * ⚠️ 这里曾经是一个独立的字段，结果所有状态变更都走 `patch({ state })`（只写快照），
+   * 没人写这个字段，于是它永远是初始值 'idle'：
+   * `isActive` 恒为 false → `next()` 每次都走 `!isActive` 分支去调 `start()`，
+   * 而 `start()` 会重新锚定到**当前这条**帖子 → 「下一条」表现为重读当前条。
+   * 同理暂停也失效。改成 getter 之后，读写只有一处，不可能再走岔。
+   */
+  private get state(): ReaderState {
+    return this.snap.state;
   }
 
   get snapshot(): ReaderSnapshot {
@@ -108,30 +120,33 @@ export class Reader {
     this.abort = null;
     this.tts.stop();
     this.setFocus(null);
-    this.state = 'idle';
+    // EMPTY_SNAPSHOT 的 state 就是 'idle'，不需要单独再赋一次
     this.push({ ...EMPTY_SNAPSHOT });
   }
 
   /** 跳到下一条 */
   async next(): Promise<void> {
-    if (!this.isActive) {
+    const from = this.focusPost;
+
+    // 刻意**不**检查 isActive：只要还记得"刚才读到哪一条"，就应该从它往后走。
+    // 曾经这里写的是 `if (!isActive) return this.start()`，而 start() 会用
+    // postAtAnchor 重新锚定 —— 刚读完的那条正好停在锚线上，于是会被再读一遍，
+    // 听感上就是「点了下一条没反应」。
+    if (!from || !from.isConnected) {
       await this.start();
       return;
     }
 
-    const from = this.focusPost;
     this.cancelCurrent();
 
-    if (!from || !from.isConnected) {
-      const atAnchor = this.pickStartPost();
-      if (!atAnchor) return this.halt('error', '没有找到可读的帖子。');
-      await this.run(atAnchor);
-      return;
+    let target = relativeOrder(from, 1, this.settings.anchorRatio);
+    if (!target) {
+      // 已渲染的帖子里没有下一条 → 往下滚一屏触发 X 的无限加载。
+      // 这一步要等网络，先给用户一个可见的反馈，避免"点了没动静"。
+      this.patch({ message: '正在加载更多帖子…' });
+      target = await this.loadMoreThenPick(from);
     }
-
-    const target = relativeOrder(from, 1, this.settings.anchorRatio)
-      ?? (await this.loadMoreThenPick(from))
-      ?? this.pickStartPost();
+    if (!target) target = this.pickStartPost();
 
     if (!target || keyOf(target) === keyOf(from)) {
       this.halt('idle', '已经到时间线末尾了。');
@@ -330,13 +345,20 @@ export class Reader {
     return next;
   }
 
-  private async loadMoreThenPick(from: HTMLElement): Promise<HTMLElement | null> {
+  /**
+   * 滚一屏，等 X 把下一批帖子渲染出来。
+   *
+   * timeout 刻意比自动推进时短：这是用户**主动点了「下一条」**之后的等待，
+   * 让他盯着屏幕干等 3.5 秒是不可接受的。自动推进那条路径用的是 advance()，
+   * 那里可以等久一点。
+   */
+  private async loadMoreThenPick(from: HTMLElement, timeout = 1500): Promise<HTMLElement | null> {
     const before = renderedPosts().length;
     window.scrollBy({ top: Math.round(window.innerHeight * 0.9), behavior: 'smooth' });
     await waitForScrollIdle();
-    await waitForMorePosts(before, { timeout: 3500 });
+    await waitForMorePosts(before, { timeout });
 
-    const candidate = relativeOrder(from, 1, this.settings.anchorRatio) ?? postAtAnchor(this.settings.anchorRatio);
+    const candidate = relativeOrder(from, 1, this.settings.anchorRatio) ?? this.pickStartPost();
     if (candidate && keyOf(candidate) !== keyOf(from)) return candidate;
     return null;
   }
