@@ -108,12 +108,26 @@ npm run mock
 回答的问题：**这台机器到底能不能跑设备端翻译。**
 它会显示 Chrome 版本、API 是否存在、`availability` 状态，并且可以**真的下载语言包并翻译一句话**（下载必须在按钮点击里触发，这正是 `Translator.create()` 的硬性要求）。
 
-**⚠️ 已知问题：`Translator.create()` 可能永远挂起。** 表现为一直停在"下载中"、连一次 `downloadprogress` 事件都收不到。
-这不是代码问题 —— 内置翻译模型和 Gemini Nano 是**两套独立组件**，需要在 Chrome 里单独确认。页面内置了带超时的日志和排查指引，另外：
+#### 实测结论（2026-10，Chrome 153 / macOS）
+
+| 项目 | 结果 |
+| --- | --- |
+| `typeof Translator` | `function` |
+| `Translator.availability(en→zh)` | `downloadable` → 下载后变 `available` |
+| `LanguageDetector.availability()` | `available` |
+| 首次下载 en→zh 语言包 | **12.2 秒**，136 次 `downloadprogress` 事件（约 11 次/秒，进度条很顺） |
+| 翻译质量 | 可用（"获得创业想法的最好方法是不要考虑创业的想法。它是寻找问题，最好是你自己遇到的问题。"） |
+
+👉 **产品含义：首次使用必须给用户一个可见的下载进度，否则会有十几秒的"点了没反应"。**
+这个下载是**一次性**的，之后 `availability` 直接是 `available`。另外 `downloadprogress` 的 `e.loaded` 是 0~1 的**比例**（不是字节数），`total` 恒为 1。
+
+#### 如果卡在「下载中」
+
+排查页会带超时和日志，能区分「一次进度事件都没收到」（下载没启动）和「收到了但走不动」（被拦）。另外：
 
 - `chrome://on-device-translation-internals` —— 列出所有语言包，**支持手动下载**，并显示下载失败的原因。
   翻译需要源语言和目标语言**两个包都装**（如 en 和 zh）。**如果这个页面打不开或为空，说明本机根本不支持内置翻译。**
-- `chrome://flags/#translation-api` —— 「Experimental translation API」需设为 Enabled（若 154 已无此项，说明特性已转正）
+- `chrome://flags/#translation-api` —— 「Experimental translation API」需设为 Enabled（若已无此项，说明特性已转正）
 - `chrome://components` —— 找 Translation / Optimization Guide 相关条目，检查更新；版本停在 `0.0.0.0` 就是组件没下发
 
 页面上的「对比测试：语言检测模型」按钮可以区分故障范围：语言检测模型小得多，
@@ -279,8 +293,11 @@ X 是 React 管理的，往里插节点随时会被重渲染冲掉。
 
 ## 下一步（P2+）
 
-- [ ] **能力检测先行**：用上面两个工具确认 `Translator` API 的可用性，再决定翻译放在哪一层
+- [x] **机器可用性已验证**：这台机器上设备端翻译可用（见上表）。**还剩一个问题**：
+  内容脚本的 isolated world 里能不能拿到 `Translator` —— 用扩展的「能力检测」页确认，这决定翻译放在哪一层
 - [ ] `TranslationProvider` 接口 + `readingLang` 设置（`'auto'` | 指定语言），与音色绑定保持正交
+- [ ] **首次使用的语言包下载 UX**：实测要 12 秒，必须有可见进度，不能让用户以为卡死了
+      （而且 `Translator.create()` 触发下载**必须在用户手势里**，所以放在控制条的按钮上最自然）
 - [ ] `ChromeTranslatorProvider`：语言包准备 / 下载进度 UI + 翻译预取队列（翻译延迟会直接毁掉听感）
 - [ ] `LlmTranslateProvider`：自备 Key，社媒文本（俚语 / 反讽 / 梗）的译文质量明显更好
 - [ ] 预取队列显式化（当前是逐条推进，靠 X 自身加载速度）

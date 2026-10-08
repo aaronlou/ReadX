@@ -89,6 +89,7 @@
       <div class="card">
         <p class="sub" style="margin:0">
           首次使用需要下载语言包，<b>必须在按钮点击里触发</b>（<code>Translator.create()</code> 的硬性要求）。
+          下载是<b>一次性</b>的：实测 en→zh 约 12 秒，之后会直接变成 <code>available</code>。
           下面每一步都会打日志，卡住也能看出卡在哪。
         </p>
 
