@@ -36,6 +36,17 @@ export function relativeOrder(post: HTMLElement, dir: 1 | -1, ratio: number): HT
 }
 
 /**
+ * 取某条帖子之后、**当前已经渲染出来**的若干条。
+ * 给翻译预取用：正在朗读第 N 条时，把后面几条先翻好。
+ */
+export function postsAfter(post: HTMLElement, count: number): HTMLElement[] {
+  const posts = renderedPosts();
+  const i = posts.indexOf(post);
+  if (i < 0) return [];
+  return posts.slice(i + 1, i + 1 + count);
+}
+
+/**
  * 帖子的稳定身份。
  * 优先用 status id —— React 复用 DOM 节点时也能正确分辨；
  * 少数没有永久链接的帖子（推广位等）退化成一次性编号。

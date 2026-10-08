@@ -142,6 +142,10 @@ class FakeTranslation implements TranslationProvider {
     this.translated.push({ text, from, to });
     return `【译】${text}`;
   }
+  /** 某段文本被翻译了几次 —— 用来验证缓存/预取去重 */
+  countFor(text: string): number {
+    return this.translated.filter((t) => t.text === text).length;
+  }
   dispose() {}
 }
 
@@ -440,5 +444,104 @@ describe('Reader 翻译', () => {
     expect(reader.snapshot.lang).toBe('en');
     expect(tts.spoken.join(' ')).toContain('The best way to get startup ideas');
     expect(messages.some((m) => /翻译失败/.test(m))).toBe(true);
+  });
+});
+
+describe('Reader 翻译预取', () => {
+  // 三条都是非中文的帖子，readingLang=zh 时都需要翻译
+  // （as const 让下标访问有确定的类型，否则 noUncheckedIndexedAccess 会当成可能 undefined）
+  const ALL_FOREIGN = [SEED[0]!, SEED[2]!, SEED[3]!] as const;
+  const FIRST_TEXT = ALL_FOREIGN[0].text as string;
+  const SECOND_TEXT = ALL_FOREIGN[1].text as string;
+  const THIRD_TEXT = ALL_FOREIGN[2].text as string;
+
+  it('朗读当前条时就把后面几条翻好，避免每条之间卡一次翻译', async () => {
+    const posts = buildTimeline([...ALL_FOREIGN]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    tts.autoFinish = false; // 卡在第一条，模拟"正在朗读"
+    const translation = new FakeTranslation();
+    const reader = makeReader(tts, translation, { readingLang: 'zh' });
+
+    void reader.start();
+    await flush(40);
+
+    // 第 0 条正在读，后面两条的翻译这时候应该已经做好了
+    expect(translation.countFor(SECOND_TEXT)).toBe(1);
+    expect(translation.countFor(THIRD_TEXT)).toBe(1);
+  });
+
+  it('真的读到那一条时命中缓存，不会重复翻译', async () => {
+    const posts = buildTimeline([...ALL_FOREIGN]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const translation = new FakeTranslation();
+    const reader = makeReader(tts, translation, { readingLang: 'zh' });
+
+    await reader.start(); // 读完第 0 条后停住（autoAdvance 关）
+
+    const before = translation.countFor(SECOND_TEXT);
+
+    await reader.next(); // 手动推进到第 1 条
+
+    expect(translation.countFor(SECOND_TEXT)).toBe(before);
+    expect(reader.snapshot.lang).toBe('zh');
+  });
+
+  it('预取绝不触发语言包下载 —— 后台行为没有用户手势', async () => {
+    // 第 0 条本来就是中文（不需要翻译，能正常读下去），
+    // 第 1 条是英文且语言包没下载
+    const posts = buildTimeline([SEED[1]!, SEED[0]!]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const translation = new FakeTranslation();
+    translation.readinessValue = 'need-download';
+    const reader = makeReader(tts, translation, { readingLang: 'zh' });
+
+    await reader.start();
+
+    // 中文那条照常读出来了
+    expect(tts.spoken.join(' ')).toContain('技术的价值');
+
+    // 但预取碰到 need-download 必须直接跳过：既不能翻译，更不能触发下载
+    expect(translation.translated).toHaveLength(0);
+    expect(translation.prepareCalls).toHaveLength(0);
+  });
+
+  it('readingLang=auto 时不做任何预取', async () => {
+    const posts = buildTimeline([...ALL_FOREIGN]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    tts.autoFinish = false;
+    const translation = new FakeTranslation();
+    const reader = makeReader(tts, translation);
+
+    void reader.start();
+    await flush(40);
+
+    expect(translation.translated).toHaveLength(0);
+  });
+
+  it('文本相同的帖子只翻一次（转推 / 重复帖）', async () => {
+    // 两条帖子正文完全一样，只是 id 不同
+    const posts = buildTimeline([
+      { ...SEED[0]!, id: '9001' },
+      { ...SEED[0]!, id: '9002' },
+    ]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    tts.autoFinish = false;
+    const translation = new FakeTranslation();
+    const reader = makeReader(tts, translation, { readingLang: 'zh' });
+
+    void reader.start();
+    await flush(40);
+
+    expect(translation.countFor(FIRST_TEXT)).toBe(1);
   });
 });

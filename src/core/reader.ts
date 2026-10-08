@@ -8,6 +8,7 @@ import { extractPost, type PostData } from '../x/extract';
 import {
   keyOf,
   postAtAnchor,
+  postsAfter,
   relativeOrder,
   renderedPosts,
   scrollToPost,
@@ -18,6 +19,12 @@ import { splitSentences } from './text';
 
 /** 两条帖子之间的停顿，避免听起来像连读 */
 const INTER_POST_DELAY = 320;
+
+/** 正在朗读第 N 条时，提前把后面这几条的翻译做掉 */
+const PREFETCH_AHEAD = 2;
+
+/** 翻译缓存上限，超出后按插入顺序淘汰（FIFO） */
+const TRANSLATION_CACHE_LIMIT = 60;
 
 const EMPTY_SNAPSHOT: ReaderSnapshot = {
   state: 'idle',
@@ -76,6 +83,17 @@ export class Reader {
   private settings: ReadXSettings;
   /** 等用户手势下载语言包时，记着要回到哪一条帖子 */
   private pendingPack: PendingPackState | null = null;
+
+  /**
+   * 翻译结果缓存。
+   *
+   * key 直接用原文而不是哈希 —— 缓存很小（上限几十条），
+   * 用原文可以彻底排除哈希碰撞导致"读到别人的译文"这种极难排查的错误。
+   */
+  private readonly translationCache = new Map<string, string>();
+  /** 正在翻译中的任务：预取和正式朗读撞上同一段文本时复用同一次调用 */
+  private readonly translationInflight = new Map<string, Promise<string>>();
+  private prefetchAbort: AbortController | null = null;
 
   private epoch = 0;
   private abort: AbortController | null = null;
@@ -151,6 +169,8 @@ export class Reader {
     this.tts.stop();
     this.setFocus(null);
     this.pendingPack = null;
+    this.prefetchAbort?.abort();
+    this.prefetchAbort = null;
     // EMPTY_SNAPSHOT 的 state 就是 'idle'，不需要单独再赋一次
     this.push({ ...EMPTY_SNAPSHOT });
   }
@@ -259,6 +279,10 @@ export class Reader {
       const plan = await this.planSpeech(data, lang, myEpoch, signal);
       // 语言包没备好 → 已经挂起等用户点按钮；循环到此为止，避免继续往下滚
       if (!plan) return;
+
+      // 趁这一条还在读，把后面几条先翻好。不这样做的话，
+      // 每条帖子之间都会卡一次翻译延迟，连续听下去就断了。
+      this.startPrefetch(post, myEpoch);
 
       const script = this.buildScript(data, plan.lang, plan.text, plan.quotedText);
       if (!script.length) {
@@ -455,14 +479,9 @@ export class Reader {
 
     try {
       const [text, quotedText] = await Promise.all([
-        this.translation.translate({ text: data.text, from: detectedLang, to: target, signal }),
+        this.translateCached(data.text, detectedLang, target, signal),
         data.quotedText
-          ? this.translation.translate({
-              text: data.quotedText,
-              from: detectedLang,
-              to: target,
-              signal,
-            })
+          ? this.translateCached(data.quotedText, detectedLang, target, signal)
           : Promise.resolve(''),
       ]);
       if (this.stale(myEpoch, signal)) return null;
@@ -477,6 +496,110 @@ export class Reader {
     } catch (error) {
       console.warn('[ReadX] 翻译失败，改读原文', error);
       return { ...original, note: '翻译失败，读原文' };
+    }
+  }
+
+  /**
+   * 带缓存的翻译。
+   *
+   * 两层去重：
+   *   1. 结果缓存 —— 同一条帖子（转推、重复帖）不重复翻
+   *   2. in-flight 复用 —— 预取和正式朗读撞上同一段文本时共用一次调用
+   */
+  private async translateCached(
+    text: string,
+    from: string,
+    to: string,
+    signal?: AbortSignal,
+  ): Promise<string> {
+    const key = `${from}\u0000${to}\u0000${text}`;
+
+    const cached = this.translationCache.get(key);
+    if (cached !== undefined) return cached;
+
+    const inflight = this.translationInflight.get(key);
+    if (inflight) return inflight;
+
+    const pending = this.translation
+      .translate({ text, from, to, signal })
+      .then((value) => {
+        this.remember(key, value);
+        return value;
+      })
+      .finally(() => {
+        this.translationInflight.delete(key);
+      });
+
+    this.translationInflight.set(key, pending);
+    return pending;
+  }
+
+  private remember(key: string, value: string): void {
+    this.translationCache.set(key, value);
+    while (this.translationCache.size > TRANSLATION_CACHE_LIMIT) {
+      const oldest = this.translationCache.keys().next().value;
+      if (oldest === undefined) break;
+      this.translationCache.delete(oldest);
+    }
+  }
+
+  /**
+   * 预取后面几条帖子的翻译。
+   *
+   * 有意做成"每次成功规划一条就重开一批"：上一批跑完 prefetchAbort 会被清空，
+   * 推进到下一条时自然会覆盖新的窗口。
+   */
+  private startPrefetch(from: HTMLElement, myEpoch: number): void {
+    const target = this.settings.readingLang;
+    if (!target || target === 'auto') return;
+    if (!this.translation.isSupported()) return;
+    // 已经有一批在跑，它覆盖的窗口就够用了
+    if (this.prefetchAbort) return;
+
+    const upcoming = postsAfter(from, PREFETCH_AHEAD);
+    if (!upcoming.length) return;
+
+    const controller = new AbortController();
+    this.prefetchAbort = controller;
+    const { signal } = controller;
+
+    void (async () => {
+      for (const post of upcoming) {
+        if (signal.aborted || myEpoch !== this.epoch) break;
+        try {
+          await this.prefetchOne(post, target, signal);
+        } catch {
+          // 预取失败不影响任何事 —— 真读到那一条时还会再试一次
+        }
+      }
+    })().finally(() => {
+      if (this.prefetchAbort === controller) this.prefetchAbort = null;
+    });
+  }
+
+  private async prefetchOne(
+    post: HTMLElement,
+    target: string,
+    signal: AbortSignal,
+  ): Promise<void> {
+    const data = extractPost(post);
+    if (data.isEmpty) return;
+
+    const detected = await detectLanguage(data.text, data.domLang);
+    if (signal.aborted) return;
+    if (isSameLanguage(detected.lang, target)) return;
+
+    const readiness = await this.translation.readiness(detected.lang, target);
+    if (signal.aborted) return;
+
+    // ⚠️ 只预取**已经就绪**的语言对。
+    // need-download 绝不能在这里触发 —— 语言包下载必须由用户手势发起，
+    // 而预取是后台行为，没有手势，会直接抛 NotAllowedError。
+    if (readiness !== 'ready') return;
+
+    await this.translateCached(data.text, detected.lang, target, signal);
+    if (data.quotedText) {
+      await this.translateCached(data.quotedText, detected.lang, target, signal);
     }
   }
 
@@ -543,8 +666,10 @@ export class Reader {
     this.abort?.abort();
     this.abort = null;
     this.tts.stop();
-    // 换帖子/换指令之后，之前挂起的"等语言包"就失效了
+    // 换帖子/换指令之后，之前挂起的"等语言包"和预取都失效了
     this.pendingPack = null;
+    this.prefetchAbort?.abort();
+    this.prefetchAbort = null;
     this.patch({ pendingPack: null, packProgress: null });
   }
 
