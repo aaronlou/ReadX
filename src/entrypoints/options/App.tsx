@@ -127,7 +127,7 @@ export default function App() {
           <li>
             <b className="text-slate-200">isolated world 是 undefined，但 MAIN world 是 function</b>{' '}
             → 退路明确：把翻译放进 MAIN world 脚本，用 DOM 事件桥回内容脚本
-            （`mainWorldProbe.content.ts` 已经是这个桥的雏形）。代价是 MAIN world 拿不到{' '}
+            （`main-world-probe.content.ts` 已经是这个桥的雏形）。代价是 MAIN world 拿不到{' '}
             <code className="text-slate-300">chrome.*</code>。
           </li>
           <li>
@@ -137,12 +137,63 @@ export default function App() {
           <li>
             <code className="text-slate-300">availability</code> 返回{' '}
             <code className="text-slate-300">unavailable</code> → API 在但硬件不达标（官方门槛：
-            16GB 内存 / 22GB 空闲磁盘 / 4 核以上）。可以到{' '}
-            <code className="text-slate-300">chrome://on-device-internals</code> 看详情。
+            16GB 内存 / 22GB 空闲磁盘 / 4 核以上）。
           </li>
         </ul>
       </Section>
+
+      <Section
+        title="4. 如果「准备语言包」一直卡在下载中"
+        hint="内置翻译模型和 Gemini Nano 是两套东西，需要单独确认"
+      >
+        <ol className="list-decimal space-y-2.5 pl-5 text-sm text-slate-400">
+          <li>
+            确认实验性翻译 API 已启用：新标签页打开 <ChromeUrl value="chrome://flags/#translation-api" />
+            ，把「Experimental translation API」设为 <b className="text-slate-200">Enabled</b> 后重启
+            Chrome。若找不到这个条目，说明该特性已转正，跳过即可。
+          </li>
+          <li>
+            直接看语言包装没装：新标签页打开{' '}
+            <ChromeUrl value="chrome://on-device-translation-internals" />
+            ，这个页面会列出所有语言包、支持手动下载，并显示下载失败的原因。
+            翻译需要源语言和目标语言<b className="text-slate-200">两个包都装</b>（例如 en 和 zh）。
+            <br />
+            <span className="text-slate-500">
+              如果这个页面打不开或没有内容，说明这台机器/这个版本根本不支持内置翻译。
+            </span>
+          </li>
+          <li>
+            顺带看一眼组件状态：<ChromeUrl value="chrome://components" />
+            ，找与 Translation / Optimization Guide 相关的条目点「检查是否有更新」。
+            版本停在 <code className="text-slate-300">0.0.0.0</code> 就是组件压根没下发。
+          </li>
+        </ol>
+      </Section>
     </div>
+  );
+}
+
+/**
+ * chrome:// 链接不能从网页里直接点开（Chrome 会拦），所以做成复制按钮 ——
+ * 复制完粘到地址栏是最省事也最可靠的做法。
+ */
+function ChromeUrl({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <span className="whitespace-nowrap">
+      <code className="text-sky-300">{value}</code>
+      <button
+        type="button"
+        onClick={() => {
+          void navigator.clipboard.writeText(value);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1200);
+        }}
+        className="ml-1 cursor-pointer rounded border border-slate-700 px-1.5 py-0.5 text-[11px] text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-200"
+      >
+        {copied ? '已复制' : '复制'}
+      </button>
+    </span>
   );
 }
 
