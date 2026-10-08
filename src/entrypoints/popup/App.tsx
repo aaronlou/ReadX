@@ -240,6 +240,14 @@ export default function App() {
           <p className="pt-1 text-[11px] leading-relaxed text-slate-500">
             快捷键：Alt+Shift+P 播放/暂停 · Alt+Shift+N 下一条 · Alt+Shift+B 上一条
           </p>
+
+          <button
+            type="button"
+            onClick={() => void browser.runtime.openOptionsPage()}
+            className="w-full cursor-pointer rounded-lg border border-white/10 px-3 py-2 text-left text-[11px] text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-200"
+          >
+            能力检测 · 检查本机是否支持设备端翻译 →
+          </button>
         </section>
       )}
     </div>

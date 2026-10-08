@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReadX · 设备端翻译能力检测</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; padding: 32px 20px 64px;
+        background: #0b1120; color: #e2e8f0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+        line-height: 1.6;
+      }
+      .wrap { max-width: 760px; margin: 0 auto; }
+      h1 { font-size: 22px; margin: 0 0 4px; }
+      h2 { font-size: 15px; margin: 28px 0 10px; color: #94a3b8; font-weight: 600; }
+      .sub { color: #64748b; font-size: 13px; margin: 0 0 8px; }
+      .card {
+        background: #111c33; border: 1px solid #1e293b;
+        border-radius: 12px; padding: 16px; margin-top: 10px;
+      }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      td { padding: 5px 0; vertical-align: top; }
+      td:first-child { color: #94a3b8; width: 46%; }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px; background: #0b1120; padding: 2px 6px; border-radius: 5px;
+      }
+      .ok   { color: #34d399; font-weight: 600; }
+      .bad  { color: #fb7185; font-weight: 600; }
+      .warn { color: #fbbf24; font-weight: 600; }
+      .muted { color: #64748b; }
+      button {
+        cursor: pointer; border: 0; border-radius: 9px; padding: 9px 16px;
+        font-size: 13px; font-weight: 600; background: #10b981; color: #06281f;
+      }
+      button:hover { background: #34d399; }
+      button:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+      textarea {
+        width: 100%; min-height: 74px; resize: vertical; padding: 10px 12px;
+        border-radius: 9px; border: 1px solid #1e293b; background: #0b1120;
+        color: #e2e8f0; font-size: 13px; font-family: inherit;
+      }
+      .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+      .bar { height: 6px; border-radius: 99px; background: #1e293b; overflow: hidden; flex: 1; min-width: 140px; }
+      .bar > i { display: block; height: 100%; width: 0; background: #10b981; transition: width .2s; }
+      .verdict {
+        font-size: 14px; padding: 14px 16px; border-radius: 12px; margin-top: 8px;
+        border: 1px solid #1e293b; background: #111c33;
+      }
+      pre {
+        white-space: pre-wrap; word-break: break-word; font-size: 12px;
+        background: #0b1120; border: 1px solid #1e293b; border-radius: 9px;
+        padding: 12px; margin: 10px 0 0; max-height: 260px; overflow: auto;
+      }
+      ol { padding-left: 20px; font-size: 13px; color: #94a3b8; }
+      li { margin: 4px 0; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>设备端翻译能力检测</h1>
+      <p class="sub">
+        ReadX 计划用 Chrome 138+ 内置的 <code>Translator</code> API 做翻译 ——
+        免费、离线、内容不出设备。这个页面用来确认你的浏览器和硬件到底支不支持。
+      </p>
+
+      <div class="verdict" id="verdict">正在检测…</div>
+
+      <h2>1. 环境</h2>
+      <div class="card"><table id="env"></table></div>
+
+      <h2>2. API 可用性</h2>
+      <div class="card"><table id="api"></table></div>
+
+      <h2>3. 真实翻译测试</h2>
+      <div class="card">
+        <p class="sub" style="margin:0 0 8px">
+          第一次需要下载语言包（几十 MB），<b>必须在按钮点击里触发</b>——这正是
+          <code>Translator.create()</code> 的硬性要求。
+        </p>
+        <div class="row">
+          <span class="muted" style="font-size:13px">en →</span>
+          <select id="target" style="padding:8px 10px;border-radius:9px;border:1px solid #1e293b;background:#0b1120;color:#e2e8f0;font-size:13px">
+            <option value="zh">zh 中文</option>
+            <option value="ja">ja 日本語</option>
+            <option value="ko">ko 한국어</option>
+            <option value="fr">fr Français</option>
+            <option value="es">es Español</option>
+            <option value="de">de Deutsch</option>
+            <option value="ru">ru Русский</option>
+          </select>
+          <button id="prepare">准备语言包并翻译</button>
+        </div>
+        <div class="row" id="progressRow" style="display:none">
+          <span class="muted" style="font-size:12px">下载中…</span>
+          <span class="bar"><i id="progressBar"></i></span>
+          <span class="muted" id="progressText" style="font-size:12px;min-width:42px"></span>
+        </div>
+        <div class="row">
+          <textarea id="source">The best way to get startup ideas is not to think of startup ideas. It is to look for problems, preferably problems you have yourself.</textarea>
+        </div>
+        <div class="row"><button id="translate" disabled>翻译这段文字</button></div>
+        <pre id="result">（还没有结果）</pre>
+      </div>
+
+      <h2>怎么解读</h2>
+      <ol>
+        <li><b>API 可用性</b>里 <code>Translator</code> 是 <code>undefined</code> → 你的 Chrome 太旧（需要 138+），或这不是桌面版。</li>
+        <li>是 <code>function</code> 但 <code>availability</code> 返回 <code>unavailable</code> → API 在，但硬件不达标（官方门槛：16GB 内存 / 22GB 空闲磁盘 / 4 核以上）。</li>
+        <li><code>downloadable</code> → 完全没问题，点上面的按钮下载语言包即可。</li>
+        <li><code>available</code> → 已经准备好了，直接翻译。</li>
+      </ol>
+      <p class="sub">
+        注意：这个页面测的是<b>普通网页</b>上下文。扩展的内容脚本跑在 isolated world 里，
+        能不能用需要另一个检测（ReadX 扩展的「能力检测」页）。
+      </p>
+    </div>
+
+    <script>
+      // 刻意保持零依赖、单文件：这个页面要能在最朴素的环境下打开（甚至 file://）。
+      // 扩展侧有一份等价的 TypeScript 实现 src/diagnostics/probe.ts，
+      // 两边结论应保持一致；改动时请同步。
+
+      const $ = (id) => document.getElementById(id);
+
+      function kindOf(v) {
+        if (v === undefined) return 'undefined';
+        if (v === null) return 'null';
+        return typeof v;
+      }
+
+      function row(label, value, cls) {
+        return `<tr><td>${label}</td><td class="${cls || ''}">${value}</td></tr>`;
+      }
+
+      function renderEnv() {
+        const ua = navigator.userAgent;
+        const chromeVer = ua.match(/Chrome\/(\d+)/)?.[1] ?? '(未知)';
+        $('env').innerHTML = [
+          row('Chrome 版本', `${chromeVer} <span class="muted">${Number(chromeVer) >= 138 ? '（≥138，要求满足）' : '（<138，不支持内置 AI）'}</span>`, Number(chromeVer) >= 138 ? 'ok' : 'bad'),
+          row('Secure Context', String(isSecureContext), isSecureContext ? 'ok' : 'bad'),
+          row('页面地址', `<code>${location.href}</code>`),
+          row('CPU 核心数', String(navigator.hardwareConcurrency ?? '(未知)')),
+          row('设备内存', navigator.deviceMemory ? `${navigator.deviceMemory} GB (粗粒度)` : '(浏览器未暴露)'),
+        ].join('');
+      }
+
+      async function renderApi() {
+        const g = globalThis;
+        const names = ['Translator', 'LanguageDetector', 'LanguageModel', 'Summarizer'];
+        const rows = names.map((n) => {
+          const k = kindOf(g[n]);
+          return row(`<code>${n}</code>`, k, k === 'undefined' ? 'bad' : 'ok');
+        });
+
+        let translatorAvail = 'API 不存在';
+        let ldAvail = 'API 不存在';
+        let detail = '';
+
+        if (g.Translator?.availability) {
+          try {
+            translatorAvail = String(await g.Translator.availability({ sourceLanguage: 'en', targetLanguage: 'zh' }));
+          } catch (e) {
+            translatorAvail = `抛错：${e.name}`;
+            detail = String(e.message || e);
+          }
+        }
+        if (g.LanguageDetector?.availability) {
+          try {
+            ldAvail = String(await g.LanguageDetector.availability());
+          } catch (e) {
+            ldAvail = `抛错：${e.name}`;
+          }
+        }
+
+        const cls = (v) => (['available', 'downloadable', 'downloading'].includes(v) ? 'ok' : 'bad');
+        rows.push(row('<code>Translator.availability(en→zh)</code>', translatorAvail, cls(translatorAvail)));
+        rows.push(row('<code>LanguageDetector.availability()</code>', ldAvail, cls(ldAvail)));
+        if (detail) rows.push(row('错误详情', `<code>${detail}</code>`, 'bad'));
+        $('api').innerHTML = rows.join('');
+
+        renderVerdict(translatorAvail, ldAvail, navigator.userAgent.match(/Chrome\/(\d+)/)?.[1]);
+      }
+
+      function renderVerdict(translatorAvail, ldAvail, chromeVer) {
+        const el = $('verdict');
+        if (kindOf(globalThis.Translator) === 'undefined') {
+          const old = chromeVer && Number(chromeVer) < 138;
+          el.innerHTML = old
+            ? '<b class="bad">不支持。</b> 你的 Chrome 是 ' + chromeVer + '，内置 Translator API 需要 138 以上（桌面版）。ReadX 会退回到「读原文」或需要配置云翻译。'
+            : '<b class="bad">不支持。</b> 当前浏览器没有暴露 <code>Translator</code>。可能是非桌面版、非 Chrome/Edge 内核，或该特性被策略关闭。';
+          return;
+        }
+        if (translatorAvail === 'available' || translatorAvail === 'downloadable' || translatorAvail === 'downloading') {
+          el.innerHTML =
+            '<b class="ok">太好了，你这台机器完全支持设备端翻译。</b> ' +
+            '状态是 <code>' + translatorAvail + '</code>' +
+            (translatorAvail === 'available' ? '（语言包已就绪）' : '（点下面的按钮下载语言包即可）') +
+            '。ReadX 会把它作为默认翻译引擎：免费、离线、内容不出设备。';
+          return;
+        }
+        el.innerHTML =
+          '<b class="warn">API 在，但当前不可用。</b> 状态是 <code>' + translatorAvail + '</code>。' +
+          '通常是硬件没达到官方门槛（16GB 内存 / 22GB 空闲磁盘 / 4 核以上），' +
+          '或 Chrome 组件被禁用。可以到 <code>chrome://on-device-internals</code> 看详情。';
+      }
+
+      // ---- 真实翻译测试 ----
+
+      let translator = null;
+
+      $('prepare').addEventListener('click', async () => {
+        const target = $('target').value;
+        const btn = $('prepare');
+        const opts = { sourceLanguage: 'en', targetLanguage: target };
+
+        btn.disabled = true;
+        $('result').textContent = '正在准备…';
+        $('progressRow').style.display = 'flex';
+
+        try {
+          translator = await Translator.create({
+            ...opts,
+            monitor(m) {
+              m.addEventListener('downloadprogress', (e) => {
+                const pct = Math.round((e.loaded ?? 0) * 100);
+                $('progressBar').style.width = pct + '%';
+                $('progressText').textContent = pct + '%';
+              });
+            },
+          });
+          $('result').textContent = '语言包已就绪 ✓ 现在可以点「翻译这段文字」。';
+          $('translate').disabled = false;
+        } catch (e) {
+          $('result').textContent = '失败：' + e.name + ' — ' + e.message +
+            '\n\n如果是 NotAllowedError，说明下载没有在用户手势里触发（或者已经被中断）。';
+        } finally {
+          $('progressRow').style.display = 'none';
+          btn.disabled = false;
+        }
+      });
+
+      $('translate').addEventListener('click', async () => {
+        if (!translator) return;
+        const btn = $('translate');
+        btn.disabled = true;
+        try {
+          const out = await translator.translate($('source').value);
+          $('result').textContent = out;
+        } catch (e) {
+          $('result').textContent = '翻译失败：' + e.name + ' — ' + e.message;
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      renderEnv();
+      renderApi();
+    </script>
+  </body>
+</html>

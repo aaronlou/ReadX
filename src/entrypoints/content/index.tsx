@@ -1,19 +1,17 @@
 import ReactDOM from 'react-dom/client';
 import { browser, createShadowRootUi, defineContentScript } from '#imports';
 import { Reader } from '@/core/reader';
+import { probePageContexts } from '@/diagnostics/pageProbe';
+import { DEV_MATCHES, X_MATCHES } from '@/matches';
 import { getSettings, watchSettings } from '@/settings';
 import { WebSpeechProvider } from '@/tts/webSpeech';
 import type { ReaderCommand, RuntimeMessage } from '@/types';
 import { Overlay } from './Overlay';
 import './style.css';
 
-const X_MATCHES = ['*://x.com/*', '*://twitter.com/*'];
-
 export default defineContentScript({
   // 开发环境额外匹配本地 mock 时间线页面，方便不登录 X 也能调试
-  matches: import.meta.env.DEV
-    ? [...X_MATCHES, '*://localhost/*', '*://127.0.0.1/*']
-    : X_MATCHES,
+  matches: import.meta.env.DEV ? DEV_MATCHES : X_MATCHES,
   cssInjectionMode: 'ui',
   runAt: 'document_idle',
 
@@ -54,6 +52,11 @@ export default defineContentScript({
           void handleCommand(reader, message.command);
           sendResponse({ ok: true });
           return undefined;
+        }
+        // 诊断页要求探测 isolated world / MAIN world 里内置 AI 的可见性
+        if (message?.type === 'readx:probe-page-contexts') {
+          void probePageContexts().then(sendResponse);
+          return true; // 异步响应
         }
         return undefined;
       },

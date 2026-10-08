@@ -38,6 +38,36 @@ export interface TtsVoice {
 /** 面板 / 快捷键发出的指令 */
 export type ReaderCommand = 'toggle' | 'next' | 'prev' | 'stop';
 
+// ---------------------------------------------------------------- 能力探测
+
+/** 探测发生在哪个 JS realm */
+export type ProbeContext = 'main-world' | 'isolated-world' | 'extension-page';
+
+export interface AiProbeReport {
+  context: ProbeContext;
+  url: string;
+  chromeVersion: string;
+  secureContext: boolean;
+  /** 各个内置 AI 全局对象的存在形态：'function' / 'undefined' … */
+  globals: Record<string, string>;
+  translatorAvailability: string;
+  languageDetectorAvailability: string;
+  at: string;
+}
+
+export interface ProbePageContextsResponse {
+  isolated: AiProbeReport;
+  mainWorld: AiProbeReport | null;
+}
+
+export interface TabProbeResult {
+  tabId: number;
+  isolated: AiProbeReport | null;
+  mainWorld: AiProbeReport | null;
+}
+
+// ---------------------------------------------------------------- 消息协议
+
 export interface DetectLanguageMessage {
   type: 'readx:detect-language';
   text: string;
@@ -52,10 +82,22 @@ export interface GetStateMessage {
   type: 'readx:get-state';
 }
 
+/** 扩展页面 → 内容脚本：在 isolated world + MAIN world 各探测一次 */
+export interface ProbePageContextsMessage {
+  type: 'readx:probe-page-contexts';
+}
+
+/** 扩展页面 → background：广播到所有标签页，收集页面上下文的探测结果 */
+export interface ProbeAllTabsMessage {
+  type: 'readx:probe-all-tabs';
+}
+
 export type RuntimeMessage =
   | DetectLanguageMessage
   | ReaderCommandMessage
-  | GetStateMessage;
+  | GetStateMessage
+  | ProbePageContextsMessage
+  | ProbeAllTabsMessage;
 
 export interface GetStateResponse {
   ok: boolean;

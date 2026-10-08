@@ -1,12 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'wxt';
-
-/**
- * 正式环境只注入 X 的两个域名，保持权限最小化，方便商店审核。
- * 开发环境额外注入本地 mock 时间线，这样不用登录 x.com 也能调试。
- */
-const X_MATCHES = ['*://x.com/*', '*://twitter.com/*'];
-const DEV_MATCHES = [...X_MATCHES, '*://localhost/*', '*://127.0.0.1/*'];
+import { DEV_MATCHES, X_MATCHES } from './src/matches';
 
 export default defineConfig({
   // 源码集中在 src/，WXT 内置的 `@` 别名正好指向 srcDir，
