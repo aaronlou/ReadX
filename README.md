@@ -44,6 +44,16 @@ npm run dev
 
 WXT 会自动打开一个装了本插件的 Chrome，**内容脚本支持热更新**——改完代码在 x.com 页面上直接生效，不用手动刷新。
 
+> **两个容易踩的坑（都已处理，但值得知道）：**
+>
+> - **`web-ext` 是 devDependencies 里的必需项。** WXT 靠它拉起浏览器；这个 import 失败时
+>   WXT 会**静默退化成「请手动加载」**，不报任何错。如果你看到 `Load ".output/chrome-mv3-dev" as an unpacked extension manually`，
+>   就是这个原因。手动加载也可以：`chrome://extensions` → 开发者模式 → 加载已解压的扩展程序 → 选 `.output/chrome-mv3-dev`。
+> - **dev 用的 Chrome profile 是持久化的**（`.chrome-profile/`，已 gitignore）。
+>   Chrome 内置 AI 的语言包存在 profile 里，web-ext 默认用临时 profile ——
+>   那样每次 `npm run dev` 都要重新下载一遍翻译模型（实测 12 秒）。
+>   顺带一提，这也意味着**手动加载到你自己常用的 Chrome 里，能直接复用它已下载的语言包**。
+
 ### 4. 不用登录 X 也能调试（推荐先跑这个）
 
 另开一个终端：

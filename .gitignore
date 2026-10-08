@@ -19,6 +19,11 @@ web-ext.config.ts
 .cache
 .tmp-npm-cache
 
+# npm run dev 拉起的 Chrome profile。
+# 必须持久化：Chrome 内置 AI 的语言包存在 profile 里，用临时 profile
+# 会导致每次 dev 都重新下载一遍翻译模型。
+.chrome-profile
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
