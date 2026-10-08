@@ -49,13 +49,20 @@ WXT 会自动打开一个装了本插件的 Chrome，**内容脚本支持热更�
 另开一个终端：
 
 ```bash
-npm run mock      # → http://localhost:5174
+npm run mock
 ```
 
-打开这个页面，你会看到一条**复刻了 X 真实 DOM 结构**的模拟时间线（含中/英/日/俄/阿/韩/西/法帖子、emoji、引用帖、纯图片帖、推广帖）。
-点右下角控制条的 ▶ 就能听到效果。
+它会打印两个地址：
 
-这条路径很重要：x.com 需要登录、难自动化，而 `playground/` 里的 DOM 结构和单元测试共用同一份"唯一真相"（`playground/fixtures/x-dom.js`），所以本地验证是有意义的。
+| 地址 | 用途 |
+| --- | --- |
+| http://localhost:5174 | **模拟时间线** —— 复刻了 X 真实 DOM 结构，含中/英/日/俄/阿/韩/西/法帖子、emoji、引用帖、纯图片帖、推广帖。点右下角控制条的 ▶ 就能听到效果 |
+| http://localhost:5174/probe.html | **设备端翻译能力检测** —— 见下文「翻译能力检测」 |
+
+按 `Ctrl+C` 停止。如果提示端口被占用，它会**自动改用下一个可用端口**并打印实际地址；
+想腾出原端口：`kill $(lsof -nP -iTCP:5174 -sTCP:LISTEN -t)`。
+
+这条调试路径很重要：x.com 需要登录、难自动化，而 `playground/` 里的 DOM 结构和单元测试共用同一份"唯一真相"（`playground/fixtures/x-dom.js`），所以本地验证是有意义的。
 
 ### 5. 在真实的 x.com 上使用
 
@@ -94,11 +101,23 @@ npm run zip       # 打包成可上传的 zip
 
 ```bash
 npm run mock
-# 然后打开 http://localhost:5174/probe.html
 ```
+
+打开 <http://localhost:5174/probe.html>。
 
 回答的问题：**这台机器到底能不能跑设备端翻译。**
 它会显示 Chrome 版本、API 是否存在、`availability` 状态，并且可以**真的下载语言包并翻译一句话**（下载必须在按钮点击里触发，这正是 `Translator.create()` 的硬性要求）。
+
+**⚠️ 已知问题：`Translator.create()` 可能永远挂起。** 表现为一直停在"下载中"、连一次 `downloadprogress` 事件都收不到。
+这不是代码问题 —— 内置翻译模型和 Gemini Nano 是**两套独立组件**，需要在 Chrome 里单独确认。页面内置了带超时的日志和排查指引，另外：
+
+- `chrome://on-device-translation-internals` —— 列出所有语言包，**支持手动下载**，并显示下载失败的原因。
+  翻译需要源语言和目标语言**两个包都装**（如 en 和 zh）。**如果这个页面打不开或为空，说明本机根本不支持内置翻译。**
+- `chrome://flags/#translation-api` —— 「Experimental translation API」需设为 Enabled（若 154 已无此项，说明特性已转正）
+- `chrome://components` —— 找 Translation / Optimization Guide 相关条目，检查更新；版本停在 `0.0.0.0` 就是组件没下发
+
+页面上的「对比测试：语言检测模型」按钮可以区分故障范围：语言检测模型小得多，
+**它能下载而翻译不能 → 问题只在翻译语言包；两个都下不来 → 内置 AI 整体没启用。**
 
 ### 工具二：扩展的「能力检测」页（三种 JS 上下文）
 
