@@ -1,0 +1,10 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "jsx": "react-jsx",
+    // playground/fixtures/x-dom.js 是「X DOM 唯一真相」，
+    // 被 mock 页面和单元测试共用，所以需要允许从 TS 里 import 纯 JS
+    "allowJs": true
+  }
+}

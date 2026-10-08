@@ -1,0 +1,9 @@
+@import 'tailwindcss';
+
+/*
+ * 控制条挂在 Shadow DOM 里，所以这里只影响我们自己的 UI，
+ * 不会和 X 的全局样式互相污染。
+ */
+:host {
+  all: initial;
+}

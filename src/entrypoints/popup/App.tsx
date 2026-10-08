@@ -1,0 +1,294 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { browser } from '#imports';
+import { getSettings, patchSettings, type ReadXSettings } from '@/settings';
+import { WebSpeechProvider } from '@/tts/webSpeech';
+import type { GetStateResponse, ReaderCommand, ReaderSnapshot, RuntimeMessage } from '@/types';
+
+const provider = new WebSpeechProvider();
+
+const STATE_LABEL: Record<ReaderSnapshot['state'], string> = {
+  idle: '待机',
+  loading: '定位中',
+  speaking: '朗读中',
+  paused: '已暂停',
+  error: '出错了',
+};
+
+async function sendToTab(message: RuntimeMessage): Promise<GetStateResponse> {
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.id) return { ok: false, error: '没有找到活动标签页' };
+  try {
+    const response = (await browser.tabs.sendMessage(tab.id, message)) as GetStateResponse | undefined;
+    return response ?? { ok: false, error: '页面没有响应' };
+  } catch {
+    return { ok: false, error: '请先打开 x.com（或开发用的 mock 页面）再使用' };
+  }
+}
+
+export default function App() {
+  const [snapshot, setSnapshot] = useState<ReaderSnapshot | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [settings, setSettings] = useState<ReadXSettings | null>(null);
+  const [voices, setVoices] = useState(() => provider.getVoices());
+
+  useEffect(() => {
+    void getSettings().then(setSettings);
+    void provider.ensureReady().then(() => setVoices(provider.getVoices()));
+    return provider.onVoicesChanged(setVoices);
+  }, []);
+
+  const refresh = useCallback(async () => {
+    const response = await sendToTab({ type: 'readx:get-state' });
+    if (response.ok && response.snapshot) {
+      setSnapshot(response.snapshot);
+      setError(null);
+    } else {
+      setSnapshot(null);
+      setError(response.error ?? '无法连接页面');
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+    const timer = setInterval(() => void refresh(), 800);
+    return () => clearInterval(timer);
+  }, [refresh]);
+
+  const command = useCallback(
+    async (cmd: ReaderCommand) => {
+      await sendToTab({ type: 'readx:command', command: cmd });
+      window.setTimeout(() => void refresh(), 120);
+    },
+    [refresh],
+  );
+
+  const update = useCallback((patch: Partial<ReadXSettings>) => {
+    setSettings((prev) => (prev ? { ...prev, ...patch } : prev));
+    void patchSettings(patch);
+  }, []);
+
+  /** 只列出当前帖子语种能用得上的音色 */
+  const relevantVoices = useMemo(() => {
+    const lang = snapshot?.lang;
+    if (!lang) return [];
+    const base = lang.split('-')[0] ?? lang;
+    return voices
+      .filter((v) => v.lang.toLowerCase().replace('_', '-').startsWith(base.toLowerCase()))
+      .sort((a, b) => Number(b.local) - Number(a.local));
+  }, [voices, snapshot?.lang]);
+
+  const supported = provider.isSupported();
+  const progress =
+    snapshot && snapshot.sentenceCount > 0
+      ? `${snapshot.sentenceIndex + 1}/${snapshot.sentenceCount}`
+      : '';
+
+  return (
+    <div className="min-h-[320px] bg-slate-950 p-4 text-slate-100">
+      <header className="flex items-center justify-between">
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-base font-bold tracking-tight">ReadX</h1>
+          <span className="text-[11px] text-slate-500">读 X，不用盯屏幕</span>
+        </div>
+        <span className="text-[11px] tabular-nums text-slate-500">
+          {snapshot ? STATE_LABEL[snapshot.state] : '未连接'}
+        </span>
+      </header>
+
+      {!supported && (
+        <p className="mt-3 rounded-lg bg-rose-500/15 px-3 py-2 text-xs text-rose-300">
+          当前环境不支持 Web Speech API，朗读不可用。
+        </p>
+      )}
+
+      {error ? (
+        <p className="mt-3 rounded-lg bg-amber-500/15 px-3 py-2 text-xs text-amber-300">{error}</p>
+      ) : (
+        <>
+          <section className="mt-3 rounded-xl border border-white/10 bg-white/5 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">
+                  {snapshot?.author || '—'}
+                </p>
+                <p className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-400">
+                  {snapshot?.lang ? (
+                    <span className="rounded bg-white/10 px-1.5 py-0.5 font-mono uppercase">
+                      {snapshot.lang}
+                    </span>
+                  ) : (
+                    <span>等待识别语种</span>
+                  )}
+                  {snapshot?.langSource && (
+                    <span className="text-slate-500">来源：{snapshot.langSource}</span>
+                  )}
+                  {progress && <span className="tabular-nums">句子 {progress}</span>}
+                </p>
+              </div>
+            </div>
+
+            {(snapshot?.sentence || snapshot?.message) && (
+              <p className="mt-2 line-clamp-3 border-t border-white/10 pt-2 text-xs leading-relaxed text-slate-300">
+                {snapshot?.sentence || snapshot?.message}
+              </p>
+            )}
+          </section>
+
+          <section className="mt-3 grid grid-cols-4 gap-2">
+            <ControlButton onClick={() => void command('prev')}>⏮ 上一条</ControlButton>
+            <ControlButton primary onClick={() => void command('toggle')}>
+              {snapshot?.state === 'speaking' ? '⏸ 暂停' : '▶ 播放'}
+            </ControlButton>
+            <ControlButton onClick={() => void command('next')}>⏭ 下一条</ControlButton>
+            <ControlButton onClick={() => void command('stop')}>⏹ 停止</ControlButton>
+          </section>
+        </>
+      )}
+
+      {settings && (
+        <section className="mt-4 space-y-3 border-t border-white/10 pt-3">
+          <label className="block">
+            <span className="flex items-center justify-between text-xs text-slate-400">
+              语速
+              <span className="tabular-nums text-slate-300">{settings.rate.toFixed(2)}x</span>
+            </span>
+            <input
+              type="range"
+              min={0.5}
+              max={2}
+              step={0.05}
+              value={settings.rate}
+              onChange={(e) => update({ rate: Number(e.target.value) })}
+              className="mt-1 h-1 w-full cursor-pointer accent-emerald-400"
+            />
+          </label>
+
+          <label className="block">
+            <span className="flex items-center justify-between text-xs text-slate-400">
+              音量
+              <span className="tabular-nums text-slate-300">
+                {Math.round(settings.volume * 100)}%
+              </span>
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={settings.volume}
+              onChange={(e) => update({ volume: Number(e.target.value) })}
+              className="mt-1 h-1 w-full cursor-pointer accent-emerald-400"
+            />
+          </label>
+
+          {snapshot?.lang && (
+            <label className="block">
+              <span className="text-xs text-slate-400">
+                音色（{relevantVoices.length} 个可用于 {snapshot.lang}）
+              </span>
+              <select
+                value={settings.voiceOverrides[snapshot.lang] ?? ''}
+                onChange={(e) =>
+                  update({
+                    voiceOverrides: {
+                      ...settings.voiceOverrides,
+                      [snapshot.lang]: e.target.value,
+                    },
+                  })
+                }
+                className="mt-1 w-full cursor-pointer rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-slate-200"
+              >
+                <option value="">自动匹配</option>
+                {relevantVoices.map((voice) => (
+                  <option key={voice.uri} value={voice.uri}>
+                    {voice.name}（{voice.lang}
+                    {voice.local ? ' · 本地' : ' · 在线'}）
+                  </option>
+                ))}
+              </select>
+              {relevantVoices.length === 0 && (
+                <span className="mt-1 block text-[11px] text-amber-400">
+                  系统里没有这个语种的音色，会用默认音色朗读，可能读得不准。
+                </span>
+              )}
+            </label>
+          )}
+
+          <div className="space-y-2">
+            <Toggle
+              label="读完自动滚到下一条"
+              checked={settings.autoAdvance}
+              onChange={(v) => update({ autoAdvance: v })}
+            />
+            <Toggle
+              label="朗读前先念作者名"
+              checked={settings.readAuthor}
+              onChange={(v) => update({ readAuthor: v })}
+            />
+            <Toggle
+              label="跳过推广帖"
+              checked={settings.skipAds}
+              onChange={(v) => update({ skipAds: v })}
+            />
+            <Toggle
+              label="跳过没有文字的帖子"
+              checked={settings.skipMediaOnly}
+              onChange={(v) => update({ skipMediaOnly: v })}
+            />
+          </div>
+
+          <p className="pt-1 text-[11px] leading-relaxed text-slate-500">
+            快捷键：Alt+Shift+P 播放/暂停 · Alt+Shift+N 下一条 · Alt+Shift+B 上一条
+          </p>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function ControlButton({
+  children,
+  onClick,
+  primary,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  primary?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        'cursor-pointer rounded-lg px-2 py-2 text-[11px] font-medium transition-colors',
+        primary
+          ? 'bg-emerald-500 text-slate-900 hover:bg-emerald-400'
+          : 'bg-white/10 text-slate-200 hover:bg-white/20',
+      ].join(' ')}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-2 text-xs text-slate-300">
+      {label}
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="size-4 cursor-pointer accent-emerald-400"
+      />
+    </label>
+  );
+}

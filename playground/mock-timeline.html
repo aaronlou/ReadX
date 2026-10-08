@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ReadX · Mock 时间线</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #000;
+        color: #e7e9ea;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+      }
+      /* X 顶部有一条约 53px 的 sticky header，用来验证滚动偏移算得对不对 */
+      .banner {
+        position: sticky; top: 0; z-index: 10;
+        height: 53px; display: flex; align-items: center; gap: 12px;
+        padding: 0 16px; background: rgba(0, 0, 0, 0.72);
+        backdrop-filter: blur(12px); border-bottom: 1px solid #2f3336;
+        font-weight: 700;
+      }
+      .banner small { font-weight: 400; color: #71767b; font-size: 12px; }
+      .layout { display: flex; justify-content: center; }
+      .column { width: 600px; max-width: 100%; border-left: 1px solid #2f3336; border-right: 1px solid #2f3336; }
+      article[data-testid='tweet'] {
+        display: flex; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #2f3336;
+      }
+      .avatar { width: 40px; height: 40px; border-radius: 999px; background: #333; flex: 0 0 auto; }
+      .body { min-width: 0; flex: 1; }
+      .name { font-weight: 700; font-size: 15px; }
+      .handle { color: #71767b; font-weight: 400; font-size: 14px; }
+      [data-testid='tweetText'] { margin-top: 2px; font-size: 15px; line-height: 20px; white-space: pre-wrap; }
+      [data-testid='tweetText'] img { width: 18px; height: 18px; vertical-align: -3px; }
+      .meta { margin-top: 10px; color: #71767b; font-size: 13px; }
+      [data-testid='quoteTweet'] {
+        margin-top: 8px; border: 1px solid #2f3336; border-radius: 12px; padding: 10px 12px;
+      }
+      [data-testid='tweetPhoto'] {
+        margin-top: 10px; height: 180px; border-radius: 12px;
+        background: linear-gradient(135deg, #1d4ed8, #7c3aed); opacity: 0.55;
+      }
+      [data-testid='placementTracking'] { position: relative; background: rgba(255, 255, 255, 0.02); }
+      [data-testid='placementTracking']::before {
+        content: '推广'; position: absolute; top: 12px; right: 16px; color: #71767b; font-size: 12px;
+      }
+      #sentinel { padding: 28px; text-align: center; color: #71767b; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <div class="banner">
+      ReadX Mock 时间线
+      <small>复刻 X 的 DOM 结构，用于离线调试滚动 / 提取 / 朗读</small>
+    </div>
+
+    <div class="layout">
+      <div class="column" id="timeline"></div>
+    </div>
+
+    <div id="sentinel">向下滚动会加载更多…</div>
+
+    <script type="module">
+      // DOM 结构和数据来自唯一真相：playground/fixtures/x-dom.js
+      // 同一份文件也被 src/x/extract.test.ts 使用
+      import { SEED, mountPost } from './fixtures/x-dom.js';
+
+      const timeline = document.getElementById('timeline');
+      let round = 0;
+
+      function loadMore() {
+        round += 1;
+        for (const post of SEED) {
+          mountPost(timeline, { ...post, id: String(Number(post.id) + round * 10000) });
+        }
+      }
+
+      loadMore();
+
+      // 模拟 X 的无限加载
+      new IntersectionObserver(
+        (entries) => { if (entries.some((e) => e.isIntersecting)) loadMore(); },
+        { rootMargin: '600px' },
+      ).observe(document.getElementById('sentinel'));
+
+      // 在控制台执行 __readxDebug() 可以看到当前渲染出来的帖子
+      window.__readxDebug = () =>
+        [...document.querySelectorAll('article[data-testid="tweet"]')].map((post) => {
+          const textEl = post.querySelector('[data-testid="tweetText"]');
+          return {
+            id: post.querySelector('time')?.closest('a')?.getAttribute('href')?.match(/\/status\/(\d+)/)?.[1] ?? null,
+            lang: textEl?.getAttribute('lang') ?? null,
+            text: (textEl?.textContent ?? '').slice(0, 60),
+            promoted: !!post.closest('[data-testid="placementTracking"]'),
+          };
+        });
+    </script>
+  </body>
+</html>
