@@ -1,6 +1,6 @@
 import type { TtsEngine } from '../settings';
 import type { TtsVoice } from '../types';
-import type { SpeakOptions, SpeakOutcome, TtsProvider } from './provider';
+import type { SpeakBlockOptions, SpeakOptions, SpeakOutcome, TtsProvider } from './provider';
 
 /**
  * 引擎切换 + 自动降级。
@@ -95,29 +95,55 @@ export class TtsEngineSwitch implements TtsProvider {
     this.active().prefetch?.(text, lang);
   }
 
+  /** 当前引擎是否值得整段朗读 —— 由具体引擎决定，ReadX 上层据此选路径 */
+  get supportsBlock(): boolean {
+    return this.active().supportsBlock === true;
+  }
+
+  async speakBlock(text: string, opts: SpeakBlockOptions): Promise<SpeakOutcome> {
+    const primary = this.active();
+    if (!primary.speakBlock) {
+      // 理论上不会走到这里（上层先问 supportsBlock），兜一下
+      return this.speak(text, opts);
+    }
+
+    const outcome = await primary.speakBlock(text, opts);
+    if (outcome === 'error') {
+      const fallback = this.degrade(text, opts, primary);
+      if (fallback) return fallback;
+    }
+    return outcome;
+  }
+
+  /**
+   * 云语音失败时降级到系统引擎，并把子引擎报的具体原因带出去。
+   * 返回 null 表示不该降级。
+   */
+  private degrade(
+    text: string,
+    opts: SpeakOptions,
+    primary: TtsProvider,
+  ): Promise<SpeakOutcome> | null {
+    if (primary !== this.cloud || this.degraded || opts.signal?.aborted) return null;
+
+    this.degraded = true;
+    const detail = this.lastChildError;
+    this.lastChildError = null;
+    this.onError?.(
+      detail ? `${detail.message}（已临时切回系统语音）` : '云语音不可用，已临时切回系统语音',
+      detail?.hint ?? '到选项页检查凭据、域名授权和余额',
+    );
+
+    return this.system.speak(text, opts);
+  }
+
   async speak(text: string, opts: SpeakOptions): Promise<SpeakOutcome> {
     const primary = this.active();
     const outcome = await primary.speak(text, opts);
 
-    if (
-      outcome === 'error' &&
-      primary === this.cloud &&
-      !this.degraded &&
-      !opts.signal?.aborted
-    ) {
-      this.degraded = true;
-
-      // 把子引擎报的具体原因带出来，而不是用一句通用文案盖掉它
-      const detail = this.lastChildError;
-      this.lastChildError = null;
-      this.onError?.(
-        detail
-          ? `${detail.message}（已临时切回系统语音）`
-          : '云语音不可用，已临时切回系统语音',
-        detail?.hint ?? '到选项页检查凭据、域名授权和余额',
-      );
-
-      return this.system.speak(text, opts);
+    if (outcome === 'error') {
+      const fallback = this.degrade(text, opts, primary);
+      if (fallback) return fallback;
     }
 
     return outcome;

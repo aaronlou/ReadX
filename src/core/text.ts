@@ -64,3 +64,22 @@ function hardSplit(sentence: string, max: number): string[] {
   if (rest) out.push(rest);
   return out;
 }
+
+/**
+ * 把切好的句子拼回一整段，用于**整段合成**。
+ *
+ * 不能简单 join('')：帖子开头可能是作者名（"Paul Graham"）紧跟着正文，
+ * 直接相接会粘成一个词。上一段已经以标点或空白结尾时可以直接接上，
+ * 否则补一个空格。
+ */
+export function joinSegments(segments: string[]): string {
+  let out = '';
+  for (const segment of segments) {
+    if (!out) {
+      out = segment;
+      continue;
+    }
+    out += /[。！？!?.;；:：,，、\s]$/.test(out) ? segment : ` ${segment}`;
+  }
+  return out;
+}

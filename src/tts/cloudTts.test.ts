@@ -12,6 +12,10 @@ import { CloudTtsProvider } from './cloudTts';
  */
 
 let playRejects = false;
+/** play() 后是否自动结束。整段朗读的进度测试需要手动控制播放位置 */
+let audioAutoEnd = true;
+/** 最近创建的 audio —— 整段朗读的进度测试要拿它模拟播放 */
+let lastAudio: FakeAudio | null = null;
 
 class FakeAudio {
   src = '';
@@ -21,14 +25,41 @@ class FakeAudio {
   preload = '';
   currentTime = 0;
   currentSrc = '';
+  duration = Number.NaN;
   onended: (() => void) | null = null;
   onerror: (() => void) | null = null;
+
+  private readonly listeners = new Map<string, Set<EventListener>>();
+
+  constructor() {
+    lastAudio = this;
+  }
+
+  addEventListener(type: string, cb: EventListener) {
+    if (!this.listeners.has(type)) this.listeners.set(type, new Set());
+    this.listeners.get(type)!.add(cb);
+  }
+  removeEventListener(type: string, cb: EventListener) {
+    this.listeners.get(type)?.delete(cb);
+  }
+  emit(type: string) {
+    for (const cb of this.listeners.get(type) ?? []) cb(new Event(type));
+  }
+  /** 模拟播放到某一时刻 */
+  seek(time: number) {
+    this.currentTime = time;
+    this.emit('timeupdate');
+  }
+  /** 模拟播放结束 */
+  finish() {
+    this.onended?.();
+  }
 
   // 注意：类字段是实例属性，不在原型上
   play = vi.fn(() => {
     if (playRejects) return Promise.reject(new Error('NotAllowedError'));
     this.currentSrc = this.src;
-    queueMicrotask(() => this.onended?.());
+    if (audioAutoEnd) queueMicrotask(() => this.onended?.());
     return Promise.resolve();
   });
   pause = vi.fn();
@@ -37,6 +68,9 @@ class FakeAudio {
   });
   load = vi.fn();
 }
+
+/** 让挂起的 promise 跑完 */
+const flushAsync = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 let objectUrlSeq = 0;
 let sendMessage: ReturnType<typeof vi.fn>;
@@ -54,6 +88,8 @@ const SPEAK_OPTS = { lang: 'zh', rate: 1, pitch: 1, volume: 1 };
 beforeEach(() => {
   objectUrlSeq = 0;
   playRejects = false;
+  audioAutoEnd = true;
+  lastAudio = null;
   sendMessage = vi.fn(async () => ({
     ok: true,
     audio: 'QUJD',
@@ -249,6 +285,115 @@ describe('CloudTtsProvider 并发控制', () => {
 
     // 1 个在飞 + 最多 4 个排队，其余直接丢掉
     expect(order.length).toBeLessThanOrEqual(6);
+  });
+});
+
+describe('CloudTtsProvider 整段朗读', () => {
+  const SEGMENTS = ['第一句话。', '第二句话。', '第三句话。'];
+  const BLOCK_TEXT = '第一句话。第二句话。第三句话。';
+
+  function blockOpts(overrides: Record<string, unknown> = {}) {
+    return { ...SPEAK_OPTS, segments: SEGMENTS, ...overrides };
+  }
+
+  // 这是整段朗读存在的全部理由：一条帖子从 N 次往返降到 1 次。
+  // 逐句方案里"合成一句的时间 > 朗读一句的时间"必然导致断句，
+  // 而整段共用一个音频文件，段内**不可能**有停顿。
+  it('整条帖子只发一次请求', async () => {
+    const provider = makeProvider();
+    await provider.speakBlock(BLOCK_TEXT, blockOpts());
+
+    expect(sendMessage).toHaveBeenCalledTimes(1);
+    expect((sendMessage.mock.calls[0]![0] as { text: string }).text).toBe(BLOCK_TEXT);
+  });
+
+  it('超过单次上限的长帖子会分块，但块数远少于句数', async () => {
+    // 每句 300 字，10 句 = 3000 字 > 豆包上限 2048
+    const segments = Array.from({ length: 10 }, (_, i) => `第${i}句${'啊'.repeat(297)}。`);
+    const provider = makeProvider();
+
+    await provider.speakBlock(segments.join(''), blockOpts({ segments }));
+
+    // 换成逐句就是 10 次请求
+    expect(sendMessage.mock.calls.length).toBeLessThan(10);
+    expect(sendMessage.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('按句级时间戳回报读到第几句', async () => {
+    audioAutoEnd = false;
+    sendMessage.mockResolvedValue({
+      ok: true,
+      audio: 'QUJD',
+      mimeType: 'audio/mpeg',
+      duration: 9,
+      sentences: [
+        { start_time: 0, end_time: 3000, text: '第一句话。' },
+        { start_time: 3000, end_time: 6000, text: '第二句话。' },
+        { start_time: 6000, end_time: 9000, text: '第三句话。' },
+      ],
+    });
+
+    const provider = makeProvider();
+    const seen: number[] = [];
+    void provider.speakBlock(
+      BLOCK_TEXT,
+      blockOpts({ onSegment: ({ index }: { index: number }) => seen.push(index) }),
+    );
+    await flushAsync();
+
+    lastAudio!.duration = 9;
+    lastAudio!.seek(1); // 第一句
+    lastAudio!.seek(4); // 第二句
+    lastAudio!.seek(7); // 第三句
+
+    expect(seen).toContain(0);
+    expect(seen).toContain(1);
+    expect(seen).toContain(2);
+    lastAudio!.finish();
+  });
+
+  // OpenAI / OpenRouter 不返回时间戳，这时只能按字数比例估 ——
+  // 只影响高亮精度，不能因此让进度完全不动
+  it('没有时间戳时按字数比例估算进度', async () => {
+    audioAutoEnd = false;
+    sendMessage.mockResolvedValue({
+      ok: true,
+      audio: 'QUJD',
+      mimeType: 'audio/mpeg',
+      duration: 9,
+      sentences: [],
+    });
+
+    const provider = makeProvider();
+    const seen: number[] = [];
+    void provider.speakBlock(
+      BLOCK_TEXT,
+      blockOpts({ onSegment: ({ index }: { index: number }) => seen.push(index) }),
+    );
+    await flushAsync();
+
+    lastAudio!.duration = 9;
+    lastAudio!.seek(8); // 接近末尾 → 应该是最后一句
+
+    expect(seen).toContain(2);
+    lastAudio!.finish();
+  });
+
+  it('整段朗读同样受并发配额约束', async () => {
+    let inFlight = 0;
+    let peak = 0;
+    sendMessage.mockImplementation(async () => {
+      inFlight += 1;
+      peak = Math.max(peak, inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      inFlight -= 1;
+      return { ok: true, audio: 'QUJD', mimeType: 'audio/mpeg', duration: 1, sentences: [] };
+    });
+
+    const segments = Array.from({ length: 10 }, (_, i) => `第${i}句${'啊'.repeat(297)}。`);
+    await makeProvider().speakBlock(segments.join(''), blockOpts({ segments }));
+
+    expect(peak).toBe(1);
   });
 });
 

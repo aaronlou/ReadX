@@ -1,8 +1,9 @@
 import { browser } from '#imports';
+import { joinSegments } from '../core/text';
 import type { ReadXSettings } from '../settings';
 import type { CloudTtsSynthesizeResponse, TtsVoice } from '../types';
 import { findCloudProvider, resolveVoice, type CloudTtsSpec } from './providers';
-import type { SpeakOptions, SpeakOutcome, TtsProvider } from './provider';
+import type { SpeakBlockOptions, SpeakOptions, SpeakOutcome, TtsProvider } from './provider';
 
 /** 音频缓存上限。一段语音几十 KB，60 段大约几 MB */
 const CLIP_CACHE_LIMIT = 60;
@@ -44,6 +45,16 @@ type CloudConfig = Pick<ReadXSettings, 'cloudProvider' | 'cloudVoices'>;
  */
 export class CloudTtsProvider implements TtsProvider {
   readonly name = 'cloud-tts';
+
+  /**
+   * 云端引擎一律走**整段朗读**。
+   *
+   * 这是这类服务唯一可行的做法：逐句朗读意味着一条帖子 N 次网络往返、
+   * 每句都等一次完整延迟，只要"合成一句的时间 > 朗读一句的时间"就必然
+   * 断断续续 —— 调预取是治不好的。整段朗读只要 1 次请求，而且句子之间
+   * 共用同一个音频文件，**段内不可能有停顿**。
+   */
+  readonly supportsBlock = true;
 
   /** 出错时回调，让 UI 能把原因显示出来 */
   onError: ((message: string, hint?: string) => void) | null = null;
@@ -256,7 +267,144 @@ export class CloudTtsProvider implements TtsProvider {
     }
   }
 
+  /**
+   * 一次请求朗读整段文本。
+   *
+   * 超长帖子会按服务商的单次上限切成几段 —— 段与段之间仍可能有一次
+   * 往返的停顿，但 2048 字大约相当于 40 句，正常帖子根本碰不到。
+   */
+  async speakBlock(text: string, opts: SpeakBlockOptions): Promise<SpeakOutcome> {
+    if (!this.isSupported()) return 'error';
+
+    const spec = this.spec;
+    if (!spec) {
+      this.onError?.(`未知的语音服务商：${this.getConfig().cloudProvider}`, '到选项页重新选一个');
+      return 'error';
+    }
+
+    const voice = opts.voiceURI ?? this.voiceFor(opts.lang);
+    if (!voice) {
+      this.onError?.(
+        `${spec.name} 还没有可用于 ${opts.lang} 的音色`,
+        '到选项页为这个语言选一个音色',
+      );
+      return 'error';
+    }
+
+    const chunks = chunkSegments(spec.maxChars, opts.segments, text);
+    let indexOffset = 0;
+
+    for (const chunk of chunks) {
+      if (opts.signal?.aborted) return 'cancelled';
+
+      let clip: Clip;
+      try {
+        clip = await this.getClip(spec, chunk.text, voice, 'speak');
+      } catch (error) {
+        const err = error as Error & { hint?: string };
+        this.onError?.(err.message, err.hint);
+        return 'error';
+      }
+
+      if (opts.signal?.aborted) return 'cancelled';
+
+      const outcome = await this.playSegments(clip, chunk.segments, indexOffset, opts);
+      if (outcome !== 'ended') return outcome;
+      indexOffset += chunk.segments.length;
+    }
+
+    return 'ended';
+  }
+
+  /**
+   * 播放一段音频，并在过程中把"读到第几句、第几个字"报上去。
+   *
+   * 时间轴优先用服务商返回的句级时间戳（豆包会给），拿不到就按字数比例估算。
+   * 两者都只影响高亮的精度，不影响播放本身。
+   */
+  private playSegments(
+    clip: Clip,
+    segments: string[],
+    indexOffset: number,
+    opts: SpeakBlockOptions,
+  ): Promise<SpeakOutcome> {
+    return new Promise<SpeakOutcome>((resolve) => {
+      const audio = this.ensureAudio();
+      let settled = false;
+      let timeline: TimelineEntry[] | null = null;
+
+      const done = (outcome: SpeakOutcome) => {
+        if (settled) return;
+        settled = true;
+        opts.signal?.removeEventListener('abort', onAbort);
+        audio.removeEventListener('timeupdate', onTime);
+        audio.onended = null;
+        audio.onerror = null;
+        resolve(outcome);
+      };
+
+      const ensureTimeline = (): TimelineEntry[] => {
+        if (timeline) return timeline;
+        // 浏览器加载完元数据后拿到的 duration 比接口返回的更可靠
+        const duration =
+          Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : clip.duration;
+        timeline = buildTimeline(segments, clip.sentences, duration);
+        return timeline;
+      };
+
+      const onTime = () => {
+        const line = ensureTimeline();
+        const index = indexAt(line, audio.currentTime);
+        const entry = line[index];
+        if (!entry) return;
+
+        // 用这一句的时间跨度估出读到第几个字，高亮才能跟着走
+        const span = entry.end - entry.start;
+        const ratio = span > 0 ? (audio.currentTime - entry.start) / span : 0;
+        const charIndex = Math.round(Math.min(1, Math.max(0, ratio)) * entry.text.length);
+
+        opts.onSegment?.({ index: indexOffset + index, charIndex });
+      };
+
+      const onAbort = () => {
+        audio.pause();
+        done('cancelled');
+      };
+
+      audio.onended = () => done('ended');
+      audio.onerror = () => {
+        if (!audio.currentSrc) return;
+        this.onError?.('音频播放失败');
+        done('error');
+      };
+
+      if (opts.signal?.aborted) {
+        onAbort();
+        return;
+      }
+      opts.signal?.addEventListener('abort', onAbort, { once: true });
+      audio.addEventListener('timeupdate', onTime);
+
+      audio.src = clip.url;
+      audio.volume = Math.max(0, Math.min(1, opts.volume));
+      audio.playbackRate = Math.max(0.5, Math.min(2, opts.rate));
+      audio.currentTime = 0;
+
+      // 先报第一句，别让面板在音频真正出声前还停在上一条
+      opts.onSegment?.({ index: indexOffset, charIndex: 0 });
+
+      opts.onStart?.();
+      audio.play().catch((error: unknown) => {
+        if ((error as Error)?.name === 'AbortError') return;
+        this.onError?.(`音频播放被拒绝：${(error as Error).message}`, '点一下页面再试');
+        done('error');
+      });
+    });
+  }
+
   private async requestClip(spec: CloudTtsSpec, text: string, voice: string): Promise<Clip> {
+    const startedAt = performance.now();
+
     const response = (await browser.runtime.sendMessage({
       type: 'readx:cloud-tts-synthesize',
       providerId: spec.id,
@@ -270,11 +418,22 @@ export class CloudTtsProvider implements TtsProvider {
       throw error;
     }
 
-    return {
+    const clip: Clip = {
       url: URL.createObjectURL(base64ToBlob(response.audio, response.mimeType ?? 'audio/mpeg')),
       duration: response.duration ?? 0,
       sentences: response.sentences ?? [],
     };
+
+    // 合成耗时 vs 音频时长是判断"能不能跟上"的唯一依据：
+    // 只要前者持续大于后者，逐句朗读就必然断，怎么调预取都没用。
+    // 这条日志就是用来一眼看出该走哪条路的。
+    const seconds = (performance.now() - startedAt) / 1000;
+    console.debug(
+      `[ReadX] 合成 ${seconds.toFixed(2)}s · 音频 ${clip.duration.toFixed(2)}s · ${text.length} 字`,
+      seconds > clip.duration && clip.duration > 0 ? '⚠️ 合成比朗读慢' : '',
+    );
+
+    return clip;
   }
 
   private play(clip: Clip, opts: SpeakOptions): Promise<SpeakOutcome> {
@@ -343,4 +502,83 @@ export function base64ToBlob(base64: string, mimeType: string): Blob {
     bytes[i] = binary.charCodeAt(i);
   }
   return new Blob([bytes], { type: mimeType });
+}
+
+// ---------------------------------------------------------------- 整段朗读的辅助
+
+/** 按服务商的单次文本上限把句子切成几块 */
+function chunkSegments(
+  maxChars: number,
+  segments: string[],
+  fallbackText: string,
+): Array<{ text: string; segments: string[] }> {
+  // 调用方偶尔直接给整段文本而不给句子划分，那就原样当一块
+  if (!segments.length) return [{ text: fallbackText, segments: [fallbackText] }];
+
+  const chunks: Array<{ text: string; segments: string[] }> = [];
+  let current: string[] = [];
+
+  for (const segment of segments) {
+    const candidate = current.length ? joinSegments([...current, segment]) : segment;
+    if (current.length && candidate.length > maxChars) {
+      chunks.push({ text: joinSegments(current), segments: current });
+      current = [segment];
+    } else {
+      current.push(segment);
+    }
+  }
+  if (current.length) chunks.push({ text: joinSegments(current), segments: current });
+  return chunks;
+}
+
+interface TimelineEntry {
+  start: number;
+  end: number;
+  text: string;
+}
+
+/**
+ * 算出每一句在音频里的起止时间（秒）。
+ *
+ * 优先用服务商返回的句级时间戳（豆包会给，而且很准）；
+ * 数量和我们的切句对不上、或者干脆没有（OpenAI / OpenRouter）时，
+ * 退化成按字数比例估算 —— 只影响高亮精度，不影响播放。
+ */
+function buildTimeline(
+  segments: string[],
+  sentences: Array<{ start_time: number; end_time: number }>,
+  duration: number,
+): TimelineEntry[] {
+  if (sentences.length === segments.length && duration > 0) {
+    // 接口可能用毫秒（豆包历史上两种都出现过），用总时长反推一下单位
+    const last = sentences[sentences.length - 1]?.end_time ?? 0;
+    const scale = last > duration * 1.5 ? 1 / 1000 : 1;
+    return segments.map((text, i) => ({
+      text,
+      start: (sentences[i]?.start_time ?? 0) * scale,
+      end: (sentences[i]?.end_time ?? 0) * scale,
+    }));
+  }
+
+  // 退化路径：按字数比例切分。分隔符也会占用时间，所以用真实偏移算。
+  const total = joinSegments(segments).length || 1;
+  const out: TimelineEntry[] = [];
+  let offset = 0;
+  for (let i = 0; i < segments.length; i += 1) {
+    const text = segments[i]!;
+    if (i > 0 && !/[。！？!?.;；:：,，、\s]$/.test(out[i - 1]!.text)) offset += 1;
+    const start = (offset / total) * duration;
+    offset += text.length;
+    const end = (offset / total) * duration;
+    out.push({ text, start, end });
+  }
+  return out;
+}
+
+/** 当前时间落在第几句 */
+function indexAt(timeline: TimelineEntry[], time: number): number {
+  for (let i = timeline.length - 1; i >= 0; i -= 1) {
+    if (time >= timeline[i]!.start) return i;
+  }
+  return 0;
 }

@@ -15,7 +15,7 @@ import {
   waitForMorePosts,
   waitForScrollIdle,
 } from '../x/timeline';
-import { splitSentences } from './text';
+import { joinSegments, splitSentences } from './text';
 
 /** 两条帖子之间的停顿，避免听起来像连读 */
 const INTER_POST_DELAY = 320;
@@ -365,6 +365,13 @@ export class Reader {
     myEpoch: number,
     signal: AbortSignal,
   ): Promise<boolean> {
+    // 云端引擎走整段朗读：一次请求读完整条帖子。
+    // 逐句的话一条帖子要 N 次网络往返、每句等一次完整延迟，
+    // 只要合成比朗读慢就必然断断续续 —— 那是治不好的。
+    if (this.tts.supportsBlock && this.tts.speakBlock && script.length > 1) {
+      return this.speakAsBlock(script, lang, signal);
+    }
+
     for (let i = 0; i < script.length; i += 1) {
       if (this.stale(myEpoch, signal)) return false;
 
@@ -394,6 +401,43 @@ export class Reader {
         // 单句失败不中断整条帖子，继续往下读
         console.warn('[ReadX] 这一句朗读失败：', sentence);
       }
+    }
+    return true;
+  }
+
+  /**
+   * 整段朗读：把整条帖子当一次请求合成，播放时再按时间戳回报读到第几句。
+   *
+   * 好处不只是少几次往返 —— 句子之间共用同一个音频文件，
+   * **段内不可能有停顿**，这是逐句方案无论怎么预取都做不到的。
+   */
+  private async speakAsBlock(
+    script: string[],
+    lang: string,
+    signal: AbortSignal,
+  ): Promise<boolean> {
+    const text = joinSegments(script);
+    this.patch({ sentence: script[0] ?? '', sentenceIndex: 0, charIndex: 0 });
+
+    const outcome = await this.tts.speakBlock!(text, {
+      lang,
+      voiceURI: this.voiceFor(lang),
+      rate: this.settings.rate,
+      pitch: this.settings.pitch,
+      volume: this.settings.volume,
+      signal,
+      segments: script,
+      onSegment: ({ index, charIndex }) => {
+        const sentence = script[index];
+        if (sentence === undefined) return;
+        this.patch({ sentence, sentenceIndex: index, charIndex });
+      },
+    });
+
+    if (outcome === 'cancelled') return false;
+    if (outcome === 'error') {
+      // 整段失败就没法只跳过一句了，但仍要继续往下读
+      console.warn('[ReadX] 这一条朗读失败');
     }
     return true;
   }
@@ -641,6 +685,15 @@ export class Reader {
     if (signal.aborted) return;
 
     const script = this.buildScript(data, readLang, text, quotedText);
+    if (!script.length) return;
+
+    // 整段朗读的引擎：直接把整条帖子热成一个请求。这比逐句预取更划算 ——
+    // 换到下一条时它已经是完整的一整段音频，连段内停顿都没有。
+    if (this.tts.supportsBlock && this.tts.speakBlock) {
+      this.tts.prefetch?.(joinSegments(script), readLang);
+      return;
+    }
+
     for (const sentence of script.slice(0, POST_PREFETCH_SENTENCES)) {
       if (signal.aborted) return;
       this.tts.prefetch?.(sentence, readLang);
