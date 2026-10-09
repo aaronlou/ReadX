@@ -124,11 +124,17 @@
 npx wxt build -m screenshot      # 输出到 .output/chrome-mv3-screenshot，不污染正式包
 ```
 
-然后用 CDP 装载并截图：
+然后跑冒烟测试和截图 —— 两个都会真的把扩展装进 headless Chrome：
 
 ```bash
-npm run shoot                    # 中英两套截图，顺带就是一次真实装载
+npm run smoke                    # 端到端：中英各一遍，36 项断言
+npm run shoot                    # 中英两套截图
 ```
+
+`npm run smoke` 覆盖的正是上面那张表里"测试发现不了"的部分：内容脚本注入、
+点播放后状态推进、高亮框出现、句子在变、设置页和 popup 能渲染、
+全程无控制台报错、界面上没有残留的 `{0}` 记号或裸露的 i18n key。
+**中英各跑一遍** —— 上一轮那个"中文标点变乱码"的 bug 就只在中文下出现。
 
 **注意 `--load-extension` 这个命令行参数在 Chrome 137+ 已被静默忽略**
 —— 不报错、不警告，只是扩展根本没加载。必须用 CDP 的

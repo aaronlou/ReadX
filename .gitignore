@@ -46,3 +46,6 @@ web-ext.config.ts
 .shot-extension/
 .diag-profile/
 .flagtest/
+# 冒烟测试用的临时 profile
+.smoke-profile/
+.smoke-extension/

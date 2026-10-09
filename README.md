@@ -230,10 +230,26 @@ npm run mock
 npm run dev        # 开发模式（热更新）
 npm run build      # 构建
 npm run zip        # 打包
-npm run test       # 单元测试（156 个）
+npm run test       # 单元测试（178 个）
 npm run compile    # 类型检查
 npm run mock       # 启动本地 mock 时间线
+
+# 下面两个会真的把扩展装进 headless Chrome 跑一遍
+npm run smoke      # 端到端冒烟测试（中英各一遍，36 项断言）
+npm run shoot      # 自动截商店要的图
 ```
+
+### 为什么需要 `npm run smoke`
+
+单元测试和真实浏览器之间有一条缝，**只有真的装进去才会暴露的问题都掉在这里**：
+i18n 的 key 含非法字符、占位符写错、Chrome 替换占位符时损坏中文标点 ——
+这三个全都通过了构建、`tsc` 和全部单元测试，因为测试直接读 `messages.json`，
+绕过了 Chrome 的校验。
+
+冒烟测试做的是：装进 headless Chrome → 打开 mock 时间线 → 点播放 →
+断言状态推进、高亮框出现、句子在变 → 再检查设置页和 popup →
+全程无控制台报错、界面上没有残留的 `{0}` 记号或裸露的 key。**中英各跑一遍**，
+因为 i18n 的 bug 常常只在某一种语言下出现。
 
 ---
 
