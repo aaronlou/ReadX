@@ -65,6 +65,8 @@ function installFakeLayout(posts: HTMLElement[]) {
 class FakeTts implements TtsProvider {
   readonly name = 'fake';
   spoken: string[] = [];
+  /** 被要求提前合成的句子，用来验证预取策略 */
+  prefetched: string[] = [];
   stopCalls = 0;
   /** true = 每句立刻结束；false = 挂住，直到 release() 或 stop() */
   autoFinish = true;
@@ -80,6 +82,9 @@ class FakeTts implements TtsProvider {
     return () => {};
   }
   async ensureReady() {}
+  prefetch(text: string) {
+    this.prefetched.push(text);
+  }
 
   async speak(text: string, opts: SpeakOptions): Promise<SpeakOutcome> {
     if (opts.signal?.aborted) return 'cancelled';
@@ -178,6 +183,53 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+describe('语音预取', () => {
+  // 只预取下一句的话，云端合成只要比朗读慢一点就会断。
+  it('朗读一条帖子时，会提前合成后面不止一句', async () => {
+    const posts = buildTimeline([{ text: '第一句话。第二句话。第三句话。第四句话。' }]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    tts.autoFinish = false; // 挂在第一句上，观察它在读的时候预取了什么
+    const reader = makeReader(tts, new FakeTranslation(), { readAuthor: false });
+
+    void reader.start();
+    await flush();
+
+    expect(tts.spoken[0]).toBe('第一句话。');
+    expect(tts.prefetched).toContain('第二句话。');
+    expect(tts.prefetched).toContain('第三句话。'); // 深度必须 > 1
+    reader.stop();
+  });
+
+  // 这一条守的是一个真实踩过的坑：帖子之间原本**完全不做音频预取**，
+  // 因为预取逻辑挂在"翻译"上，同语言的帖子直接整条跳过了。
+  // 于是每换一条帖子都要从零等一次完整往返 —— 表现就是"延迟特别严重"。
+  it('同语言的帖子同样要预热音频（不能因为"不需要翻译"就跳过）', async () => {
+    const posts = buildTimeline([
+      { text: '第一条帖子。' },
+      { text: '第二条帖子的开头。第二句。' },
+    ]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    tts.autoFinish = false;
+    const translation = new FakeTranslation();
+    // 中文帖子 + 中文朗读 → 不需要翻译，但**照样要热音频**
+    const reader = makeReader(tts, translation, {
+      readAuthor: false,
+      readingLang: 'zh',
+    });
+
+    void reader.start();
+    await flush();
+
+    expect(translation.translated).toEqual([]); // 确实没走翻译
+    expect(tts.prefetched).toContain('第二条帖子的开头。'); // 但音频热了
+    reader.stop();
+  });
 });
 
 describe('Reader 定位', () => {

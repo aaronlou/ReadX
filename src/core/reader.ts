@@ -20,8 +20,26 @@ import { splitSentences } from './text';
 /** 两条帖子之间的停顿，避免听起来像连读 */
 const INTER_POST_DELAY = 320;
 
-/** 正在朗读第 N 条时，提前把后面这几条的翻译做掉 */
+/** 正在朗读第 N 条时，提前把后面这几条的翻译和音频做掉 */
 const PREFETCH_AHEAD = 2;
+
+/**
+ * 朗读一条帖子时，提前合成到后面第几句。
+ *
+ * 云端引擎每句一次网络往返（几百毫秒到几秒）。只预取下一句的话，
+ * 一旦合成比朗读慢，每句之间都会断一下 —— 所以要留出两三句的缓冲。
+ * 多预取的代价是可能白花一两次合成费，远小于听感上的损失。
+ */
+const SPEECH_PREFETCH_AHEAD = 2;
+
+/**
+ * 预取后面几条帖子时，每条只热前面这几句。
+ *
+ * 这是"延迟特别严重"的主因：帖子之间原本完全没有音频预取，
+ * 每换一条都要从零等一次完整往返。只热开头几句就够消除冷启动，
+ * 再往后热是浪费 —— 用户完全可能中途停下或跳过。
+ */
+const POST_PREFETCH_SENTENCES = 2;
 
 /** 翻译缓存上限，超出后按插入顺序淘汰（FIFO） */
 const TRANSLATION_CACHE_LIMIT = 60;
@@ -354,10 +372,12 @@ export class Reader {
       if (sentence === undefined) continue;
       this.patch({ sentence, sentenceIndex: i, charIndex: 0 });
 
-      // 提前把下一句合成好。云端引擎一次往返要几百毫秒，
-      // 不预取的话每句之间都会明显断一下。
-      const next = script[i + 1];
-      if (next !== undefined) this.tts.prefetch?.(next, lang);
+      // 提前把后面几句合成好。云端引擎每句一次网络往返，
+      // 只预取下一句的话，合成一旦比朗读慢就会断。
+      for (let ahead = 1; ahead <= SPEECH_PREFETCH_AHEAD; ahead += 1) {
+        const upcoming = script[i + ahead];
+        if (upcoming !== undefined) this.tts.prefetch?.(upcoming, lang);
+      }
 
       const outcome = await this.tts.speak(sentence, {
         lang,
@@ -569,15 +589,17 @@ export class Reader {
   }
 
   /**
-   * 预取后面几条帖子的翻译。
+   * 预取后面几条帖子的**翻译和音频**。
    *
    * 有意做成"每次成功规划一条就重开一批"：上一批跑完 prefetchAbort 会被清空，
    * 推进到下一条时自然会覆盖新的窗口。
+   *
+   * ⚠️ 这里**不能**因为"不需要翻译"就提前返回。音频预取和翻译是两件独立的
+   * 事：同语言的帖子不需要翻译，但照样需要预热语音 —— 否则每换一条帖子
+   * 都要从零等一次完整的网络往返，连续听下去就是一句一顿。
+   * 这正是"延迟特别严重"的主因。
    */
   private startPrefetch(from: HTMLElement, myEpoch: number): void {
-    const target = this.settings.readingLang;
-    if (!target || target === 'auto') return;
-    if (!this.translation.isSupported()) return;
     // 已经有一批在跑，它覆盖的窗口就够用了
     if (this.prefetchAbort) return;
 
@@ -592,7 +614,7 @@ export class Reader {
       for (const post of upcoming) {
         if (signal.aborted || myEpoch !== this.epoch) break;
         try {
-          await this.prefetchOne(post, target, signal);
+          await this.prefetchOne(post, signal);
         } catch {
           // 预取失败不影响任何事 —— 真读到那一条时还会再试一次
         }
@@ -602,29 +624,67 @@ export class Reader {
     });
   }
 
-  private async prefetchOne(
-    post: HTMLElement,
-    target: string,
-    signal: AbortSignal,
-  ): Promise<void> {
+  private async prefetchOne(post: HTMLElement, signal: AbortSignal): Promise<void> {
     const data = extractPost(post);
     if (data.isEmpty) return;
 
     const detected = await detectLanguage(data.text, data.domLang);
     if (signal.aborted) return;
-    if (isSameLanguage(detected.lang, target)) return;
 
-    const readiness = await this.translation.readiness(detected.lang, target);
+    // 顺序很重要：先翻译，再热音频。因为音频要用**译文**合成，
+    // 反过来做的话合成的是原文，真正朗读时缓存键对不上，等于白发一次请求。
+    const { text, quotedText, readLang } = await this.prefetchTranslate(
+      data,
+      detected.lang,
+      signal,
+    );
     if (signal.aborted) return;
 
-    // ⚠️ 只预取**已经就绪**的语言对。
-    // need-download 绝不能在这里触发 —— 语言包下载必须由用户手势发起，
-    // 而预取是后台行为，没有手势，会直接抛 NotAllowedError。
-    if (readiness !== 'ready') return;
+    const script = this.buildScript(data, readLang, text, quotedText);
+    for (const sentence of script.slice(0, POST_PREFETCH_SENTENCES)) {
+      if (signal.aborted) return;
+      this.tts.prefetch?.(sentence, readLang);
+    }
+  }
 
-    await this.translateCached(data.text, detected.lang, target, signal);
-    if (data.quotedText) {
-      await this.translateCached(data.quotedText, detected.lang, target, signal);
+  /**
+   * 预取专用的翻译：返回这一条**最终会用哪段文本、哪个语种**朗读。
+   *
+   * 和 planSpeech 的关键区别是**完全不产生副作用**。预取是后台行为：
+   *   - 没有用户手势，绝不能触发语言包下载（会抛 NotAllowedError）
+   *   - 不该改动界面状态（否则会闪出"需要下载语言包"的提示）
+   * 所以遇到"没就绪"一律按读原文处理，把决定权留给真正朗读时的 planSpeech。
+   */
+  private async prefetchTranslate(
+    data: PostData,
+    detectedLang: string,
+    signal: AbortSignal,
+  ): Promise<{ text: string; quotedText: string; readLang: string }> {
+    const original = { text: data.text, quotedText: data.quotedText, readLang: detectedLang };
+
+    const target = this.settings.readingLang;
+    if (!target || target === 'auto') return original;
+    // 帖子本来就是目标语言 —— 最常见的情况，不需要翻译（但音频照样要热）
+    if (isSameLanguage(detectedLang, target)) return original;
+    if (!translationPair(detectedLang, target)) return original;
+    if (!this.translation.isSupported()) return original;
+
+    const readiness = await this.translation.readiness(detectedLang, target);
+    if (signal.aborted) return original;
+    // 只预取已经就绪的语言对
+    if (readiness !== 'ready') return original;
+
+    try {
+      const [text, quotedText] = await Promise.all([
+        this.translateCached(data.text, detectedLang, target, signal),
+        data.quotedText
+          ? this.translateCached(data.quotedText, detectedLang, target, signal)
+          : Promise.resolve(''),
+      ]);
+      if (signal.aborted || !text) return original;
+      return { text, quotedText, readLang: target };
+    } catch {
+      return original;
     }
   }
 
