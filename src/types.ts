@@ -45,6 +45,14 @@ export interface ReaderSnapshot {
   pendingPack: PendingLanguagePack | null;
   /** 语言包下载进度 0~1；null 表示当前没在下载 */
   packProgress: number | null;
+  /**
+   * 语音引擎的**持久**告警（比如云语音失败已降级到系统语音）。
+   *
+   * 和 `message` 分开是必要的：message 会被下一条状态更新冲掉，
+   * 而"我明明启用了云语音，听到的却是机器音"这种情况必须一直看得见 ——
+   * 否则用户根本不知道该去设置页看一眼。
+   */
+  engineWarning: string | null;
 }
 
 /** TTS 音色（对我们的场景只暴露需要的字段） */

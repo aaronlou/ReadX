@@ -145,6 +145,13 @@ export function Overlay({
       <div className="pointer-events-auto absolute bottom-5 left-1/2 flex w-[min(680px,calc(100vw-2rem))] -translate-x-1/2 flex-col gap-2">
         {showIntro && <IntroCard onDismiss={() => update({ hasSeenIntro: true })} />}
 
+        {/* 语音引擎降级告警：必须一直看得见，否则用户只会觉得"声音怎么变回去了" */}
+        {snap.engineWarning && (
+          <div className="rounded-2xl border border-amber-400/40 bg-amber-950/90 px-4 py-2.5 text-xs leading-relaxed text-amber-100 shadow-2xl backdrop-blur">
+            <span className="font-semibold">⚠️ 语音引擎</span> {snap.engineWarning}
+          </div>
+        )}
+
         <div className="rounded-2xl border border-white/10 bg-slate-900/95 px-4 py-3 text-slate-100 shadow-2xl backdrop-blur">
           {/* 第一行：状态 + 控制按钮 */}
           <div className="flex items-center gap-3">

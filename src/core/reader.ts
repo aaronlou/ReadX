@@ -40,6 +40,7 @@ const EMPTY_SNAPSHOT: ReaderSnapshot = {
   message: '',
   pendingPack: null,
   packProgress: null,
+  engineWarning: null,
 };
 
 /** 这一条帖子最终要怎么读 */
@@ -241,6 +242,15 @@ export class Reader {
    */
   note(message: string): void {
     this.patch({ message });
+  }
+
+  /**
+   * 语音引擎的持久告警。和 `note()` 的区别是它**不会被后续状态冲掉** ——
+   * 「启用了云语音却听到机器音」必须一直看得见，用户才知道要去设置页看。
+   * 传 null 清除。
+   */
+  setEngineWarning(message: string | null): void {
+    this.patch({ engineWarning: message });
   }
 
   /**

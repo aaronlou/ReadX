@@ -79,8 +79,49 @@ export const settingsItem = storage.defineItem<ReadXSettings>('sync:settings', {
   fallback: DEFAULT_SETTINGS,
 });
 
+/**
+ * 兼容旧版本的设置。
+ *
+ * v0.2 把朗读引擎从 `'system' | 'doubao'` 改成 `'system' | 'cloud'` 并引入多服务商，
+ * 但**没有迁移已经存下来的值** —— 升级上来的用户存的是 `ttsEngine: 'doubao'`，
+ * 在新代码里它既不等于 'system' 也不等于 'cloud'，于是：
+ *   - TtsEngineSwitch 判断 `engine === 'cloud'` 为 false → 悄悄退回系统语音
+ *   - 设置面板两张卡片都不高亮
+ * 症状就是"我明明启用过豆包，音色却还是机器人的"。
+ *
+ * 这类只有老用户才会遇到的 bug，不写迁移就会一直存在。
+ */
+/** 存储里可能残留的 v0.1 字段 —— 新代码里已经没有它们了 */
+interface LegacyFields {
+  doubaoVoices?: Record<string, string>;
+  doubaoModel?: string;
+}
+
+export function migrate(stored: Partial<ReadXSettings>): ReadXSettings {
+  const merged: ReadXSettings = { ...DEFAULT_SETTINGS, ...stored };
+
+  // 引擎名 doubao → cloud，并记住具体是哪家服务商
+  if ((merged.ttsEngine as string) === 'doubao') {
+    merged.ttsEngine = 'cloud';
+    merged.cloudProvider = 'doubao';
+  }
+
+  // 旧的单服务商音色绑定 { lang: voice } → 多服务商结构 { providerId: { lang: voice } }
+  const legacyVoices = (stored as LegacyFields).doubaoVoices;
+  if (
+    legacyVoices &&
+    typeof legacyVoices === 'object' &&
+    Object.keys(legacyVoices).length > 0 &&
+    !merged.cloudVoices?.doubao
+  ) {
+    merged.cloudVoices = { ...merged.cloudVoices, doubao: legacyVoices };
+  }
+
+  return merged;
+}
+
 export async function getSettings(): Promise<ReadXSettings> {
-  return { ...DEFAULT_SETTINGS, ...(await settingsItem.getValue()) };
+  return migrate(await settingsItem.getValue());
 }
 
 export async function patchSettings(patch: Partial<ReadXSettings>): Promise<void> {
@@ -88,5 +129,5 @@ export async function patchSettings(patch: Partial<ReadXSettings>): Promise<void
 }
 
 export function watchSettings(cb: (settings: ReadXSettings) => void): () => void {
-  return settingsItem.watch((next) => cb({ ...DEFAULT_SETTINGS, ...next }));
+  return settingsItem.watch((next) => cb(migrate(next)));
 }

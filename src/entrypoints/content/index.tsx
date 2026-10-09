@@ -38,11 +38,21 @@ export default defineContentScript({
 
     tts.onError = (message, hint) => {
       console.warn('[ReadX] 语音引擎', message, hint ?? '');
-      reader.note(hint ? `${message} · ${hint}` : message);
+      const text = hint ? `${message} · ${hint}` : message;
+      // 既要弹一次提示，也要在面板上留住 —— 否则用户只会觉得"声音怎么变回去了"
+      reader.note(text);
+      reader.setEngineWarning(text);
     };
 
     // 设置变化（来自 popup 或控制条）实时同步给朗读器和语音引擎
+    let engineKey = `${settings.ttsEngine}|${settings.cloudProvider}`;
     watchSettings((next) => {
+      const nextKey = `${next.ttsEngine}|${next.cloudProvider}`;
+      // 用户动了引擎相关设置 → 之前那条降级告警可能已经过时了
+      if (nextKey !== engineKey) {
+        engineKey = nextKey;
+        reader.setEngineWarning(null);
+      }
       settings = next;
       tts.onSettingsChanged();
       reader.setSettings(next);
