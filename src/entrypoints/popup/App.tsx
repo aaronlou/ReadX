@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { browser } from '#imports';
+import { getProviderCredentials } from '@/credentials';
 import { getSettings, patchSettings, type ReadXSettings } from '@/settings';
 import { LANGUAGE_CHOICES, languageLabel } from '@/translate/languages';
 import { CLOUD_TTS_PROVIDERS, type CloudTtsSpec } from '@/tts/providers';
@@ -35,6 +36,28 @@ export default function App() {
   const [voices, setVoices] = useState(() => provider.getVoices());
   const [engineBusy, setEngineBusy] = useState(false);
   const [engineStatus, setEngineStatus] = useState<string | null>(null);
+  /** 当前云语音服务商的凭据填全了没有；null 表示没在云语音模式或还没查 */
+  const [cloudConfigured, setCloudConfigured] = useState<boolean | null>(null);
+
+  // 每次打开 popup 或切换服务商时都重新查一遍 —— 用户很可能刚去选项页填过凭据
+  useEffect(() => {
+    if (!settings || settings.ttsEngine !== 'cloud') {
+      setCloudConfigured(null);
+      return;
+    }
+    const spec = CLOUD_TTS_PROVIDERS.find((p) => p.id === settings.cloudProvider);
+    if (!spec) {
+      setCloudConfigured(false);
+      return;
+    }
+    let cancelled = false;
+    void getProviderCredentials(spec.id).then((credentials) => {
+      if (!cancelled) setCloudConfigured(spec.isConfigured(credentials));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [settings?.ttsEngine, settings?.cloudProvider, settings]);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -218,6 +241,26 @@ export default function App() {
             {engineStatus && (
               <p className="mt-1 text-[11px] text-amber-300">{engineStatus}</p>
             )}
+
+            {/* 选了云语音但凭据还没填 —— 这是最容易卡住的一步，必须在这里
+                直接给出可点的入口。凭据只在选项页填（popup 太窄，而且那里
+                还有音色等其他设置）。 */}
+            {settings.ttsEngine === 'cloud' && cloudConfigured === false && (
+              <button
+                type="button"
+                onClick={() => void browser.runtime.openOptionsPage()}
+                className="mt-2 w-full cursor-pointer rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-left text-[11px] leading-relaxed text-amber-200 transition-colors hover:bg-amber-400/20"
+              >
+                <b>
+                  {CLOUD_TTS_PROVIDERS.find((p) => p.id === settings.cloudProvider)?.name ??
+                    '云语音'}{' '}
+                  还没有配置凭据
+                </b>
+                <span className="mt-0.5 block text-amber-200/70">
+                  点这里去设置里填 API Key 和选音色 →
+                </span>
+              </button>
+            )}
           </div>
 
           <label className="block">
@@ -338,9 +381,12 @@ export default function App() {
           <button
             type="button"
             onClick={() => void browser.runtime.openOptionsPage()}
-            className="w-full cursor-pointer rounded-lg border border-white/10 px-3 py-2 text-left text-[11px] text-slate-400 transition-colors hover:bg-white/5 hover:text-slate-200"
+            className="w-full cursor-pointer rounded-lg border border-white/10 px-3 py-2 text-left text-[11px] text-slate-300 transition-colors hover:bg-white/5 hover:text-slate-100"
           >
-            能力检测 · 检查本机是否支持设备端翻译 →
+            <b>打开设置</b>
+            <span className="mt-0.5 block text-slate-500">
+              语音引擎凭据、音色、翻译能力检测 →
+            </span>
           </button>
         </section>
       )}
