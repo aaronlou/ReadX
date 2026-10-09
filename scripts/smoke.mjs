@@ -2,7 +2,7 @@
 /**
  * 端到端冒烟测试。
  *
- *   npm run smoke           # 中英两种语言各跑一遍
+ *   npm run smoke           # 中英两种语言各跑一遍 + 验证正式包
  *   npm run smoke -- zh     # 只跑中文
  *
  * ## 为什么需要这一层
@@ -20,7 +20,7 @@
  * 某一种语言下出现（上面第三条就只在中文下暴露）。
  */
 import { spawn } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { attachToPage, collectErrors, enableLogging, launchWithExtension, sleep, waitFor } from './lib/cdp.mjs';
 
@@ -255,6 +255,72 @@ async function run({ locale, stripLocales }) {
   }
 }
 
+// ---------------------------------------------------------------- 生产包检查
+
+/**
+ * 单独验证**正式包**。
+ *
+ * 上面所有检查跑的都是 screenshot 构建 —— 它的 manifest 多匹配了 localhost，
+ * 而真正要提交的是 `.output/chrome-mv3`。两者的 manifest 不同，
+ * 所以正式包必须单独确认一次"能装载 + 权限清单是对的"。
+ *
+ * 这一步很实在：i18n 那两个 bug 就是让扩展**完全装载不了**，
+ * 而当时没有任何检查覆盖"正式包能不能装"。
+ */
+async function checkReleaseBuild(port, profile) {
+  console.log('\n[release build]');
+
+  const manifestPath = join(ROOT, '.output', 'chrome-mv3', 'manifest.json');
+  if (!existsSync(manifestPath)) {
+    check(false, '正式包存在（先跑 npm run build）');
+    return;
+  }
+
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+
+  check(manifest.default_locale === 'en', 'default_locale 是 en');
+  check(
+    typeof manifest.name === 'string' && manifest.name.startsWith('__MSG_'),
+    'name 走 __MSG_ 本地化',
+  );
+  check(
+    typeof manifest.description === 'string' && manifest.description.startsWith('__MSG_'),
+    'description 走 __MSG_ 本地化',
+  );
+
+  const matches = manifest.content_scripts?.[0]?.matches ?? [];
+  check(
+    matches.every((m) => /x\.com|twitter\.com/.test(m)),
+    '内容脚本只匹配 x.com / twitter.com（不含 localhost）',
+    matches.join(' '),
+  );
+
+  check(
+    JSON.stringify(manifest.permissions) === '["storage"]',
+    '只要 storage 一个权限',
+    JSON.stringify(manifest.permissions),
+  );
+
+  check(
+    Array.isArray(manifest.optional_host_permissions) &&
+      manifest.optional_host_permissions.length > 0,
+    '云语音域名在 optional_host_permissions 里',
+  );
+
+  // 真的装一次 —— 这是唯一能确认 Chrome 认可这份 manifest 的办法
+  try {
+    const prod = await launchWithExtension({
+      port,
+      profile,
+      extensionPath: join(ROOT, '.output', 'chrome-mv3'),
+    });
+    check(Boolean(prod.extId), '正式包能被 Chrome 装载', prod.extId);
+    await prod.close();
+  } catch (error) {
+    check(false, '正式包能被 Chrome 装载', error.message);
+  }
+}
+
 // ---------------------------------------------------------------- 主流程
 
 async function main() {
@@ -273,6 +339,8 @@ async function main() {
 
   try {
     for (const run_ of runs) await run(run_);
+    // 正式包只需要验一次，和语言无关
+    await checkReleaseBuild(PORT + 1, PROFILE);
   } finally {
     rmSync(PROFILE, { recursive: true, force: true });
     if (server) {
