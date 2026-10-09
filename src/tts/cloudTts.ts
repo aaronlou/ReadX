@@ -7,6 +7,17 @@ import type { SpeakOptions, SpeakOutcome, TtsProvider } from './provider';
 /** 音频缓存上限。一段语音几十 KB，60 段大约几 MB */
 const CLIP_CACHE_LIMIT = 60;
 
+/**
+ * 排队等合成槽位的预取上限。
+ *
+ * 超了就丢弃新的 —— 预取本来就是 best-effort，而且队排太长只会让
+ * **真正要读的句子**排在过时的预取后面，反而更卡。
+ */
+const MAX_QUEUED_PREFETCH = 4;
+
+/** 真正要读的句子 vs 后台预取 —— 前者永远优先 */
+type Priority = 'speak' | 'prefetch';
+
 interface Clip {
   url: string;
   /** 秒 */
@@ -40,6 +51,18 @@ export class CloudTtsProvider implements TtsProvider {
   private readonly clips = new Map<string, Clip>();
   private readonly inflight = new Map<string, Promise<Clip>>();
   private audio: HTMLAudioElement | null = null;
+
+  /** 正在飞的合成请求数 */
+  private active = 0;
+  /**
+   * 等合成槽位的队列，读的句子和预取分开排。
+   *
+   * 这个队列是**必需品**，不是优化：服务商对并发数有配额（豆包超了会
+   * 直接返回 `quota exceeded for types: concurrency`）。我们一次会预取
+   * 好几句，不自己排队就一定会撞上去。
+   */
+  private readonly speakQueue: Array<() => void> = [];
+  private readonly prefetchQueue: Array<() => void> = [];
 
   constructor(private readonly getConfig: () => CloudConfig) {}
 
@@ -103,7 +126,7 @@ export class CloudTtsProvider implements TtsProvider {
 
     let clip: Clip;
     try {
-      clip = await this.getClip(spec, text, voice);
+      clip = await this.getClip(spec, text, voice, 'speak');
     } catch (error) {
       const err = error as Error & { hint?: string };
       this.onError?.(err.message, err.hint);
@@ -118,9 +141,12 @@ export class CloudTtsProvider implements TtsProvider {
   prefetch(text: string, lang: string): void {
     const spec = this.spec;
     if (!spec || !this.isSupported()) return;
+    // 队伍已经太长就别再排了，否则会把真正要读的句子堵在后面
+    if (this.prefetchQueue.length >= MAX_QUEUED_PREFETCH) return;
+
     const voice = this.voiceFor(lang);
     if (!voice) return;
-    void this.getClip(spec, text, voice).catch(() => {
+    void this.getClip(spec, text, voice, 'prefetch').catch(() => {
       // 预取失败无所谓，真读到时候会再试一次
     });
   }
@@ -166,26 +192,57 @@ export class CloudTtsProvider implements TtsProvider {
     return `${spec.id}|${voice}|${text}`;
   }
 
-  private getClip(spec: CloudTtsSpec, text: string, voice: string): Promise<Clip> {
+  private getClip(
+    spec: CloudTtsSpec,
+    text: string,
+    voice: string,
+    priority: Priority,
+  ): Promise<Clip> {
     const key = this.cacheKey(spec, text, voice);
 
+    // 先查缓存：命中就不该占用合成槽位，更不该排队
     const cached = this.clips.get(key);
     if (cached) return Promise.resolve(cached);
 
+    // 同一段文本已经在合成/排队 → 共用那一个 promise，绝不重复请求
     const pending = this.inflight.get(key);
     if (pending) return pending;
 
-    const task = this.requestClip(spec, text, voice)
-      .then((clip) => {
+    const task = (async () => {
+      await this.acquire(priority);
+      try {
+        const clip = await this.requestClip(spec, text, voice);
         this.remember(key, clip);
         return clip;
-      })
-      .finally(() => {
-        this.inflight.delete(key);
-      });
+      } finally {
+        this.releaseSlot();
+      }
+    })().finally(() => {
+      this.inflight.delete(key);
+    });
 
     this.inflight.set(key, task);
     return task;
+  }
+
+  /** 占一个合成槽位；满了就在对应优先级的队列里等 */
+  private async acquire(priority: Priority): Promise<void> {
+    const limit = Math.max(1, this.spec?.maxConcurrency ?? 2);
+    if (this.active < limit) {
+      this.active += 1;
+      return;
+    }
+    await new Promise<void>((resolve) => {
+      (priority === 'speak' ? this.speakQueue : this.prefetchQueue).push(resolve);
+    });
+    this.active += 1;
+  }
+
+  private releaseSlot(): void {
+    this.active -= 1;
+    // 真正要读的句子永远插在预取前面
+    const next = this.speakQueue.shift() ?? this.prefetchQueue.shift();
+    next?.();
   }
 
   private remember(key: string, clip: Clip): void {

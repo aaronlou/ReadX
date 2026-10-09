@@ -53,6 +53,8 @@ export const openrouterSpec: CloudTtsSpec = {
   defaultVoiceByLang: {},
   fallbackVoice: 'nova',
   maxChars: 4096,
+  // OpenRouter 是按请求数限流而不是并发数，可以稍微放开一点
+  maxConcurrency: 2,
   isConfigured: (c) => Boolean(c.apiKey),
   synthesize: synthesizeOpenRouter,
 };

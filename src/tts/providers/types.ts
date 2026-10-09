@@ -85,6 +85,15 @@ export interface CloudTtsSpec {
   fallbackVoice?: string;
   /** 单次请求的文本上限 */
   maxChars: number;
+  /**
+   * 同时在飞的合成请求上限。
+   *
+   * 这个值必须尊重服务商的**并发配额** —— 豆包超了会直接返回
+   * `quota exceeded for types: concurrency`，整句读数就断了。
+   * 因为合成是和播放重叠进行的，串行（1）几乎不会影响听感，
+   * 却能彻底避免撞配额。拿不准就填小。
+   */
+  maxConcurrency?: number;
   /** 凭据填全了吗 */
   isConfigured(credentials: Record<string, string>): boolean;
   /** 真正发请求 —— 只在 background 里调用 */

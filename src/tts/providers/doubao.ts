@@ -95,6 +95,15 @@ export const doubaoSpec: CloudTtsSpec = {
   },
   // 接口限制：text_prompt 最长 2048 字符（官方 SDK 文档口径）
   maxChars: 2048,
+  /**
+   * 串行合成。
+   *
+   * 实测预取开到 6 个并发就会撞上
+   * `quota exceeded for types: concurrency` —— 新建应用的并发配额往往很低，
+   * 而具体是多少控制台才看得到。合成是和播放重叠进行的，串行几乎不影响
+   * 听感，却能彻底避免这个问题。配额确认更高之后再调大。
+   */
+  maxConcurrency: 1,
   isConfigured: (c) => Boolean(c.apiKey || (c.appId && c.accessKey)),
   synthesize: synthesizeDoubao,
 };

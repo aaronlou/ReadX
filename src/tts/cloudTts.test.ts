@@ -186,6 +186,72 @@ describe('CloudTtsProvider 失败处理', () => {
   });
 });
 
+describe('CloudTtsProvider 并发控制', () => {
+  /** 记录同时在飞的请求数峰值，以及请求顺序 */
+  function trackConcurrency(gapMs = 4) {
+    let inFlight = 0;
+    const peak = { value: 0 };
+    const order: string[] = [];
+    sendMessage.mockImplementation(async (message: { text: string }) => {
+      inFlight += 1;
+      peak.value = Math.max(peak.value, inFlight);
+      order.push(message.text);
+      await new Promise((resolve) => setTimeout(resolve, gapMs));
+      inFlight -= 1;
+      return { ok: true, audio: 'QUJD', mimeType: 'audio/mpeg', duration: 1, sentences: [] };
+    });
+    return { peak, order };
+  }
+
+  // 这是我们真实撞过的坑：预取一激进就把服务商的并发配额撞了，
+  // 豆包直接返回 `quota exceeded for types: concurrency`，整句读数就断了。
+  it('并发数不超过服务商配额（豆包是 1）', async () => {
+    const { peak } = trackConcurrency();
+    const provider = makeProvider(); // doubao: maxConcurrency = 1
+
+    for (let i = 0; i < 8; i += 1) provider.prefetch(`预取句子${i}`, 'zh');
+    await provider.speak('真正要读的句子', SPEAK_OPTS);
+    await new Promise((resolve) => setTimeout(resolve, 60));
+
+    expect(peak.value).toBe(1);
+  });
+
+  it('配额更高的服务商可以用到 2', async () => {
+    const { peak } = trackConcurrency();
+    const provider = makeProvider({ cloudProvider: 'openai' });
+
+    for (let i = 0; i < 6; i += 1) provider.prefetch(`预取句子${i}`, 'zh');
+    await new Promise((resolve) => setTimeout(resolve, 60));
+
+    expect(peak.value).toBeLessThanOrEqual(2);
+    expect(peak.value).toBeGreaterThan(1); // 确实用上了并行
+  });
+
+  // 否则用户会等在一堆"为后面准备的"预取后面，越预取越卡。
+  it('真正要读的句子插在排队的预取前面', async () => {
+    const { order } = trackConcurrency();
+    const provider = makeProvider();
+
+    for (let i = 0; i < 8; i += 1) provider.prefetch(`预取句子${i}`, 'zh');
+    await provider.speak('真正要读的句子', SPEAK_OPTS);
+    await new Promise((resolve) => setTimeout(resolve, 60));
+
+    // 第一个预取已经占住槽位，所以真正要读的排第二 —— 但必须早于其余预取
+    expect(order[1]).toBe('真正要读的句子');
+  });
+
+  it('预取队伍不会无限增长（超了就丢弃新的）', async () => {
+    const { order } = trackConcurrency(20);
+    const provider = makeProvider();
+
+    for (let i = 0; i < 30; i += 1) provider.prefetch(`预取句子${i}`, 'zh');
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    // 1 个在飞 + 最多 4 个排队，其余直接丢掉
+    expect(order.length).toBeLessThanOrEqual(6);
+  });
+});
+
 describe('CloudTtsProvider 资源释放', () => {
   it('dispose() 释放缓存的 object URL', async () => {
     const provider = makeProvider();

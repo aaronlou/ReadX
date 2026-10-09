@@ -67,6 +67,8 @@ export const openaiSpec: CloudTtsSpec = {
   fallbackVoice: 'nova',
   // 接口限制：input 最长 4096 字符
   maxChars: 4096,
+  // OpenAI 按 RPM/TPM 限流，不是并发数
+  maxConcurrency: 2,
   isConfigured: (c) => Boolean(c.apiKey),
   synthesize: synthesizeOpenAI,
 };
