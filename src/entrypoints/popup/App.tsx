@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { browser } from '#imports';
 import { getSettings, patchSettings, type ReadXSettings } from '@/settings';
+import { DOUBAO_ORIGIN } from '@/matches';
 import { LANGUAGE_CHOICES, languageLabel } from '@/translate/languages';
 import { WebSpeechProvider } from '@/tts/webSpeech';
 import type { GetStateResponse, ReaderCommand, ReaderSnapshot, RuntimeMessage } from '@/types';
@@ -32,6 +33,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<ReadXSettings | null>(null);
   const [voices, setVoices] = useState(() => provider.getVoices());
+  const [engineBusy, setEngineBusy] = useState(false);
+  const [engineStatus, setEngineStatus] = useState<string | null>(null);
 
   useEffect(() => {
     void getSettings().then(setSettings);
@@ -68,6 +71,29 @@ export default function App() {
     setSettings((prev) => (prev ? { ...prev, ...patch } : prev));
     void patchSettings(patch);
   }, []);
+
+  /**
+   * 启用豆包语音。必须先拿到 openspeech.bytedance.com 的权限再切引擎 ——
+   * 反过来的话用户会在朗读时才发现请求发不出去。
+   * 申请权限必须在用户手势（就是这次点击）里发起。
+   */
+  const enableDoubao = useCallback(async () => {
+    setEngineBusy(true);
+    setEngineStatus(null);
+    try {
+      const granted = await browser.permissions.request({ origins: [DOUBAO_ORIGIN] });
+      if (!granted) {
+        setEngineStatus('没有授权访问豆包接口，无法启用');
+        return;
+      }
+      update({ ttsEngine: 'doubao' });
+      setEngineStatus('已启用。API Key 和音色到「设置」里填');
+    } catch (error) {
+      setEngineStatus(`授权失败：${(error as Error).message}`);
+    } finally {
+      setEngineBusy(false);
+    }
+  }, [update]);
 
   /** 只列出当前帖子语种能用得上的音色 */
   const relevantVoices = useMemo(() => {
@@ -160,6 +186,31 @@ export default function App() {
 
       {settings && (
         <section className="mt-4 space-y-3 border-t border-white/10 pt-3">
+          {/* 引擎切换：豆包需要先申请域名权限，所以这个按钮必须真的可点（用户手势） */}
+          <div>
+            <span className="text-xs text-slate-400">朗读引擎</span>
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => update({ ttsEngine: 'system' })}
+                className={engineClass(settings.ttsEngine === 'system')}
+              >
+                系统语音
+              </button>
+              <button
+                type="button"
+                disabled={engineBusy}
+                onClick={() => void enableDoubao()}
+                className={engineClass(settings.ttsEngine === 'doubao')}
+              >
+                {engineBusy ? '授权中…' : '豆包语音'}
+              </button>
+            </div>
+            {engineStatus && (
+              <p className="mt-1 text-[11px] text-amber-300">{engineStatus}</p>
+            )}
+          </div>
+
           <label className="block">
             <span className="text-xs text-slate-400">朗读语言</span>
             <select
@@ -286,6 +337,15 @@ export default function App() {
       )}
     </div>
   );
+}
+
+function engineClass(active: boolean): string {
+  return [
+    'cursor-pointer rounded-lg px-2 py-1.5 text-[11px] font-medium transition-colors',
+    active
+      ? 'bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/50'
+      : 'bg-white/5 text-slate-400 hover:bg-white/10',
+  ].join(' ');
 }
 
 function ControlButton({

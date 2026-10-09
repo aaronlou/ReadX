@@ -118,12 +118,49 @@ export interface ProbeAllTabsMessage {
   type: 'readx:probe-all-tabs';
 }
 
+// ---------------------------------------------------------------- 豆包语音
+
+/**
+ * 内容脚本 → background：合成一段语音。
+ *
+ * 为什么必须绕到 background：内容脚本的跨域请求受**页面 CORS** 约束，
+ * 而扩展的 service worker 有 host_permissions 就能直接发。密钥也只存在
+ * background 能读到的地方，内容脚本不碰。
+ */
+export interface DoubaoSynthesizeMessage {
+  type: 'readx:doubao-synthesize';
+  text: string;
+  voice: string;
+  model: string;
+  speechRate: number;
+}
+
+export interface DoubaoSynthesizeResponse {
+  ok: boolean;
+  /** base64 音频 */
+  audio?: string;
+  mimeType?: string;
+  /** 秒 */
+  duration?: number;
+  sentences?: SubtitleSentencePayload[];
+  error?: string;
+  /** 用户能直接照做的提示 */
+  hint?: string;
+}
+
+export interface SubtitleSentencePayload {
+  start_time: number;
+  end_time: number;
+  text: string;
+}
+
 export type RuntimeMessage =
   | DetectLanguageMessage
   | ReaderCommandMessage
   | GetStateMessage
   | ProbePageContextsMessage
-  | ProbeAllTabsMessage;
+  | ProbeAllTabsMessage
+  | DoubaoSynthesizeMessage;
 
 export interface GetStateResponse {
   ok: boolean;

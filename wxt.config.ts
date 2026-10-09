@@ -2,7 +2,7 @@ import { mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'wxt';
-import { DEV_MATCHES, X_MATCHES } from './src/matches';
+import { DEV_MATCHES, DOUBAO_ORIGIN, X_MATCHES } from './src/matches';
 
 /**
  * `npm run dev` 拉起浏览器的能力由 web-ext 提供（WXT 在 import 失败时会
@@ -39,6 +39,12 @@ export default defineConfig({
     description: '用耳朵刷 X：自动滚到下一条帖子并按语言朗读，可指定朗读语言并自动翻译。',
     permissions: ['storage'],
     host_permissions: env.mode === 'development' ? DEV_MATCHES : X_MATCHES,
+    /**
+     * 豆包语音的域名**只在用户主动启用云端语音时**申请。
+     * 这样默认安装不碰任何第三方域名，商店的权限提示也干净。
+     * 申请入口在选项页 / popup，由用户点击触发（Chrome 要求用户手势）。
+     */
+    optional_host_permissions: [DOUBAO_ORIGIN],
     commands: {
       'toggle-reading': {
         suggested_key: { default: 'Alt+Shift+P' },

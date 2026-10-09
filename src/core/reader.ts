@@ -234,6 +234,16 @@ export class Reader {
   }
 
   /**
+   * 外部想把一条提示显示到面板上（比如语音引擎降级、权限没给、密钥失效）。
+   *
+   * 可能发生在朗读之前（点播放时才发现没配密钥），也可能发生在朗读中间
+   * （合成失败降级），所以不区分状态，直接写快照。
+   */
+  note(message: string): void {
+    this.patch({ message });
+  }
+
+  /**
    * 用户手动滚动了页面。
    * 之后不再按「DOM 里的下一条」推进，改成从当前锚线重新定位，
    * 这样才不会跟用户抢滚动条。
@@ -333,6 +343,11 @@ export class Reader {
       const sentence = script[i];
       if (sentence === undefined) continue;
       this.patch({ sentence, sentenceIndex: i, charIndex: 0 });
+
+      // 提前把下一句合成好。云端引擎一次往返要几百毫秒，
+      // 不预取的话每句之间都会明显断一下。
+      const next = script[i + 1];
+      if (next !== undefined) this.tts.prefetch?.(next, lang);
 
       const outcome = await this.tts.speak(sentence, {
         lang,
@@ -651,10 +666,14 @@ export class Reader {
     return out;
   }
 
+  /**
+   * 该语言用哪个音色 —— 交给引擎自己决定。
+   *
+   * 上层不该知道 Web Speech 的 voiceURI 和豆包的 speaker id 有什么区别，
+   * 所以这里只是把问题转给 provider。
+   */
   private voiceFor(lang: string): string | undefined {
-    const overrides = this.settings.voiceOverrides ?? {};
-    const base = lang.split('-')[0];
-    return overrides[lang] ?? (base ? overrides[base] : undefined);
+    return this.tts.voiceFor?.(lang);
   }
 
   private pickStartPost(): HTMLElement | null {

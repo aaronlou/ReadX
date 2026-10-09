@@ -1,6 +1,9 @@
 import { browser, defineBackground } from '#imports';
 import type { CldResult } from '@/lang/cld';
+import { getDoubaoCredentials } from '@/secrets';
+import { DoubaoError, synthesizeDoubao } from '@/tts/doubaoClient';
 import type {
+  DoubaoSynthesizeResponse,
   ProbePageContextsResponse,
   ReaderCommand,
   RuntimeMessage,
@@ -52,10 +55,47 @@ export default defineBackground(() => {
         return true;
       }
 
+      // ---------------------------------------------------------- 豆包语音合成
+      // 只能在这里发请求：内容脚本受页面 CORS 约束，service worker 不受。
+      // 密钥也只在扩展上下文里读取，不会进入页面的任何 JS realm。
+      if (message?.type === 'readx:doubao-synthesize') {
+        handleDoubaoSynthesize(message)
+          .then(sendResponse)
+          .catch((error: unknown) =>
+            sendResponse({
+              ok: false,
+              error: error instanceof Error ? error.message : '合成失败',
+            } satisfies DoubaoSynthesizeResponse),
+          );
+        return true;
+      }
+
       return undefined;
     },
   );
 });
+
+async function handleDoubaoSynthesize(
+  message: Extract<RuntimeMessage, { type: 'readx:doubao-synthesize' }>,
+): Promise<DoubaoSynthesizeResponse> {
+  const credentials = await getDoubaoCredentials();
+
+  try {
+    const result = await synthesizeDoubao(credentials, {
+      text: message.text,
+      voice: message.voice,
+      model: message.model,
+      speechRate: message.speechRate,
+    });
+    return { ok: true, ...result };
+  } catch (error) {
+    if (error instanceof DoubaoError) {
+      console.warn('[ReadX] 豆包语音合成失败', error.code, error.message);
+      return { ok: false, error: error.message, hint: error.hint };
+    }
+    throw error;
+  }
+}
 
 /**
  * 逐一试探所有标签页，把装了内容脚本的那些的探测报告收上来。

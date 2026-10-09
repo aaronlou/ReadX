@@ -1,7 +1,16 @@
 import { storage } from '#imports';
+import { DEFAULT_DOUBAO_MODEL } from './tts/doubaoVoices';
+
+/**
+ * 朗读引擎。
+ *
+ * - `system`：浏览器 / 系统自带的 Web Speech，零配置、离线，但音色偏机械
+ * - `doubao`：豆包语音合成，音色自然得多，需要自备 API Key 且要联网
+ */
+export type TtsEngine = 'system' | 'doubao';
 
 export interface ReadXSettings {
-  /** 语速，0.5 ~ 2 */
+  /** 语速，0.5 ~ 2（系统引擎用） */
   rate: number;
   /** 音调，0 ~ 2 */
   pitch: number;
@@ -17,7 +26,7 @@ export interface ReadXSettings {
   skipAds: boolean;
   /** 跳过纯图片 / 视频，没有文字的帖子 */
   skipMediaOnly: boolean;
-  /** 手动绑定的音色：lang -> voiceURI */
+  /** 系统引擎手动绑定的音色：lang -> voiceURI */
   voiceOverrides: Record<string, string>;
   /**
    * 朗读使用的语言。
@@ -29,6 +38,14 @@ export interface ReadXSettings {
   readingLang: string;
   /** 是否已经看过首次使用引导（看过之后不再显示） */
   hasSeenIntro: boolean;
+
+  // ---------------------------------------------------------------- 朗读引擎
+  /** 用哪个引擎朗读 */
+  ttsEngine: TtsEngine;
+  /** 豆包音色绑定：lang -> speaker id（空则该语言用内置默认音色） */
+  doubaoVoices: Record<string, string>;
+  /** 豆包模型名 */
+  doubaoModel: string;
 }
 
 export const DEFAULT_SETTINGS: ReadXSettings = {
@@ -43,6 +60,9 @@ export const DEFAULT_SETTINGS: ReadXSettings = {
   voiceOverrides: {},
   readingLang: 'auto',
   hasSeenIntro: false,
+  ttsEngine: 'system',
+  doubaoVoices: {},
+  doubaoModel: DEFAULT_DOUBAO_MODEL,
 };
 
 export const settingsItem = storage.defineItem<ReadXSettings>('sync:settings', {

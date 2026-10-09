@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { browser } from '#imports';
 import { probeBuiltInAi } from '@/diagnostics/probe';
+import { getSettings, patchSettings, type ReadXSettings } from '@/settings';
+import { TtsSettingsPanel } from '@/tts/TtsSettingsPanel';
 import type { AiProbeReport, TabProbeResult } from '@/types';
 
 /**
@@ -21,9 +23,16 @@ export default function App() {
   const [tabs, setTabs] = useState<TabProbeResult[] | null>(null);
   const [probing, setProbing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [settings, setSettings] = useState<ReadXSettings | null>(null);
 
   useEffect(() => {
     void probeBuiltInAi('extension-page').then(setSelfReport);
+    void getSettings().then(setSettings);
+  }, []);
+
+  const update = useCallback((patch: Partial<ReadXSettings>) => {
+    setSettings((prev) => (prev ? { ...prev, ...patch } : prev));
+    void patchSettings(patch);
   }, []);
 
   const probeTabs = useCallback(async () => {
@@ -78,6 +87,17 @@ export default function App() {
             （macOS：系统设置 → 辅助功能 → 朗读内容 → 系统声音）。
           </li>
         </ol>
+      </Section>
+
+      <Section
+        title="语音"
+        hint="系统语音零配置但偏机械；豆包语音自然得多，需要自备 API Key、并且只在你主动启用时才申请域名权限。"
+      >
+        {settings ? (
+          <TtsSettingsPanel settings={settings} onChange={update} />
+        ) : (
+          <p className="text-sm text-slate-500">加载中…</p>
+        )}
       </Section>
 
       <Section

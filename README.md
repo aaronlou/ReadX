@@ -24,6 +24,24 @@ Chrome 138+ 内置的**设备端** Translator API：免费、离线、**模型�
 
 `TranslationProvider` 是接口化的，后续接 LLM（自备 Key，社媒文本的译文质量更好）不影响上层。
 
+### 朗读用的是什么
+
+两个引擎，随时可切：
+
+| | 系统语音（默认） | 豆包语音（可选） |
+| --- | --- | --- |
+| 音色 | 浏览器 / 系统自带，**偏机械** | 自然得多，30+ 音色 |
+| 配置 | 零配置 | 自备火山引擎 API Key |
+| 隐私 | **完全离线** | **待朗读文本会发送到火山引擎** |
+| 权限 | 无 | 用户点击授权 `openspeech.bytedance.com` |
+
+默认安装**不碰任何第三方域名** —— 豆包走的是 `optional_host_permissions`，
+只有你主动去选项页启用并同意授权，文本才会发出去。
+
+**豆包失败会自动降级**：没填密钥、没授权、网络断、额度用尽、音色失效 ——
+任何一种都只会让这一句切回系统语音继续读，并把原因显示在控制条上，
+绝不让用户面对"点了播放却什么都没有"。
+
 ---
 
 ## 快速开始
@@ -200,7 +218,7 @@ npm run mock
 npm run dev        # 开发模式（热更新）
 npm run build      # 构建
 npm run zip        # 打包
-npm run test       # 单元测试（77 个）
+npm run test       # 单元测试（115 个）
 npm run compile    # 类型检查
 npm run mock       # 启动本地 mock 时间线
 ```
@@ -232,9 +250,14 @@ src/
 ├── lang/
 │   ├── detect.ts              # 三层语种识别
 │   └── cld.ts                 # chrome.i18n.detectLanguage 的兼容封装
-├── tts/
-│   ├── provider.ts            # 朗读引擎接口（为了以后换云 TTS）
-│   └── webSpeech.ts           # Web Speech API 实现
+├── tts/                       # 朗读层
+│   ├── provider.ts            # 引擎接口（voiceFor / prefetch 由引擎各自实现）
+│   ├── webSpeech.ts           # 系统语音（Web Speech API）
+│   ├── doubaoTts.ts           # 豆包语音（内容脚本侧：缓存 / 预取 / 播放）
+│   ├── doubaoClient.ts        # 豆包接口客户端（只在 background 里跑）
+│   ├── doubaoVoices.ts        # 音色目录
+│   ├── engineSwitch.ts        # ⭐ 引擎切换 + 失败自动降级
+│   └── TtsSettingsPanel.tsx   # 选项页 / popup 共用的设置面板
 ├── core/
 │   ├── reader.ts              # ⭐ 朗读主控：定位 → 提取 → 识别 → 切句 → 朗读 → 推进
 │   └── text.ts                # 按语言切句 + 长句二次切分
@@ -373,7 +396,7 @@ Built with **WXT + TypeScript + React + Tailwind CSS v4**, using the browser's b
 npm install
 npm run mock     # offline playground at http://localhost:5174 — no X login needed
 npm run dev      # dev build with HMR, then open https://x.com/home
-npm run test     # 77 unit tests
+npm run test     # 115 unit tests
 npm run build    # → .output/chrome-mv3
 ```
 

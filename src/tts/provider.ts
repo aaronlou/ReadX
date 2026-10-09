@@ -35,6 +35,22 @@ export interface TtsProvider {
   pause(): void;
   resume(): void;
   stop(): void;
+  /**
+   * 该引擎为某个语言选用的音色 id。
+   *
+   * Web Speech 的 id 是 voiceURI，豆包的 id 是 speaker —— 上层不需要知道
+   * 这个区别，只问"这个语言该用哪个音色"。返回 undefined 表示该引擎
+   * 没有这个语言的音色（调用方据此降级或提示）。
+   */
+  voiceFor?(lang: string): string | undefined;
+  /**
+   * 预取提示：提前把下一段合成好。
+   *
+   * 对本地合成的引擎（Web Speech）没意义，但对云端引擎很关键 ——
+   * 网络往返几百毫秒，不预取的话每句之间都会断一下。
+   * 实现方应当把它当作 best-effort：失败静默忽略。
+   */
+  prefetch?(text: string, lang: string): void;
 }
 
 export function clamp(value: number, min: number, max: number): number {

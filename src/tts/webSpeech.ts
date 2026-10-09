@@ -13,6 +13,19 @@ export class WebSpeechProvider implements TtsProvider {
   private ready: Promise<void> | null = null;
   private keepAlive: ReturnType<typeof setInterval> | null = null;
 
+  /**
+   * 只取需要的这一小块设置，而不是整个 ReadXSettings ——
+   * 这个 provider 只关心音色绑定，少一点耦合。
+   */
+  constructor(private readonly getVoiceOverrides?: () => Record<string, string>) {}
+
+  /** 用户为这个语言手动绑定的音色 */
+  voiceFor(lang: string): string | undefined {
+    const overrides = this.getVoiceOverrides?.() ?? {};
+    const base = lang.split('-')[0];
+    return overrides[lang] ?? (base ? overrides[base] : undefined);
+  }
+
   isSupported(): boolean {
     return (
       typeof globalThis.speechSynthesis !== 'undefined' &&
@@ -74,7 +87,7 @@ export class WebSpeechProvider implements TtsProvider {
 
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = opts.lang;
-      const voice = this.pickVoice(opts.lang, opts.voiceURI);
+      const voice = this.pickVoice(opts.lang, opts.voiceURI ?? this.voiceFor(opts.lang));
       if (voice) utterance.voice = voice;
       utterance.rate = clamp(opts.rate, 0.1, 10);
       utterance.pitch = clamp(opts.pitch, 0, 2);
