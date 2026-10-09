@@ -118,40 +118,39 @@ export interface ProbeAllTabsMessage {
   type: 'readx:probe-all-tabs';
 }
 
-// ---------------------------------------------------------------- 豆包语音
+// ---------------------------------------------------------------- 云语音
+
+export type { SubtitleSentence } from './tts/providers/types';
+import type { SubtitleSentence } from './tts/providers/types';
 
 /**
- * 内容脚本 → background：合成一段语音。
+ * 内容脚本 → background：用某个服务商合成一段语音。
  *
  * 为什么必须绕到 background：内容脚本的跨域请求受**页面 CORS** 约束，
- * 而扩展的 service worker 有 host_permissions 就能直接发。密钥也只存在
+ * 而扩展的 service worker 有 host_permissions 就能直接发。凭据也只存在
  * background 能读到的地方，内容脚本不碰。
+ *
+ * 这里刻意只传 `providerId` 而不是整个 spec —— 具体怎么发请求由
+ * background 按注册表查出来的 spec 决定，加服务商不用改消息协议。
  */
-export interface DoubaoSynthesizeMessage {
-  type: 'readx:doubao-synthesize';
+export interface CloudTtsSynthesizeMessage {
+  type: 'readx:cloud-tts-synthesize';
+  providerId: string;
   text: string;
   voice: string;
-  model: string;
-  speechRate: number;
 }
 
-export interface DoubaoSynthesizeResponse {
+export interface CloudTtsSynthesizeResponse {
   ok: boolean;
-  /** base64 音频 */
+  /** base64 音频（二进制响应在服务商实现里已就地转换） */
   audio?: string;
   mimeType?: string;
   /** 秒 */
   duration?: number;
-  sentences?: SubtitleSentencePayload[];
+  sentences?: SubtitleSentence[];
   error?: string;
   /** 用户能直接照做的提示 */
   hint?: string;
-}
-
-export interface SubtitleSentencePayload {
-  start_time: number;
-  end_time: number;
-  text: string;
 }
 
 export type RuntimeMessage =
@@ -160,7 +159,7 @@ export type RuntimeMessage =
   | GetStateMessage
   | ProbePageContextsMessage
   | ProbeAllTabsMessage
-  | DoubaoSynthesizeMessage;
+  | CloudTtsSynthesizeMessage;
 
 export interface GetStateResponse {
   ok: boolean;

@@ -5,11 +5,11 @@ import type { SpeakOptions, SpeakOutcome, TtsProvider } from './provider';
 /**
  * 引擎切换 + 自动降级。
  *
- * 为什么需要这一层：豆包音色好听，但它有太多失败方式 —— 没填密钥、
+ * 为什么需要这一层：云语音音色好听，但它有太多失败方式 —— 没填凭据、
  * 没授予域名权限、网络不通、额度用尽、音色 ID 失效。任何一种都不应该让
  * 用户面对"点了播放却什么都没有"。
  *
- * 所以：豆包失败一次就**立刻降级到系统引擎继续读**，并把原因告诉用户。
+ * 所以：云语音失败一次就**立刻降级到系统引擎继续读**，并把原因告诉用户。
  * 降级是粘性的（不会每句都去撞一次墙），用户改了设置之后自动复位。
  */
 export class TtsEngineSwitch implements TtsProvider {
@@ -23,12 +23,12 @@ export class TtsEngineSwitch implements TtsProvider {
 
   constructor(
     private readonly system: TtsProvider,
-    private readonly doubao: TtsProvider,
+    private readonly cloud: TtsProvider,
     private readonly getEngine: () => TtsEngine,
   ) {
     const forward = (message: string, hint?: string) => this.onError?.(message, hint);
     // 子引擎的错误都往上抛，UI 只需要订阅这一个
-    (this.doubao as { onError?: typeof forward }).onError = forward;
+    (this.cloud as { onError?: typeof forward }).onError = forward;
   }
 
   /** 当前是不是已经因为失败降级到系统引擎 */
@@ -45,8 +45,8 @@ export class TtsEngineSwitch implements TtsProvider {
       // 切引擎时把两边都停掉，避免上一个引擎的音频还在响
       this.stopBoth();
     }
-    // 音色/模型变了的话，豆包那边缓存的音频要作废
-    (this.doubao as { invalidate?: () => void }).invalidate?.();
+    // 音色/服务商变了的话，云端缓存的音频要作废
+    (this.cloud as { invalidate?: () => void }).invalidate?.();
   }
 
   isSupported(): boolean {
@@ -79,13 +79,13 @@ export class TtsEngineSwitch implements TtsProvider {
 
     if (
       outcome === 'error' &&
-      primary === this.doubao &&
+      primary === this.cloud &&
       !this.degraded &&
       !opts.signal?.aborted
     ) {
       this.degraded = true;
       this.onError?.(
-        '豆包语音不可用，已临时切回系统语音',
+        '云语音不可用，已临时切回系统语音',
         '到选项页检查 API Key、域名授权和余额',
       );
       return this.system.speak(text, opts);
@@ -113,12 +113,12 @@ export class TtsEngineSwitch implements TtsProvider {
       this.lastEngine = engine;
       this.degraded = false;
     }
-    return engine === 'doubao' && !this.degraded ? this.doubao : this.system;
+    return engine === 'cloud' && !this.degraded ? this.cloud : this.system;
   }
 
   /** 两个都停：切换引擎的那一刻无法确定谁在播 */
   private stopBoth(): void {
     this.system.stop();
-    this.doubao.stop();
+    this.cloud.stop();
   }
 }

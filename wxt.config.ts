@@ -2,7 +2,14 @@ import { mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'wxt';
-import { DEV_MATCHES, DOUBAO_ORIGIN, X_MATCHES } from './src/matches';
+import { DEV_MATCHES, X_MATCHES } from './src/matches';
+import { CLOUD_TTS_PROVIDERS } from './src/tts/providers';
+
+/**
+ * 所有云语音服务商的接口域名，从注册表里推导出来 ——
+ * 加一家服务商只需要写它的 spec，这里不用改。
+ */
+const CLOUD_TTS_ORIGINS = [...new Set(CLOUD_TTS_PROVIDERS.flatMap((p) => p.origins))];
 
 /**
  * `npm run dev` 拉起浏览器的能力由 web-ext 提供（WXT 在 import 失败时会
@@ -40,11 +47,11 @@ export default defineConfig({
     permissions: ['storage'],
     host_permissions: env.mode === 'development' ? DEV_MATCHES : X_MATCHES,
     /**
-     * 豆包语音的域名**只在用户主动启用云端语音时**申请。
+     * 云语音的域名**只在用户主动启用某家服务商时**申请。
      * 这样默认安装不碰任何第三方域名，商店的权限提示也干净。
      * 申请入口在选项页 / popup，由用户点击触发（Chrome 要求用户手势）。
      */
-    optional_host_permissions: [DOUBAO_ORIGIN],
+    optional_host_permissions: CLOUD_TTS_ORIGINS,
     commands: {
       'toggle-reading': {
         suggested_key: { default: 'Alt+Shift+P' },

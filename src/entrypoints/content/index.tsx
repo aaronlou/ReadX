@@ -5,7 +5,7 @@ import { probePageContext } from '@/diagnostics/pageProbe';
 import { DEV_MATCHES, X_MATCHES } from '@/matches';
 import { getSettings, watchSettings } from '@/settings';
 import { ChromeTranslatorProvider } from '@/translate/chromeTranslator';
-import { DoubaoTtsProvider } from '@/tts/doubaoTts';
+import { CloudTtsProvider } from '@/tts/cloudTts';
 import { TtsEngineSwitch } from '@/tts/engineSwitch';
 import { WebSpeechProvider } from '@/tts/webSpeech';
 import type { ReaderCommand, RuntimeMessage } from '@/types';
@@ -22,11 +22,11 @@ export default defineContentScript({
     let settings = await getSettings();
 
     // 两个朗读引擎 + 自动降级。
-    // 豆包音色自然得多，但失败方式也多（密钥、授权、网络、额度），
+    // 云语音音色自然得多，但失败方式也多（凭据、授权、网络、额度），
     // 所以由 TtsEngineSwitch 兜底：失败就用系统语音接着读。
     const systemTts = new WebSpeechProvider(() => settings.voiceOverrides);
-    const doubaoTts = new DoubaoTtsProvider(() => settings);
-    const tts = new TtsEngineSwitch(systemTts, doubaoTts, () => settings.ttsEngine);
+    const cloudTts = new CloudTtsProvider(() => settings);
+    const tts = new TtsEngineSwitch(systemTts, cloudTts, () => settings.ttsEngine);
 
     if (!systemTts.isSupported()) {
       console.warn('[ReadX] 当前浏览器没有 Web Speech API，系统语音不可用。');
@@ -49,7 +49,7 @@ export default defineContentScript({
     });
 
     // 页面卸载时释放缓存里的音频 object URL
-    ctx.onInvalidated(() => doubaoTts.dispose());
+    ctx.onInvalidated(() => cloudTts.dispose());
 
     // 用户自己滚动 / 按键 → 停止跟用户抢滚动条
     const markUserScroll = () => reader.notifyUserScroll();

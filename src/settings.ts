@@ -1,13 +1,14 @@
 import { storage } from '#imports';
-import { DEFAULT_DOUBAO_MODEL } from './tts/doubaoVoices';
+import { DEFAULT_CLOUD_PROVIDER } from './tts/providers';
 
 /**
  * 朗读引擎。
  *
  * - `system`：浏览器 / 系统自带的 Web Speech，零配置、离线，但音色偏机械
- * - `doubao`：豆包语音合成，音色自然得多，需要自备 API Key 且要联网
+ * - `cloud`：云语音服务商（豆包 / OpenAI / …），音色自然得多，
+ *   需要自备凭据且要联网。具体用哪家由 `cloudProvider` 决定。
  */
-export type TtsEngine = 'system' | 'doubao';
+export type TtsEngine = 'system' | 'cloud';
 
 export interface ReadXSettings {
   /** 语速，0.5 ~ 2（系统引擎用） */
@@ -42,10 +43,19 @@ export interface ReadXSettings {
   // ---------------------------------------------------------------- 朗读引擎
   /** 用哪个引擎朗读 */
   ttsEngine: TtsEngine;
-  /** 豆包音色绑定：lang -> speaker id（空则该语言用内置默认音色） */
-  doubaoVoices: Record<string, string>;
-  /** 豆包模型名 */
-  doubaoModel: string;
+  /**
+   * 选中的云语音服务商 id。
+   * 可选项来自 `src/tts/providers` 的注册表 —— 加服务商不需要动这里。
+   */
+  cloudProvider: string;
+  /**
+   * 各服务商的音色绑定：providerId -> { lang: voiceId }。
+   * 留空则该语言用服务商 spec 里声明的默认音色。
+   *
+   * 注意这里**没有**凭据 —— API Key 存在 storage.local（见 src/credentials.ts），
+   * 因为这个设置对象是走 sync 的。
+   */
+  cloudVoices: Record<string, Record<string, string>>;
 }
 
 export const DEFAULT_SETTINGS: ReadXSettings = {
@@ -61,8 +71,8 @@ export const DEFAULT_SETTINGS: ReadXSettings = {
   readingLang: 'auto',
   hasSeenIntro: false,
   ttsEngine: 'system',
-  doubaoVoices: {},
-  doubaoModel: DEFAULT_DOUBAO_MODEL,
+  cloudProvider: DEFAULT_CLOUD_PROVIDER,
+  cloudVoices: {},
 };
 
 export const settingsItem = storage.defineItem<ReadXSettings>('sync:settings', {

@@ -36,14 +36,14 @@ class StubProvider implements TtsProvider {
   }
 }
 
-function makeSwitch(engine: TtsEngine = 'doubao') {
+function makeSwitch(engine: TtsEngine = 'cloud') {
   const system = new StubProvider('system');
-  const doubao = new StubProvider('doubao');
+  const cloud = new StubProvider('cloud');
   let current: TtsEngine = engine;
-  const switcher = new TtsEngineSwitch(system, doubao, () => current);
+  const switcher = new TtsEngineSwitch(system, cloud, () => current);
   return {
     system,
-    doubao,
+    cloud,
     switcher,
     setEngine: (next: TtsEngine) => {
       current = next;
@@ -55,60 +55,60 @@ const OPTS = { lang: 'zh', rate: 1, pitch: 1, volume: 1 };
 
 describe('TtsEngineSwitch', () => {
   it('选豆包时走豆包，选系统时走系统', async () => {
-    const a = makeSwitch('doubao');
+    const a = makeSwitch('cloud');
     await a.switcher.speak('一', OPTS);
-    expect(a.doubao.speakCalls).toEqual(['一']);
+    expect(a.cloud.speakCalls).toEqual(['一']);
     expect(a.system.speakCalls).toEqual([]);
 
     const b = makeSwitch('system');
     await b.switcher.speak('一', OPTS);
     expect(b.system.speakCalls).toEqual(['一']);
-    expect(b.doubao.speakCalls).toEqual([]);
+    expect(b.cloud.speakCalls).toEqual([]);
   });
 
   // 这是这一层存在的全部理由：豆包有一堆失败方式（没密钥 / 没授权 /
   // 网络 / 额度 / 音色失效），任何一种都不该让用户面对"点了播放却什么都没有"
   it('豆包失败时立刻降级到系统语音，并且这一句仍然读出来', async () => {
-    const { switcher, system, doubao } = makeSwitch('doubao');
-    doubao.outcome = 'error';
+    const { switcher, system, cloud } = makeSwitch('cloud');
+    cloud.outcome = 'error';
 
     const outcome = await switcher.speak('一', OPTS);
 
     expect(outcome).toBe('ended');
-    expect(doubao.speakCalls).toEqual(['一']);
+    expect(cloud.speakCalls).toEqual(['一']);
     expect(system.speakCalls).toEqual(['一']);
     expect(switcher.isDegraded).toBe(true);
   });
 
   it('降级是粘性的：后续句子不再反复去撞豆包', async () => {
-    const { switcher, system, doubao } = makeSwitch('doubao');
-    doubao.outcome = 'error';
+    const { switcher, system, cloud } = makeSwitch('cloud');
+    cloud.outcome = 'error';
 
     await switcher.speak('一', OPTS);
     await switcher.speak('二', OPTS);
     await switcher.speak('三', OPTS);
 
-    expect(doubao.speakCalls).toEqual(['一']);
+    expect(cloud.speakCalls).toEqual(['一']);
     expect(system.speakCalls).toEqual(['一', '二', '三']);
   });
 
   it('降级时把原因报给上层', async () => {
-    const { switcher, doubao } = makeSwitch('doubao');
-    doubao.outcome = 'error';
+    const { switcher, cloud } = makeSwitch('cloud');
+    cloud.outcome = 'error';
     const onError = vi.fn();
     switcher.onError = onError;
 
     await switcher.speak('一', OPTS);
 
     expect(onError).toHaveBeenCalledWith(
-      expect.stringContaining('豆包'),
+      expect.stringContaining('云语音'),
       expect.stringContaining('API Key'),
     );
   });
 
   it('用户主动切回系统语音后就恢复正常，不再报降级', async () => {
-    const { switcher, system, doubao, setEngine } = makeSwitch('doubao');
-    doubao.outcome = 'error';
+    const { switcher, system, cloud, setEngine } = makeSwitch('cloud');
+    cloud.outcome = 'error';
     await switcher.speak('一', OPTS);
     expect(switcher.isDegraded).toBe(true);
 
@@ -118,18 +118,18 @@ describe('TtsEngineSwitch', () => {
     expect(switcher.isDegraded).toBe(false);
 
     // 再切回豆包（比如重新填了密钥）→ 降级状态复位，会再试一次豆包
-    doubao.outcome = 'ended';
-    setEngine('doubao');
+    cloud.outcome = 'ended';
+    setEngine('cloud');
     switcher.onSettingsChanged();
     await switcher.speak('三', OPTS);
 
-    expect(doubao.speakCalls).toEqual(['一', '三']);
+    expect(cloud.speakCalls).toEqual(['一', '三']);
     expect(system.speakCalls).toEqual(['一', '二']);
   });
 
   it('用户主动中止（cancelled）不触发降级', async () => {
-    const { switcher, system, doubao } = makeSwitch('doubao');
-    doubao.outcome = 'cancelled';
+    const { switcher, system, cloud } = makeSwitch('cloud');
+    cloud.outcome = 'cancelled';
 
     const outcome = await switcher.speak('一', OPTS);
 
@@ -139,15 +139,15 @@ describe('TtsEngineSwitch', () => {
   });
 
   it('stop() 同时停掉两个引擎 —— 切换的那一刻无法确定谁在播', () => {
-    const { switcher, system, doubao } = makeSwitch('doubao');
+    const { switcher, system, cloud } = makeSwitch('cloud');
     switcher.stop();
     expect(system.stopCalls).toBe(1);
-    expect(doubao.stopCalls).toBe(1);
+    expect(cloud.stopCalls).toBe(1);
   });
 
   it('voiceFor 转发给当前引擎', () => {
-    const { switcher, doubao } = makeSwitch('doubao');
-    expect(switcher.voiceFor('zh')).toBe('doubao-voice');
-    void doubao;
+    const { switcher, cloud } = makeSwitch('cloud');
+    expect(switcher.voiceFor('zh')).toBe('cloud-voice');
+    void cloud;
   });
 });

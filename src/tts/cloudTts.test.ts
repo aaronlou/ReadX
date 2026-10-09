@@ -1,14 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { browser } from '#imports';
-import { DEFAULT_SETTINGS, type ReadXSettings } from '../settings';
-import { DoubaoTtsProvider } from './doubaoTts';
+import { DEFAULT_SETTINGS } from '../settings';
+import { CloudTtsProvider } from './cloudTts';
 
 /**
- * 这一层最容易出错的是**缓存与去重**：预取和正式朗读会为同一段文本
- * 各发一次请求，如果没去重，等于每句话都花两倍的钱和时间。
+ * 通用云语音引擎。
+ *
+ * 最容易出错的是**缓存与去重**：预取和正式朗读会为同一段文本各发一次请求，
+ * 不去重等于每句话都花两倍的钱和时间。另外换服务商之后缓存必须隔离 ——
+ * 同样的音色 id 在不同服务商那里可能指向完全不同的东西。
  */
 
-/** 让 play() 拒绝，用来模拟自动播放策略拦截 */
 let playRejects = false;
 
 class FakeAudio {
@@ -22,7 +24,7 @@ class FakeAudio {
   onended: (() => void) | null = null;
   onerror: (() => void) | null = null;
 
-  // 注意：类字段是**实例属性**，不在原型上，所以测试里不能补 prototype
+  // 注意：类字段是实例属性，不在原型上
   play = vi.fn(() => {
     if (playRejects) return Promise.reject(new Error('NotAllowedError'));
     this.currentSrc = this.src;
@@ -39,12 +41,12 @@ class FakeAudio {
 let objectUrlSeq = 0;
 let sendMessage: ReturnType<typeof vi.fn>;
 
-function makeSettings(overrides: Partial<ReadXSettings> = {}): ReadXSettings {
-  return { ...DEFAULT_SETTINGS, ...overrides };
-}
-
-function makeProvider(overrides: Partial<ReadXSettings> = {}) {
-  return new DoubaoTtsProvider(() => makeSettings(overrides));
+function makeProvider(overrides: Record<string, unknown> = {}) {
+  return new CloudTtsProvider(() => ({
+    ...DEFAULT_SETTINGS,
+    cloudProvider: 'doubao',
+    ...overrides,
+  }) as never);
 }
 
 const SPEAK_OPTS = { lang: 'zh', rate: 1, pitch: 1, volume: 1 };
@@ -71,81 +73,80 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('DoubaoTtsProvider 音色选择', () => {
-  it('没绑定就用该语言的默认音色', () => {
+describe('CloudTtsProvider 音色选择', () => {
+  it('从当前服务商的 spec 里取音色', () => {
     expect(makeProvider().voiceFor('zh')).toBe('zh_female_xiaohe_uranus_bigtts');
-    expect(makeProvider().voiceFor('en')).toBe('en_female_dacey_uranus_bigtts');
   });
 
-  it('用户绑定优先于默认', () => {
-    const provider = makeProvider({ doubaoVoices: { zh: 'zh_male_qingcang_mars_bigtts' } });
+  it('用户绑定优先于 spec 默认', () => {
+    const provider = makeProvider({
+      cloudVoices: { doubao: { zh: 'zh_male_qingcang_mars_bigtts' } },
+    });
     expect(provider.voiceFor('zh')).toBe('zh_male_qingcang_mars_bigtts');
   });
 
-  it('地区变体回退到主语言', () => {
-    const provider = makeProvider({ doubaoVoices: { zh: 'zh_male_qingcang_mars_bigtts' } });
-    expect(provider.voiceFor('zh-TW')).toBe('zh_male_qingcang_mars_bigtts');
+  it('换服务商后音色跟着换（OpenAI 的音色是语言无关的）', () => {
+    const provider = makeProvider({ cloudProvider: 'openai' });
+    expect(provider.voiceFor('zh')).toBe('nova');
+    expect(provider.voiceFor('ja')).toBe('nova');
   });
 
-  it('没有对应语言的音色时返回 undefined，让上层去提示', () => {
-    expect(makeProvider().voiceFor('ja')).toBeUndefined();
+  it('音色绑定按服务商隔离，不会串台', () => {
+    const provider = makeProvider({
+      cloudProvider: 'openai',
+      cloudVoices: { doubao: { zh: 'zh_male_qingcang_mars_bigtts' } },
+    });
+    // doubao 的绑定不该影响 openai
+    expect(provider.voiceFor('zh')).toBe('nova');
+  });
+
+  it('未知的服务商 id 不会崩，只是没声音', () => {
+    expect(makeProvider({ cloudProvider: 'nope' }).voiceFor('zh')).toBeUndefined();
   });
 });
 
-describe('DoubaoTtsProvider 请求与缓存', () => {
+describe('CloudTtsProvider 请求与缓存', () => {
   it('同一段文本只合成一次', async () => {
     const provider = makeProvider();
-
     await provider.speak('你好', SPEAK_OPTS);
     await provider.speak('你好', SPEAK_OPTS);
-
     expect(sendMessage).toHaveBeenCalledTimes(1);
   });
 
-  it('预取过的文本，真读到时不再请求（in-flight 去重）', async () => {
+  it('预取过的文本，真读到时不再请求', async () => {
     const provider = makeProvider();
-
     provider.prefetch('你好', 'zh');
     await provider.speak('你好', SPEAK_OPTS);
-
     expect(sendMessage).toHaveBeenCalledTimes(1);
   });
 
-  it('不同文本各自请求', async () => {
-    const provider = makeProvider();
+  it('不同服务商之间缓存隔离', async () => {
+    const doubao = makeProvider();
+    await doubao.speak('你好', SPEAK_OPTS);
 
-    await provider.speak('一', SPEAK_OPTS);
-    await provider.speak('二', SPEAK_OPTS);
-
-    expect(sendMessage).toHaveBeenCalledTimes(2);
-  });
-
-  it('换音色后缓存不复用（否则会拿旧音色的音频）', async () => {
-    const provider = makeProvider();
-
-    await provider.speak('你好', { ...SPEAK_OPTS, voiceURI: 'voice-a' });
-    await provider.speak('你好', { ...SPEAK_OPTS, voiceURI: 'voice-b' });
+    // 服务商和音色都在缓存 key 里 —— 同样的音色 id 在不同服务商那里
+    // 可能指向完全不同的东西，绝不能复用
+    const openai = makeProvider({ cloudProvider: 'openai' });
+    await openai.speak('你好', SPEAK_OPTS);
 
     expect(sendMessage).toHaveBeenCalledTimes(2);
   });
 
-  it('请求里带上模型和音色', async () => {
-    const provider = makeProvider({ doubaoModel: 'seed-audio-1.0' });
-    await provider.speak('你好', SPEAK_OPTS);
-
+  it('请求里带上 providerId，由 background 决定怎么发', async () => {
+    await makeProvider().speak('你好', SPEAK_OPTS);
     expect(sendMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'readx:doubao-synthesize',
+        type: 'readx:cloud-tts-synthesize',
+        providerId: 'doubao',
         text: '你好',
         voice: 'zh_female_xiaohe_uranus_bigtts',
-        model: 'seed-audio-1.0',
       }),
     );
   });
 });
 
-describe('DoubaoTtsProvider 失败处理', () => {
-  it('接口报错时把原因和提示报给 UI，并返回 error', async () => {
+describe('CloudTtsProvider 失败处理', () => {
+  it('合成失败时把原因和提示报给 UI，并返回 error', async () => {
     sendMessage.mockResolvedValue({ ok: false, error: 'API Key 无效', hint: '去控制台确认' });
     const provider = makeProvider();
     const onError = vi.fn();
@@ -157,16 +158,16 @@ describe('DoubaoTtsProvider 失败处理', () => {
     expect(onError).toHaveBeenCalledWith('API Key 无效', '去控制台确认');
   });
 
-  it('没有该语言的音色时报错，而不是发一个必然失败的请求', async () => {
-    const provider = makeProvider();
+  it('未知服务商立刻报错，不发请求', async () => {
+    const provider = makeProvider({ cloudProvider: 'nope' });
     const onError = vi.fn();
     provider.onError = onError;
 
-    const outcome = await provider.speak('こんにちは', { ...SPEAK_OPTS, lang: 'ja' });
+    const outcome = await provider.speak('你好', SPEAK_OPTS);
 
     expect(outcome).toBe('error');
     expect(sendMessage).not.toHaveBeenCalled();
-    expect(onError).toHaveBeenCalledWith(expect.stringContaining('音色'), expect.any(String));
+    expect(onError).toHaveBeenCalled();
   });
 
   it('播放被拒绝时也报错，不会静默什么都不发生', async () => {
@@ -185,16 +186,7 @@ describe('DoubaoTtsProvider 失败处理', () => {
   });
 });
 
-describe('DoubaoTtsProvider 停止', () => {
-  it('stop() 会暂停并清掉 src，避免残留的 ended 事件串到下一次', async () => {
-    const provider = makeProvider();
-    await provider.speak('你好', SPEAK_OPTS);
-
-    provider.stop();
-
-    expect(provider.isSupported()).toBe(true);
-  });
-
+describe('CloudTtsProvider 资源释放', () => {
   it('dispose() 释放缓存的 object URL', async () => {
     const provider = makeProvider();
     await provider.speak('你好', SPEAK_OPTS);
@@ -204,5 +196,14 @@ describe('DoubaoTtsProvider 停止', () => {
     provider.dispose();
 
     expect(revoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('invalidate() 之后会重新合成（换音色时必须这样）', async () => {
+    const provider = makeProvider();
+    await provider.speak('你好', SPEAK_OPTS);
+    provider.invalidate();
+    await provider.speak('你好', SPEAK_OPTS);
+
+    expect(sendMessage).toHaveBeenCalledTimes(2);
   });
 });

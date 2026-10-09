@@ -1,9 +1,9 @@
 import { browser, defineBackground } from '#imports';
+import { getProviderCredentials } from '@/credentials';
 import type { CldResult } from '@/lang/cld';
-import { getDoubaoCredentials } from '@/secrets';
-import { DoubaoError, synthesizeDoubao } from '@/tts/doubaoClient';
+import { CloudTtsError, findCloudProvider } from '@/tts/providers';
 import type {
-  DoubaoSynthesizeResponse,
+  CloudTtsSynthesizeResponse,
   ProbePageContextsResponse,
   ReaderCommand,
   RuntimeMessage,
@@ -55,17 +55,19 @@ export default defineBackground(() => {
         return true;
       }
 
-      // ---------------------------------------------------------- 豆包语音合成
+      // ---------------------------------------------------------- 云语音合成
       // 只能在这里发请求：内容脚本受页面 CORS 约束，service worker 不受。
-      // 密钥也只在扩展上下文里读取，不会进入页面的任何 JS realm。
-      if (message?.type === 'readx:doubao-synthesize') {
-        handleDoubaoSynthesize(message)
+      // 凭据也只在扩展上下文里读取，不会进入页面的任何 JS realm。
+      //
+      // 这里刻意只按 providerId 查注册表 —— 加服务商不用改这个文件。
+      if (message?.type === 'readx:cloud-tts-synthesize') {
+        handleCloudTts(message)
           .then(sendResponse)
           .catch((error: unknown) =>
             sendResponse({
               ok: false,
               error: error instanceof Error ? error.message : '合成失败',
-            } satisfies DoubaoSynthesizeResponse),
+            } satisfies CloudTtsSynthesizeResponse),
           );
         return true;
       }
@@ -75,22 +77,37 @@ export default defineBackground(() => {
   );
 });
 
-async function handleDoubaoSynthesize(
-  message: Extract<RuntimeMessage, { type: 'readx:doubao-synthesize' }>,
-): Promise<DoubaoSynthesizeResponse> {
-  const credentials = await getDoubaoCredentials();
+async function handleCloudTts(
+  message: Extract<RuntimeMessage, { type: 'readx:cloud-tts-synthesize' }>,
+): Promise<CloudTtsSynthesizeResponse> {
+  const spec = findCloudProvider(message.providerId);
+  if (!spec) {
+    return { ok: false, error: `未知的语音服务商：${message.providerId}` };
+  }
+
+  if (message.text.length > spec.maxChars) {
+    return {
+      ok: false,
+      error: `这段文本超过了 ${spec.name} 单次 ${spec.maxChars} 字符的上限`,
+      hint: '调小每条的朗读长度，或换一个服务商',
+    };
+  }
+
+  const credentials = await getProviderCredentials(spec.id);
+  if (!spec.isConfigured(credentials)) {
+    return { ok: false, error: `${spec.name} 还没有配置凭据`, hint: '到扩展的选项页填写' };
+  }
 
   try {
-    const result = await synthesizeDoubao(credentials, {
+    const result = await spec.synthesize({
       text: message.text,
       voice: message.voice,
-      model: message.model,
-      speechRate: message.speechRate,
+      credentials,
     });
     return { ok: true, ...result };
   } catch (error) {
-    if (error instanceof DoubaoError) {
-      console.warn('[ReadX] 豆包语音合成失败', error.code, error.message);
+    if (error instanceof CloudTtsError) {
+      console.warn('[ReadX] 语音合成失败', spec.id, error.message);
       return { ok: false, error: error.message, hint: error.hint };
     }
     throw error;

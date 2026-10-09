@@ -1,93 +1,104 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { browser } from '#imports';
-import { DOUBAO_ORIGIN } from '@/matches';
-import { doubaoApiKeyItem, maskApiKey, setDoubaoApiKey } from '@/secrets';
+import { getProviderCredentials, maskSecret, setProviderCredentials } from '@/credentials';
 import type { ReadXSettings } from '@/settings';
-import type { DoubaoSynthesizeResponse } from '@/types';
-import { base64ToBlob } from '@/tts/doubaoTts';
-import { DEFAULT_DOUBAO_MODEL, DOUBAO_VOICES, defaultVoiceFor } from '@/tts/doubaoVoices';
+import type { CloudTtsSynthesizeResponse } from '@/types';
+import { base64ToBlob } from '@/tts/cloudTts';
+import { CLOUD_TTS_PROVIDERS, resolveVoice, type CloudTtsSpec } from '@/tts/providers';
 
-/** 试听用的样本，包含中英混排，容易听出音色好坏 */
+/** 试听用的样本 */
 const SAMPLE_TEXT = '这条帖子在讲一个挺有意思的观点，读起来应该足够自然。';
 
-const PICKER_LANGS: Array<{ code: string; label: string }> = [
-  { code: 'zh', label: '中文' },
-  { code: 'en', label: '英文' },
-];
-
 /**
- * 语音引擎设置面板。被选项页和 popup 共用。
+ * 语音引擎设置面板（选项页和 popup 共用）。
  *
- * 这里有个必须注意的顺序问题：**Chrome 要求域名权限的申请必须在用户手势里**，
- * 而且申请权限的 UI 只能从扩展页面发起（内容脚本里不行）。所以「启用豆包」
- * 这个按钮做成了「申请权限 + 写设置」的原子动作 —— 不能先写设置再补权限，
- * 那样用户会在朗读时才发现没有权限。
+ * **整个面板是从服务商注册表渲染出来的** —— 输入框来自 `spec.credentials`，
+ * 域名权限来自 `spec.origins`，音色来自 `spec.voices`。
+ * 加一家新的服务商不需要改这个文件。
+ *
+ * 有个必须注意的顺序问题：**Chrome 要求域名权限的申请必须在用户手势里**，
+ * 而且只能从扩展页面发起（内容脚本里不行）。所以「启用」做成了
+ * 「申请权限 + 写设置」的原子动作 —— 反过来用户会在朗读时才发现没权限。
  */
 export function TtsSettingsPanel({
   settings,
   onChange,
-  compact = false,
 }: {
   settings: ReadXSettings;
   onChange: (patch: Partial<ReadXSettings>) => void;
-  compact?: boolean;
 }) {
-  const [savedKey, setSavedKey] = useState<string | null>(null);
-  const [keyDraft, setKeyDraft] = useState('');
-  const [granted, setGranted] = useState<boolean | null>(null);
+  const selected = useMemo(
+    () => CLOUD_TTS_PROVIDERS.find((p) => p.id === settings.cloudProvider) ?? CLOUD_TTS_PROVIDERS[0]!,
+    [settings.cloudProvider],
+  );
+
+  const [saved, setSaved] = useState<Record<string, string>>({});
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [granted, setGranted] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
-  useEffect(() => {
-    void doubaoApiKeyItem.getValue().then(setSavedKey);
-    void browser.permissions.contains({ origins: [DOUBAO_ORIGIN] }).then(setGranted);
+  const loadState = useCallback(async (spec: CloudTtsSpec) => {
+    const [creds, ok] = await Promise.all([
+      getProviderCredentials(spec.id),
+      browser.permissions.contains({ origins: spec.origins }),
+    ]);
+    setSaved(creds);
+    setDraft(creds);
+    setGranted((prev) => ({ ...prev, [spec.id]: ok }));
   }, []);
 
-  const saveKey = useCallback(async () => {
-    await setDoubaoApiKey(keyDraft);
-    setSavedKey(keyDraft.trim());
-    setKeyDraft('');
-    setStatus('API Key 已保存（存在本机，不会同步到云端）');
-  }, [keyDraft]);
+  useEffect(() => {
+    for (const spec of CLOUD_TTS_PROVIDERS) void loadState(spec);
+  }, [loadState]);
 
-  /** 申请域名权限并切到豆包引擎 —— 必须在点击事件里调用 */
-  const enableDoubao = useCallback(async () => {
-    setBusy(true);
-    setStatus(null);
-    try {
-      const ok = await browser.permissions.request({ origins: [DOUBAO_ORIGIN] });
-      setGranted(ok);
-      if (!ok) {
-        setStatus('没有授权访问 openspeech.bytedance.com，豆包语音无法工作');
-        return;
+  /** 申请域名权限并切到这家服务商 —— 必须在点击事件里调用 */
+  const enable = useCallback(
+    async (spec: CloudTtsSpec) => {
+      setBusy(true);
+      setStatus(null);
+      try {
+        const ok = await browser.permissions.request({ origins: spec.origins });
+        setGranted((prev) => ({ ...prev, [spec.id]: ok }));
+        if (!ok) {
+          setStatus(`没有授权访问 ${spec.origins.join('、')}，${spec.name} 无法工作`);
+          return;
+        }
+        onChange({ cloudProvider: spec.id, ttsEngine: 'cloud' });
+        setStatus(`已启用 ${spec.name}`);
+      } finally {
+        setBusy(false);
       }
-      onChange({ ttsEngine: 'doubao' });
-      setStatus('已启用豆包语音');
-    } finally {
-      setBusy(false);
-    }
-  }, [onChange]);
+    },
+    [onChange],
+  );
 
-  const disableDoubao = useCallback(() => {
-    onChange({ ttsEngine: 'system' });
-    setStatus('已切回系统语音（域名授权仍保留，随时可以再启用）');
-  }, [onChange]);
+  const saveCredentials = useCallback(async () => {
+    await setProviderCredentials(selected.id, draft);
+    const next = await getProviderCredentials(selected.id);
+    setSaved(next);
+    setDraft(next);
+    setStatus('凭据已保存（存在本机，不会同步到云端）');
+  }, [draft, selected.id]);
 
   const test = useCallback(async () => {
     setBusy(true);
     setStatus(null);
     try {
       const lang = settings.readingLang === 'auto' ? 'zh' : settings.readingLang;
-      const voice =
-        settings.doubaoVoices[lang] ?? defaultVoiceFor(lang) ?? DOUBAO_VOICES[0]!.id;
+      const bound = settings.cloudVoices[selected.id] ?? {};
+      const voice = resolveVoice(selected, lang, bound);
+      if (!voice) {
+        setStatus(`${selected.name} 没有可用于 ${lang} 的音色`);
+        return;
+      }
 
       const response = (await browser.runtime.sendMessage({
-        type: 'readx:doubao-synthesize',
+        type: 'readx:cloud-tts-synthesize',
+        providerId: selected.id,
         text: SAMPLE_TEXT,
         voice,
-        model: settings.doubaoModel,
-        speechRate: 0,
-      })) as DoubaoSynthesizeResponse | undefined;
+      })) as CloudTtsSynthesizeResponse | undefined;
 
       if (!response?.ok || !response.audio) {
         setStatus(
@@ -96,7 +107,9 @@ export function TtsSettingsPanel({
         return;
       }
 
-      const url = URL.createObjectURL(base64ToBlob(response.audio, response.mimeType ?? 'audio/mpeg'));
+      const url = URL.createObjectURL(
+        base64ToBlob(response.audio, response.mimeType ?? 'audio/mpeg'),
+      );
       const audio = new Audio(url);
       audio.onended = () => URL.revokeObjectURL(url);
       audio.onerror = () => {
@@ -110,43 +123,47 @@ export function TtsSettingsPanel({
     } finally {
       setBusy(false);
     }
-  }, [settings.doubaoModel, settings.doubaoVoices, settings.readingLang]);
+  }, [selected, settings.cloudVoices, settings.readingLang]);
 
-  const configured = Boolean(savedKey);
+  const configured = selected.isConfigured(saved);
+  const isActive = settings.ttsEngine === 'cloud' && settings.cloudProvider === selected.id;
 
   return (
     <div className="space-y-4">
       {/* ---- 引擎选择 ---- */}
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <EngineCard
           active={settings.ttsEngine === 'system'}
           title="系统语音"
           subtitle="零配置、离线，音色偏机械"
           onClick={() => onChange({ ttsEngine: 'system' })}
         />
-        <EngineCard
-          active={settings.ttsEngine === 'doubao'}
-          title="豆包语音"
-          subtitle="音色自然，需要 API Key"
-          onClick={() => void enableDoubao()}
-        />
+        {CLOUD_TTS_PROVIDERS.map((spec) => (
+          <EngineCard
+            key={spec.id}
+            active={isActive && spec.id === selected.id}
+            title={spec.name}
+            subtitle={spec.summary}
+            onClick={() => void enable(spec)}
+          />
+        ))}
       </div>
 
-      {settings.ttsEngine === 'doubao' && (
+      {settings.ttsEngine === 'cloud' && (
         <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200/90">
-          <b>注意</b>：启用后，被朗读的文本会发送到火山引擎（豆包）做语音合成 ——
+          <b>注意</b>：启用云语音后，被朗读的文本会发送到 {selected.name} 的服务端 ——
           这是唯一会离开你设备的内容。翻译仍然在本地完成。
           不想发送就保持「系统语音」，那样完全离线。
         </p>
       )}
 
-      {settings.ttsEngine === 'doubao' && !granted && (
+      {settings.ttsEngine === 'cloud' && !granted[selected.id] && (
         <p className="rounded-lg bg-amber-500/15 px-3 py-2 text-xs text-amber-300">
-          还需要授权访问 <Code>openspeech.bytedance.com</Code>，豆包语音才能发请求。
+          还需要授权访问 <Code>{selected.origins.join('、')}</Code>，{selected.name} 才能发请求。
           <button
             type="button"
             disabled={busy}
-            onClick={() => void enableDoubao()}
+            onClick={() => void enable(selected)}
             className="ml-2 cursor-pointer rounded bg-amber-400 px-2 py-0.5 text-[11px] font-semibold text-amber-950 disabled:opacity-50"
           >
             去授权
@@ -154,101 +171,117 @@ export function TtsSettingsPanel({
         </p>
       )}
 
-      {/* ---- API Key ---- */}
-      {!compact && (
-        <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-          <p className="text-xs font-medium text-slate-300">豆包 API Key</p>
-          <p className="mt-0.5 text-[11px] leading-relaxed text-slate-500">
-            在火山引擎控制台「语音技术 → 应用管理」获取。**只保存在本机**
-            （用 <Code>storage.local</Code> 而不是会同步到云端的 sync）。
-          </p>
+      {/* ---- 凭据：完全按 spec 渲染 ---- */}
+      <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+        <p className="text-xs font-medium text-slate-300">{selected.name} 凭据</p>
+        <p className="mt-0.5 text-[11px] text-slate-500">
+          只保存在本机（<Code>storage.local</Code>），不会同步到云端、也不会进入页面的 JS 环境。
+        </p>
 
-          {configured && (
-            <p className="mt-2 text-[11px] text-slate-400">
-              当前：<Code>{maskApiKey(savedKey ?? '')}</Code>
-            </p>
-          )}
+        <div className="mt-2 space-y-2">
+          {selected.credentials.map((field) => (
+            <label key={field.key} className="block">
+              <span className="flex items-center gap-2 text-[11px] text-slate-400">
+                {field.label}
+                {field.help && <span className="text-slate-600">· {field.help}</span>}
+              </span>
+              <input
+                type={field.secret ? 'password' : 'text'}
+                value={draft[field.key] ?? ''}
+                placeholder={field.placeholder}
+                onChange={(e) => setDraft((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 font-mono text-xs text-slate-200"
+              />
+              {saved[field.key] && field.secret && (
+                <span className="mt-0.5 block text-[10px] text-slate-600">
+                  当前：{maskSecret(saved[field.key]!)}
+                </span>
+              )}
+            </label>
+          ))}
+        </div>
 
-          <div className="mt-2 flex gap-2">
-            <input
-              type="password"
-              value={keyDraft}
-              placeholder={configured ? '粘贴新的 Key 以替换' : '粘贴 API Key'}
-              onChange={(e) => setKeyDraft(e.target.value)}
-              className="min-w-0 flex-1 rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 font-mono text-xs text-slate-200"
-            />
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void saveCredentials()}
+            className="cursor-pointer rounded-lg bg-white/10 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/20 disabled:opacity-50"
+          >
+            保存
+          </button>
+          <button
+            type="button"
+            disabled={busy || !configured}
+            onClick={() => void test()}
+            className="cursor-pointer rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-500"
+          >
+            {busy ? '试听中…' : '试听'}
+          </button>
+          {isActive && (
             <button
               type="button"
-              disabled={!keyDraft.trim()}
-              onClick={() => void saveKey()}
-              className="shrink-0 cursor-pointer rounded-lg bg-white/10 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/20 disabled:cursor-not-allowed disabled:text-slate-600"
+              onClick={() => onChange({ ttsEngine: 'system' })}
+              className="cursor-pointer rounded-lg bg-white/5 px-3 py-1.5 text-xs text-slate-400 hover:bg-white/10"
             >
-              保存
+              切回系统语音
             </button>
-          </div>
+          )}
+          <span className="text-[11px] text-slate-500">
+            单次上限 {selected.maxChars} 字符
+          </span>
         </div>
-      )}
+      </div>
 
-      {/* ---- 音色 ---- */}
-      {settings.ttsEngine === 'doubao' && (
+      {/* ---- 音色：只展示该服务商声明支持的语言 ---- */}
+      {settings.ttsEngine === 'cloud' && (
         <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
           <p className="text-xs font-medium text-slate-300">音色</p>
           <p className="mt-0.5 text-[11px] text-slate-500">
-            按语言分别选择。用中文音色读英文会得到很怪的发音，所以每种语言单独设。
+            按语言分别选择。有的服务商音色是语言无关的（同一音色中英文都能读），
+            有的则是一个音色只会一门语言 —— 后者用错会得到很怪的发音。
           </p>
 
           <div className="mt-2 space-y-2">
-            {PICKER_LANGS.map(({ code, label }) => (
-              <label key={code} className="flex items-center gap-2 text-xs text-slate-400">
-                <span className="w-10 shrink-0">{label}</span>
-                <select
-                  value={settings.doubaoVoices[code] ?? ''}
-                  onChange={(e) =>
-                    onChange({
-                      doubaoVoices: { ...settings.doubaoVoices, [code]: e.target.value },
-                    })
-                  }
-                  className="min-w-0 flex-1 cursor-pointer rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-slate-200"
-                >
-                  <option value="">
-                    默认（{voiceName(defaultVoiceFor(code) ?? '')}）
-                  </option>
-                  {DOUBAO_VOICES.filter((v) => v.lang === code).map((voice) => (
-                    <option key={voice.id} value={voice.id}>
-                      {voice.name} · {voice.scene}
+            {selected.pickerLangs.map(({ code, label }) => {
+              const usable = selected.voices.filter((v) => !v.lang || v.lang === code);
+              const fallback = resolveVoice(selected, code, {});
+              return (
+                <label key={code} className="flex items-center gap-2 text-xs text-slate-400">
+                  <span className="w-10 shrink-0">{label}</span>
+                  <select
+                    value={settings.cloudVoices[selected.id]?.[code] ?? ''}
+                    onChange={(e) =>
+                      onChange({
+                        cloudVoices: {
+                          ...settings.cloudVoices,
+                          [selected.id]: {
+                            ...(settings.cloudVoices[selected.id] ?? {}),
+                            [code]: e.target.value,
+                          },
+                        },
+                      })
+                    }
+                    className="min-w-0 flex-1 cursor-pointer rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-slate-200"
+                  >
+                    <option value="">
+                      默认{fallback ? `（${voiceName(selected, fallback)}）` : ''}
                     </option>
-                  ))}
-                </select>
-              </label>
-            ))}
-          </div>
-
-          <div className="mt-3 flex items-center gap-2">
-            <button
-              type="button"
-              disabled={busy || !configured}
-              onClick={() => void test()}
-              className="cursor-pointer rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-500"
-            >
-              {busy ? '试听中…' : '试听'}
-            </button>
-            {settings.ttsEngine === 'doubao' && (
-              <button
-                type="button"
-                onClick={disableDoubao}
-                className="cursor-pointer rounded-lg bg-white/5 px-3 py-1.5 text-xs text-slate-400 hover:bg-white/10"
-              >
-                切回系统语音
-              </button>
-            )}
-            <span className="text-[11px] text-slate-500">模型 {DEFAULT_DOUBAO_MODEL}</span>
+                    {usable.map((voice) => (
+                      <option key={voice.id} value={voice.id}>
+                        {voice.name}
+                        {voice.note ? ` · ${voice.note}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {status && (
-        <p className="rounded-lg bg-white/5 px-3 py-2 text-xs text-slate-300">{status}</p>
-      )}
+      {status && <p className="rounded-lg bg-white/5 px-3 py-2 text-xs text-slate-300">{status}</p>}
     </div>
   );
 }
@@ -269,13 +302,15 @@ function EngineCard({
       type="button"
       onClick={onClick}
       className={[
-        'flex-1 cursor-pointer rounded-xl border px-3 py-2 text-left transition-colors',
+        'cursor-pointer rounded-xl border px-3 py-2 text-left transition-colors',
         active
           ? 'border-emerald-400/60 bg-emerald-400/10'
           : 'border-slate-800 bg-slate-950/40 hover:border-slate-700',
       ].join(' ')}
     >
-      <span className={`block text-xs font-semibold ${active ? 'text-emerald-300' : 'text-slate-300'}`}>
+      <span
+        className={`block text-xs font-semibold ${active ? 'text-emerald-300' : 'text-slate-300'}`}
+      >
         {active ? '● ' : '○ '}
         {title}
       </span>
@@ -292,6 +327,6 @@ function Code({ children }: { children: React.ReactNode }) {
   );
 }
 
-function voiceName(id: string): string {
-  return DOUBAO_VOICES.find((v) => v.id === id)?.name ?? id;
+function voiceName(spec: CloudTtsSpec, id: string): string {
+  return spec.voices.find((v) => v.id === id)?.name ?? id;
 }
