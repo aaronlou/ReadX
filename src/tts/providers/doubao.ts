@@ -92,8 +92,8 @@ export const doubaoSpec: CloudTtsSpec = {
     zh: 'zh_female_xiaohe_uranus_bigtts',
     en: 'en_female_dacey_uranus_bigtts',
   },
-  // 接口限制
-  maxChars: 3000,
+  // 接口限制：text_prompt 最长 2048 字符（官方 SDK 文档口径）
+  maxChars: 2048,
   isConfigured: (c) => Boolean(c.apiKey || (c.appId && c.accessKey)),
   synthesize: synthesizeDoubao,
 };
@@ -154,9 +154,10 @@ async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeR
   };
 
   if (!response.ok || !payload.audio) {
-    throw new CloudTtsError(payload.message || `豆包语音合成失败（HTTP ${response.status}）`, {
+    const message = payload.message || `豆包语音合成失败（HTTP ${response.status}）`;
+    throw new CloudTtsError(message, {
       code: payload.code ?? response.status,
-      hint: describeHttpFailure(response.status, '豆包语音'),
+      hint: hintForFailure(message, response.status),
     });
   }
 
@@ -166,6 +167,23 @@ async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeR
     duration: payload.duration ?? payload.original_duration,
     sentences: normalizeSentences(payload.subtitle?.sentences),
   };
+}
+
+/**
+ * 把豆包特有的失败翻译成"下一步该干什么"。
+ *
+ * `requested resource not granted` 是这里最容易卡住的一种：它**不是认证失败**
+ * ——Key 有效，是账号没开通这个**接口**对应的服务。「音频生成」是独立于
+ * 「语音合成」的另一个服务，必须单独开通。这个错误原文完全看不出该做什么。
+ */
+function hintForFailure(message: string, status: number): string | undefined {
+  if (/not granted|resource_id|service_type/i.test(message)) {
+    return '这个账号没有开通「音频生成」服务。到火山引擎控制台开通它，或把凭据换成「语音合成大模型」的 AppID + Access Token';
+  }
+  if (/not activated|未开通|服务未开通/i.test(message)) {
+    return '到火山引擎控制台开通对应服务';
+  }
+  return describeHttpFailure(status, '豆包语音');
 }
 
 function normalizeSentences(sentences?: SubtitleSentence[]): SubtitleSentence[] {

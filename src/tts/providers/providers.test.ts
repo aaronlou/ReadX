@@ -128,6 +128,23 @@ describe('豆包 spec', () => {
     ).rejects.toMatchObject({ hint: expect.stringContaining('限流') });
   });
 
+  // 这是用户实际撞到的错误：Key 有效，但账号没开通这个接口对应的服务。
+  // 原文 "requested resource not granted" 完全看不出该做什么，
+  // 所以必须把"去开通音频生成服务"写进提示里。
+  it('resource not granted 提示去开通「音频生成」服务，而不是笼统说 Key 无效', async () => {
+    installFetch({
+      status: 403,
+      ok: false,
+      json: {
+        message: '[resource_id=volc.service_type.10074] requested resource not granted',
+      },
+    });
+
+    await expect(
+      doubaoSpec.synthesize(request({ credentials: { apiKey: 'k' } })),
+    ).rejects.toMatchObject({ hint: expect.stringContaining('音频生成') });
+  });
+
   it('200 但没有音频也算失败，不能静默当成成功', async () => {
     installFetch({ json: { code: 0, message: 'no audio' } });
 
