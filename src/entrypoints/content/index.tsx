@@ -45,15 +45,11 @@ export default defineContentScript({
     };
 
     // 设置变化（来自 popup 或控制条）实时同步给朗读器和语音引擎
-    let engineKey = `${settings.ttsEngine}|${settings.cloudProvider}`;
     watchSettings((next) => {
-      const nextKey = `${next.ttsEngine}|${next.cloudProvider}`;
-      // 用户动了引擎相关设置 → 之前那条降级告警可能已经过时了
-      if (nextKey !== engineKey) {
-        engineKey = nextKey;
-        reader.setEngineWarning(null);
-      }
       settings = next;
+      // 任何设置变化都清掉旧的降级告警：用户很可能刚去修了问题，
+      // 我们再试一次。真没修好，下一次朗读会重新报出来。
+      reader.setEngineWarning(null);
       tts.onSettingsChanged();
       reader.setSettings(next);
     });

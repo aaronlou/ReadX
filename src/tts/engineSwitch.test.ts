@@ -125,6 +125,27 @@ describe('TtsEngineSwitch', () => {
     );
   });
 
+  // 这一条守的是"用户去填了 API Key，回来却发现还是系统语音"这个坑。
+  // 降级如果只在换引擎时复位，填完凭据根本不会重试云语音。
+  it('任何设置变化都会复位降级，让用户修完问题能立刻生效', async () => {
+    const { switcher, cloud, system } = makeSwitch('cloud');
+    cloud.outcome = 'error';
+
+    await switcher.speak('一', OPTS);
+    expect(switcher.isDegraded).toBe(true);
+    expect(cloud.speakCalls).toEqual(['一']);
+
+    // 用户去选项页填好了凭据（引擎本身没变），随后保存设置触发了这次调用
+    cloud.outcome = 'ended';
+    switcher.onSettingsChanged();
+
+    await switcher.speak('二', OPTS);
+
+    expect(switcher.isDegraded).toBe(false);
+    expect(cloud.speakCalls).toEqual(['一', '二']); // 真的重试了云语音
+    expect(system.speakCalls).toEqual(['一']); // 没有多余地再用系统语音
+  });
+
   it('用户主动切回系统语音后就恢复正常，不再报降级', async () => {
     const { switcher, system, cloud, setEngine } = makeSwitch('cloud');
     cloud.outcome = 'error';

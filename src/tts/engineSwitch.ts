@@ -48,15 +48,25 @@ export class TtsEngineSwitch implements TtsProvider {
     return this.degraded;
   }
 
-  /** 设置变了（尤其是换了引擎或音色）时调用，复位降级状态 */
+  /**
+   * 设置变了时调用。
+   *
+   * **任何**设置变化都要复位降级状态，而不只是换引擎 —— 用户很可能是
+   * 刚去填了 API Key 或改了音色来修问题。如果只在换引擎时复位，
+   * 他填完凭据会继续听到系统语音，以为"填了也没用"。
+   *
+   * 复位的代价只是下一次朗读多试一次云语音，很便宜。
+   */
   onSettingsChanged(): void {
     const engine = this.getEngine();
-    if (engine !== this.lastEngine) {
-      this.lastEngine = engine;
-      this.degraded = false;
-      // 切引擎时把两边都停掉，避免上一个引擎的音频还在响
-      this.stopBoth();
-    }
+    const engineChanged = engine !== this.lastEngine;
+    this.lastEngine = engine;
+    this.degraded = false;
+    this.lastChildError = null;
+
+    // 切引擎时把两边都停掉，避免上一个引擎的音频还在响
+    if (engineChanged) this.stopBoth();
+
     // 音色/服务商变了的话，云端缓存的音频要作废
     (this.cloud as { invalidate?: () => void }).invalidate?.();
   }
