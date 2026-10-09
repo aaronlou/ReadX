@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { doubaoSpec } from './doubao';
 import { openaiSpec } from './openai';
+import { openrouterSpec } from './openrouter';
 import { CloudTtsError, type SynthesizeRequest } from './types';
 
 /**
@@ -228,5 +229,74 @@ describe('OpenAI spec', () => {
   it('凭据只需要一个 apiKey', () => {
     expect(openaiSpec.isConfigured({})).toBe(false);
     expect(openaiSpec.isConfigured({ apiKey: 'sk-x' })).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------- OpenRouter
+
+describe('OpenRouter spec', () => {
+  it('走 OpenAI 兼容的接口，模型名带厂商前缀', async () => {
+    installFetch({ binary: new ArrayBuffer(8), headers: { 'Content-Type': 'audio/mpeg' } });
+
+    await openrouterSpec.synthesize(
+      request({ voice: 'nova', credentials: { apiKey: 'sk-or-v1-x' } }),
+    );
+
+    expect(captured?.url).toBe('https://openrouter.ai/api/v1/audio/speech');
+    expect(captured?.headers.Authorization).toBe('Bearer sk-or-v1-x');
+    expect((captured?.body as Record<string, unknown>).model).toBe(
+      'openai/gpt-4o-mini-tts-2025-12-15',
+    );
+  });
+
+  it('可以换模型 —— 比如换成豆包的 Seed Audio', async () => {
+    installFetch({ binary: new ArrayBuffer(8) });
+
+    await openrouterSpec.synthesize(
+      request({
+        voice: 'zh_female_xiaohe_uranus_bigtts',
+        credentials: { apiKey: 'k', model: 'bytedance-seed/seed-audio-1-0' },
+      }),
+    );
+
+    expect((captured?.body as Record<string, unknown>).model).toBe('bytedance-seed/seed-audio-1-0');
+  });
+
+  it('把二进制响应转成 base64', async () => {
+    installFetch({
+      binary: new Uint8Array([65, 66, 67]).buffer,
+      headers: { 'Content-Type': 'audio/mpeg' },
+    });
+
+    const result = await openrouterSpec.synthesize(
+      request({ credentials: { apiKey: 'k' } }),
+    );
+
+    expect(result.audio).toBe('QUJD');
+  });
+
+  it('模型名不对时提示去哪里查可用模型', async () => {
+    installFetch({
+      status: 400,
+      ok: false,
+      json: { error: { message: 'model not found: openai/typo' } },
+    });
+
+    await expect(
+      openrouterSpec.synthesize(request({ credentials: { apiKey: 'k' } })),
+    ).rejects.toMatchObject({ hint: expect.stringContaining('openrouter.ai/models') });
+  });
+
+  it('402 提示余额不足（OpenRouter 特有的失败方式）', async () => {
+    installFetch({ status: 402, ok: false, json: { error: { message: 'insufficient credits' } } });
+
+    await expect(
+      openrouterSpec.synthesize(request({ credentials: { apiKey: 'k' } })),
+    ).rejects.toMatchObject({ hint: expect.stringContaining('余额') });
+  });
+
+  it('只需要一个 apiKey 就算配置完整（模型有默认值）', () => {
+    expect(openrouterSpec.isConfigured({})).toBe(false);
+    expect(openrouterSpec.isConfigured({ apiKey: 'k' })).toBe(true);
   });
 });

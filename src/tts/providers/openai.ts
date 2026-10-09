@@ -40,6 +40,9 @@ const VOICES: ProviderVoice[] = [
   { id: 'verse', name: 'Verse', note: '表现力强' },
 ];
 
+/** OpenRouter 上的 OpenAI 兼容接口用的是同一套音色，所以两个 spec 共用 */
+export const OPENAI_COMPATIBLE_VOICES = VOICES;
+
 export const openaiSpec: CloudTtsSpec = {
   id: 'openai',
   name: 'OpenAI 语音',
