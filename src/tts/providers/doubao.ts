@@ -68,19 +68,20 @@ export const doubaoSpec: CloudTtsSpec = {
       label: 'API Key',
       secret: true,
       placeholder: '粘贴 API Key',
-      help: '新版控制台「语音技术 → 应用管理」获取',
+      help: '在「语音技术 → 应用管理」获取',
     },
     {
       key: 'appId',
-      label: 'App ID（可选）',
-      placeholder: '旧版控制台才需要',
-      help: '只有旧版控制台才用 App ID + Access Key，新版填上面的 API Key 即可',
+      label: 'App ID（强烈建议填）',
+      placeholder: '同上的「应用管理」页面',
+      help: '接口靠它判定请求属于哪个应用。「资源未授权 / requested resource not granted」这类报错通常就是缺了它',
     },
     {
       key: 'accessKey',
-      label: 'Access Key（可选）',
+      label: 'Access Key（旧版才需要）',
       secret: true,
-      placeholder: '旧版控制台才需要',
+      placeholder: '只有用旧版鉴权时才填',
+      help: '没有 API Key 时可以改用它 + App ID 来鉴权',
     },
   ],
   pickerLangs: [
@@ -107,12 +108,20 @@ async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeR
     'Content-Type': 'application/json',
     'X-Api-Request-Id': crypto.randomUUID(),
   };
-  if (apiKey) {
-    headers['X-Api-Key'] = apiKey;
-  } else {
-    headers['X-Api-App-Id'] = appId!;
-    headers['X-Api-Access-Key'] = accessKey!;
-  }
+  if (apiKey) headers['X-Api-Key'] = apiKey;
+
+  // ⚠️ App-Id 是**请求/应用配置**，不是认证因子 —— 官方 SDK 会把它和
+  // X-Api-Key **一起**发出去，而不是二选一。
+  //
+  // 这点很容易写错（我们自己第一版就写错了）：如果把它写成
+  // "有 apiKey 就不发 App-Id"，那么需要靠 App-Id 判定请求属于哪个应用、
+  // 进而决定授予哪个资源的接口就会返回：
+  //     [resource_id=volc.service_type.xxxxx] requested resource not granted
+  // 一个看起来像"没开通服务"、实际是"没告诉我你是哪个应用"的错误。
+  if (appId) headers['X-Api-App-Id'] = appId;
+
+  // Access Key 才真的是旧版鉴权的替代方案：没有 API Key 时用它
+  if (!apiKey && accessKey) headers['X-Api-Access-Key'] = accessKey;
 
   const body = {
     model: DEFAULT_MODEL,
@@ -178,7 +187,7 @@ async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeR
  */
 function hintForFailure(message: string, status: number): string | undefined {
   if (/not granted|resource_id|service_type/i.test(message)) {
-    return '这个账号没有开通「音频生成」服务。到火山引擎控制台开通它，或把凭据换成「语音合成大模型」的 AppID + Access Token';
+    return '到火山引擎控制台「语音技术 → 应用管理」确认两件事：①「音频生成」服务已开通 ②把该页面的 App ID 也填上（接口靠它判定请求属于哪个应用）';
   }
   if (/not activated|未开通|服务未开通/i.test(message)) {
     return '到火山引擎控制台开通对应服务';

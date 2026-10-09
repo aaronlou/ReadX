@@ -102,6 +102,23 @@ describe('豆包 spec', () => {
     expect(captured?.headers['X-Api-Key']).toBeUndefined();
   });
 
+  // 这一条守的是一个很容易写错的地方：App-Id 是**应用配置**，不是认证因子，
+  // 官方 SDK 会把它和 X-Api-Key 一起发。写成二选一的话，需要靠 App-Id
+  // 判定应用、进而决定授予哪个资源的接口会报 "resource not granted" ——
+  // 看起来像"没开通服务"，实际是"没告诉我你是哪个应用"。
+  it('同时填了 API Key 和 App ID 时，两个头都要发出去', async () => {
+    installFetch({ json: okBody });
+
+    await doubaoSpec.synthesize(
+      request({ credentials: { apiKey: 'secret', appId: 'app-123' } }),
+    );
+
+    expect(captured?.headers['X-Api-Key']).toBe('secret');
+    expect(captured?.headers['X-Api-App-Id']).toBe('app-123');
+    // 有 API Key 时不该再发 Access Key
+    expect(captured?.headers['X-Api-Access-Key']).toBeUndefined();
+  });
+
   it('返回音频和按时间排好序的字幕', async () => {
     installFetch({ json: okBody });
 
@@ -143,7 +160,7 @@ describe('豆包 spec', () => {
 
     await expect(
       doubaoSpec.synthesize(request({ credentials: { apiKey: 'k' } })),
-    ).rejects.toMatchObject({ hint: expect.stringContaining('音频生成') });
+    ).rejects.toMatchObject({ hint: expect.stringContaining('App ID') });
   });
 
   it('200 但没有音频也算失败，不能静默当成成功', async () => {
