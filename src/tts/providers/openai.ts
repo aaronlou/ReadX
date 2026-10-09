@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import {
   CloudTtsError,
   describeHttpFailure,
@@ -20,24 +21,26 @@ import {
  */
 
 const ENDPOINT = 'https://api.openai.com/v1/audio/speech';
-const ORIGIN = 'https://api.openai.com/*';
+import { PROVIDER_ORIGINS } from './origins';
+
+const ORIGIN = PROVIDER_ORIGINS.openai;
 
 /**
  * 官方内置音色。这些是语言无关的 —— 同一个音色可以读任何支持的语言，
  * 所以 defaultVoiceByLang 留空，用 fallbackVoice 兜底。
  */
 const VOICES: ProviderVoice[] = [
-  { id: 'alloy', name: 'Alloy', note: '中性' },
-  { id: 'ash', name: 'Ash', note: '沉稳' },
-  { id: 'ballad', name: 'Ballad', note: '叙事' },
-  { id: 'coral', name: 'Coral', note: '明亮' },
-  { id: 'echo', name: 'Echo', note: '男声' },
-  { id: 'fable', name: 'Fable', note: '英式' },
-  { id: 'nova', name: 'Nova', note: '女声 · 通用' },
-  { id: 'onyx', name: 'Onyx', note: '低沉男声' },
-  { id: 'sage', name: 'Sage', note: '温和' },
-  { id: 'shimmer', name: 'Shimmer', note: '柔和女声' },
-  { id: 'verse', name: 'Verse', note: '表现力强' },
+  { id: 'alloy', name: 'Alloy', note: t('provider.openai.voiceNoteNeutral') },
+  { id: 'ash', name: 'Ash', note: t('provider.openai.voiceNoteSteady') },
+  { id: 'ballad', name: 'Ballad', note: t('provider.openai.voiceNoteNarrative') },
+  { id: 'coral', name: 'Coral', note: t('provider.openai.voiceNoteBright') },
+  { id: 'echo', name: 'Echo', note: t('provider.openai.voiceNoteMale') },
+  { id: 'fable', name: 'Fable', note: t('provider.openai.voiceNoteBritish') },
+  { id: 'nova', name: 'Nova', note: t('provider.openai.voiceNoteFemaleGeneral') },
+  { id: 'onyx', name: 'Onyx', note: t('provider.openai.voiceNoteDeepMale') },
+  { id: 'sage', name: 'Sage', note: t('provider.openai.voiceNoteGentle') },
+  { id: 'shimmer', name: 'Shimmer', note: t('provider.openai.voiceNoteSoftFemale') },
+  { id: 'verse', name: 'Verse', note: t('provider.openai.voiceNoteExpressive') },
 ];
 
 /** OpenRouter 上的 OpenAI 兼容接口用的是同一套音色，所以两个 spec 共用 */
@@ -45,21 +48,21 @@ export const OPENAI_COMPATIBLE_VOICES = VOICES;
 
 export const openaiSpec: CloudTtsSpec = {
   id: 'openai',
-  name: 'OpenAI 语音',
-  summary: '音色语言无关，中英文都能读，配置最简单',
+  name: t('provider.openai.name'),
+  summary: t('provider.openai.summary'),
   origins: [ORIGIN],
   credentials: [
     {
       key: 'apiKey',
-      label: 'API Key',
+      label: t('provider.openai.credApiKeyLabel'),
       secret: true,
-      placeholder: 'sk-...',
-      help: '在 platform.openai.com 的 API keys 页面创建',
+      placeholder: t('provider.openai.credApiKeyPlaceholder'),
+      help: t('provider.openai.credApiKeyHelp'),
     },
   ],
   pickerLangs: [
-    { code: 'zh', label: '中文' },
-    { code: 'en', label: '英文' },
+    { code: 'zh', label: t('provider.openai.langZh') },
+    { code: 'en', label: t('provider.openai.langEn') },
   ],
   voices: VOICES,
   // 音色语言无关，所以不给每种语言指定默认值，统一用 fallback
@@ -75,7 +78,7 @@ export const openaiSpec: CloudTtsSpec = {
 
 async function synthesizeOpenAI(request: SynthesizeRequest): Promise<SynthesizeResult> {
   const text = request.text.trim();
-  if (!text) throw new CloudTtsError('待合成的文本为空');
+  if (!text) throw new CloudTtsError(t('provider.common.errEmptyText'));
 
   let response: Response;
   try {
@@ -96,8 +99,8 @@ async function synthesizeOpenAI(request: SynthesizeRequest): Promise<SynthesizeR
       signal: request.signal ?? AbortSignal.timeout(30_000),
     });
   } catch (error) {
-    throw new CloudTtsError(`调用 OpenAI 语音失败：${(error as Error).message}`, {
-      hint: '检查网络，或确认已授予 api.openai.com 的访问权限',
+    throw new CloudTtsError(t('provider.openai.errRequestFailed', (error as Error).message), {
+      hint: t('provider.openai.errRequestFailedHint'),
     });
   }
 
@@ -107,10 +110,10 @@ async function synthesizeOpenAI(request: SynthesizeRequest): Promise<SynthesizeR
       error?: { message?: string };
     };
     throw new CloudTtsError(
-      detail.error?.message || `OpenAI 语音合成失败（HTTP ${response.status}）`,
+      detail.error?.message || t('provider.openai.errSynthesizeFailed', String(response.status)),
       {
         code: response.status,
-        hint: describeHttpFailure(response.status, 'OpenAI 语音'),
+        hint: describeHttpFailure(response.status, t('provider.openai.name')),
       },
     );
   }
@@ -118,7 +121,7 @@ async function synthesizeOpenAI(request: SynthesizeRequest): Promise<SynthesizeR
   // 和豆包不同：这里拿到的是**二进制音频流**，没有 base64 也没有字幕
   const buffer = await response.arrayBuffer();
   if (buffer.byteLength === 0) {
-    throw new CloudTtsError('OpenAI 返回了空音频');
+    throw new CloudTtsError(t('provider.openai.errEmptyAudio'));
   }
 
   return {

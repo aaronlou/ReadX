@@ -342,6 +342,27 @@ X 是 React 管理的，往里插节点随时会被重渲染冲掉。
 系统缺少对应语种的语音包时，`speak()` 的 `onend` / `onerror` 可能永远不触发。
 `webSpeech.ts` 里有一个按文本长度估算的超时看门狗，超时后跳过这一句继续。
 
+### 8. i18n：两个必须知道的坑
+
+界面文案走 Chrome 原生 `chrome.i18n`，`public/_locales/en`（默认）+ `zh_CN`。
+
+**坑一：构建期配置不能传递依赖运行时代码。**
+`wxt.config.ts` 要在 Node 里用 jiti 加载，而 jiti 解析不了 `#imports` / `@/`
+这类构建期别名。所以服务商的域名被单独放在
+[`providers/origins.ts`](src/tts/providers/origins.ts) —— **那个文件必须保持零依赖**。
+一旦它（或它的依赖链）碰了 `@/i18n`，`wxt build` 和 `vitest` 会一起挂掉，
+报的是一个和真实原因毫不相干的 `Cannot find module '#imports'`。
+
+**坑二：服务商 spec 在模块加载时就把文案固化了。**
+`providers/*.ts` 里 `name` / `summary` / 凭据 label 都是在模块顶层调用 `t()` 算好的，
+那时任何 `beforeEach` 都还没跑。所以测试的 i18n mock **必须装在
+[`test/setup.ts`](src/test/setup.ts) 的顶层**，只放 `beforeEach` 会让
+spec 里那一批文案永远固化成 key —— 测试看起来在跑，其实什么都没验证。
+
+加一门新语言：往 `public/_locales/<locale>/messages.json` 加一份完整翻译即可，
+不需要改任何代码。漏翻由 [`src/i18n.test.ts`](src/i18n.test.ts) 拦住 ——
+它会核对两种语言的 key 集合、空文案，以及 manifest 里 `__MSG_*__` 引用的 key。
+
 ---
 
 ## 权限说明（为什么只要这些）

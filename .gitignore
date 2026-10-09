@@ -37,3 +37,6 @@ web-ext.config.ts
 *.njsproj
 *.sln
 *.sw?
+
+# i18n 抽取过程中的临时片段（合并进 public/_locales 后即可删）
+.i18n-fragments/

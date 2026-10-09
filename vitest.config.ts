@@ -7,5 +7,7 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     include: ['src/**/*.test.ts'],
+    // 让 t() 在测试里能真的取到文案（假 browser 的 i18n 恒返回空串）
+    setupFiles: ['./src/test/setup.ts'],
   },
 });

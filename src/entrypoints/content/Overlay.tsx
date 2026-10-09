@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Reader } from '@/core/reader';
+import { t } from '@/i18n';
 import { patchSettings, watchSettings, type ReadXSettings } from '@/settings';
 import { LANGUAGE_CHOICES, languageLabel, toApiCode } from '@/translate/languages';
 import type { ReaderSnapshot } from '@/types';
@@ -22,12 +23,20 @@ interface Box {
 }
 
 const STATE_LABEL: Record<ReaderSnapshot['state'], string> = {
-  idle: '待机',
-  loading: '定位中',
-  speaking: '朗读中',
-  paused: '已暂停',
-  error: '出错了',
-  'need-language-pack': '等待语言包',
+  idle: t('overlay.stateIdle'),
+  loading: t('overlay.stateLocating'),
+  speaking: t('overlay.stateSpeaking'),
+  paused: t('overlay.statePaused'),
+  error: t('overlay.stateError'),
+  'need-language-pack': t('overlay.stateNeedLanguagePack'),
+};
+
+/** 语言检测来源，跟在语言代码后面的那个小字 */
+const LANG_SOURCE_LABEL: Record<ReaderSnapshot['langSource'], string> = {
+  dom: t('overlay.langSourcePageText'),
+  script: t('overlay.langSourcePageScript'),
+  cld: t('overlay.langSourceDetected'),
+  fallback: t('overlay.langSourceAssumed'),
 };
 
 const STATE_DOT: Record<ReaderSnapshot['state'], string> = {
@@ -131,7 +140,9 @@ export function Overlay({
 
   const active = snap.state === 'speaking' || snap.state === 'paused';
   const progress =
-    snap.sentenceCount > 0 ? `${snap.sentenceIndex + 1}/${snap.sentenceCount}` : '';
+    snap.sentenceCount > 0
+      ? t('overlay.progress', [String(snap.sentenceIndex + 1), String(snap.sentenceCount)])
+      : '';
 
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -148,7 +159,7 @@ export function Overlay({
         {/* 语音引擎降级告警：必须一直看得见，否则用户只会觉得"声音怎么变回去了" */}
         {snap.engineWarning && (
           <div className="rounded-2xl border border-amber-400/40 bg-amber-950/90 px-4 py-2.5 text-xs leading-relaxed text-amber-100 shadow-2xl backdrop-blur">
-            <span className="font-semibold">⚠️ 语音引擎</span> {snap.engineWarning}
+            <span className="font-semibold">⚠️ {t('overlay.speechEngine')}</span> {snap.engineWarning}
           </div>
         )}
 
@@ -163,7 +174,9 @@ export function Overlay({
             {snap.lang && (
               <span className="shrink-0 rounded-md bg-white/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-200">
                 {snap.lang}
-                <span className="ml-1 font-normal text-slate-400">{snap.langSource}</span>
+                <span className="ml-1 font-normal text-slate-400">
+                  {LANG_SOURCE_LABEL[snap.langSource]}
+                </span>
               </span>
             )}
 
@@ -171,17 +184,17 @@ export function Overlay({
             {snap.translatedFrom ? (
               <span
                 className="shrink-0 rounded-md bg-sky-400/20 px-1.5 py-0.5 text-[11px] font-semibold text-sky-300"
-                title={`已从 ${snap.translatedFrom} 翻译`}
+                title={t('overlay.translatedTitle', [snap.translatedFrom])}
               >
-                译·{snap.translatedFrom}
+                {t('overlay.translatedBadge', [snap.translatedFrom])}
               </span>
             ) : (
               wantsTranslation(settings.readingLang, snap.lang) && (
                 <span
                   className="shrink-0 rounded-md bg-amber-400/20 px-1.5 py-0.5 text-[11px] font-semibold text-amber-300"
-                  title="没能翻译，正在读原文"
+                  title={t('overlay.notTranslatedTitle')}
                 >
-                  未译
+                  {t('overlay.notTranslatedBadge')}
                 </span>
               )
             )}
@@ -193,23 +206,32 @@ export function Overlay({
             </div>
 
             <div className="flex shrink-0 items-center gap-1">
-              <IconButton title="上一条 (Alt+Shift+B)" onClick={() => void reader.prev()}>
+              <IconButton
+                title={t('overlay.prevButton', ['Alt+Shift+B'])}
+                onClick={() => void reader.prev()}
+              >
                 ⏮
               </IconButton>
               <IconButton
-                title="播放 / 暂停 (Alt+Shift+P)"
+                title={t('overlay.playPauseButton', ['Alt+Shift+P'])}
                 primary
                 onClick={() => void reader.toggle()}
               >
                 {snap.state === 'speaking' ? '⏸' : '▶'}
               </IconButton>
-              <IconButton title="下一条 (Alt+Shift+N)" onClick={() => void reader.next()}>
+              <IconButton
+                title={t('overlay.nextButton', ['Alt+Shift+N'])}
+                onClick={() => void reader.next()}
+              >
                 ⏭
               </IconButton>
-              <IconButton title="停止" onClick={() => reader.stop()}>
+              <IconButton title={t('overlay.stopButton')} onClick={() => reader.stop()}>
                 ⏹
               </IconButton>
-              <IconButton title={collapsed ? '展开' : '收起'} onClick={() => setCollapsed((c) => !c)}>
+              <IconButton
+                title={collapsed ? t('overlay.expandButton') : t('overlay.collapseButton')}
+                onClick={() => setCollapsed((c) => !c)}
+              >
                 {collapsed ? '⌃' : '⌄'}
               </IconButton>
             </div>
@@ -221,8 +243,8 @@ export function Overlay({
               <div className="flex items-center gap-2">
                 <span className="text-xs text-amber-200">
                   {snap.state === 'loading'
-                    ? `正在下载 ${snap.pendingPack.from} → ${snap.pendingPack.to} 语言包…`
-                    : `${snap.pendingPack.from} → ${snap.pendingPack.to} 语言包还没下载（只需一次）`}
+                    ? t('overlay.packDownloading', [snap.pendingPack.from, snap.pendingPack.to])
+                    : t('overlay.packNeeded', [snap.pendingPack.from, snap.pendingPack.to])}
                 </span>
                 <button
                   type="button"
@@ -230,7 +252,7 @@ export function Overlay({
                   onClick={() => void reader.prepareLanguagePack()}
                   className="ml-auto shrink-0 cursor-pointer rounded-lg bg-amber-400 px-2.5 py-1 text-[11px] font-semibold text-amber-950 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
                 >
-                  {snap.state === 'loading' ? '下载中…' : '下载'}
+                  {snap.state === 'loading' ? t('overlay.packDownloadingButton') : t('overlay.packDownloadButton')}
                 </button>
               </div>
               {snap.packProgress !== null && (
@@ -255,13 +277,13 @@ export function Overlay({
 
               <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/10 pt-2.5 text-[11px] text-slate-400">
                 <label className="flex items-center gap-1.5">
-                  朗读语言
+                  {t('overlay.readingLanguage')}
                   <select
                     value={settings.readingLang}
                     onChange={(event) => update({ readingLang: event.target.value })}
                     className="cursor-pointer rounded border border-white/15 bg-slate-900 px-1.5 py-0.5 text-[11px] text-slate-200"
                   >
-                    <option value="auto">跟随原文</option>
+                    <option value="auto">{t('overlay.followPostLanguage')}</option>
                     {LANGUAGE_CHOICES.map((code) => (
                       <option key={code} value={code}>
                         {languageLabel(code)}
@@ -271,7 +293,7 @@ export function Overlay({
                 </label>
 
                 <label className="flex items-center gap-2">
-                  语速
+                  {t('overlay.speed')}
                   <input
                     type="range"
                     min={0.5}
@@ -291,7 +313,7 @@ export function Overlay({
                     onChange={(e) => update({ autoAdvance: e.target.checked })}
                     className="size-3.5 cursor-pointer accent-emerald-400"
                   />
-                  自动滚到下一条
+                  {t('overlay.autoScroll')}
                 </label>
 
                 <label className="flex cursor-pointer items-center gap-1.5">
@@ -301,7 +323,7 @@ export function Overlay({
                     onChange={(e) => update({ readAuthor: e.target.checked })}
                     className="size-3.5 cursor-pointer accent-emerald-400"
                   />
-                  先读作者名
+                  {t('overlay.readAuthor')}
                 </label>
 
                 <label className="flex cursor-pointer items-center gap-1.5">
@@ -311,7 +333,7 @@ export function Overlay({
                     onChange={(e) => update({ skipAds: e.target.checked })}
                     className="size-3.5 cursor-pointer accent-emerald-400"
                   />
-                  跳过推广帖
+                  {t('overlay.skipAds')}
                 </label>
 
                 {active && (
@@ -369,21 +391,21 @@ function IntroCard({ onDismiss }: { onDismiss: () => void }) {
       <div className="flex items-start gap-3">
         <span className="text-base leading-none">👋</span>
         <div className="min-w-0 flex-1 text-xs leading-relaxed text-slate-300">
-          <p className="font-semibold text-slate-100">ReadX 已就绪</p>
+          <p className="font-semibold text-slate-100">{t('overlay.introTitle')}</p>
           <p className="mt-1">
-            点 <span className="font-semibold text-emerald-400">▶</span> 开始朗读，
-            它会自动滚到下一条帖子。你自己滚动时它会立刻让位。
+            {t('overlay.introBodyStart')}{' '}
+            <span className="font-semibold text-emerald-400">▶</span>{' '}
+            {t('overlay.introBodyEnd')}
           </p>
-          <p className="mt-1">
-            想听中文？把下面的「朗读语言」设成中文，外语帖子会先翻译再朗读。
-          </p>
+          <p className="mt-1">{t('overlay.introShortcuts', ['Alt+Shift+P', 'Alt+Shift+N'])}</p>
+          <p className="mt-1">{t('overlay.introTranslate')}</p>
         </div>
         <button
           type="button"
           onClick={onDismiss}
           className="shrink-0 cursor-pointer rounded-lg bg-white/10 px-2.5 py-1 text-[11px] text-slate-300 transition-colors hover:bg-white/20"
         >
-          知道了
+          {t('overlay.introDismiss')}
         </button>
       </div>
     </div>

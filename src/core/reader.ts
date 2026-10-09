@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import type { ReadXSettings } from '../settings';
 import type { PendingLanguagePack, ReaderSnapshot, ReaderState } from '../types';
 import { detectLanguage } from '../lang/detect';
@@ -186,7 +187,7 @@ export class Reader {
     this.followUser = false;
     const first = this.pickStartPost();
     if (!first) {
-      this.halt('error', '当前页面没找到帖子。请打开 X 的时间线、列表或帖子详情页再试。');
+      this.halt('error', t('reader.noPosts'));
       return;
     }
     await this.run(first);
@@ -224,13 +225,13 @@ export class Reader {
     if (!target) {
       // 已渲染的帖子里没有下一条 → 往下滚一屏触发 X 的无限加载。
       // 这一步要等网络，先给用户一个可见的反馈，避免"点了没动静"。
-      this.patch({ message: '正在加载更多帖子…' });
+      this.patch({ message: t('reader.loadingMore') });
       target = await this.loadMoreThenPick(from);
     }
     if (!target) target = this.pickStartPost();
 
     if (!target || keyOf(target) === keyOf(from)) {
-      this.halt('idle', '已经到时间线末尾了。');
+      this.halt('idle', t('reader.endOfTimeline'));
       return;
     }
     await scrollToPost(target, this.settings.anchorRatio);
@@ -254,7 +255,7 @@ export class Reader {
   pause(): void {
     if (this.state !== 'speaking') return;
     this.tts.pause();
-    this.patch({ state: 'paused', message: '已暂停' });
+    this.patch({ state: 'paused', message: t('reader.paused') });
   }
 
   resume(): void {
@@ -290,7 +291,7 @@ export class Reader {
   notifyUserScroll(): void {
     if (!this.isActive) return;
     this.followUser = true;
-    this.patch({ message: '已跟随你的滚动位置' });
+    this.patch({ message: t('reader.followingScroll') });
   }
 
   // ---------------------------------------------------------------- 主循环
@@ -312,12 +313,12 @@ export class Reader {
       const data = extractPost(post);
 
       if (data.isAd && this.settings.skipAds) {
-        this.patch({ message: '跳过：推广帖' });
+        this.patch({ message: t('reader.skipAd') });
         post = await this.advance(post, myEpoch, signal);
         continue;
       }
       if (data.isEmpty && this.settings.skipMediaOnly) {
-        this.patch({ message: '跳过：这条帖子没有可读文字' });
+        this.patch({ message: t('reader.skipEmpty') });
         post = await this.advance(post, myEpoch, signal);
         continue;
       }
@@ -356,17 +357,17 @@ export class Reader {
       if (!finished) return;
 
       if (!this.settings.autoAdvance) {
-        this.patch({ state: 'idle', message: '已读完这一条（自动推进已关闭）' });
+        this.patch({ state: 'idle', message: t('reader.doneNoAutoAdvance') });
         return;
       }
 
-      this.patch({ message: '正在定位下一条…' });
+      this.patch({ message: t('reader.locating') });
       post = await this.advance(post, myEpoch, signal);
     }
 
     if (!this.stale(myEpoch, signal)) {
       this.setFocus(null);
-      this.patch({ state: 'idle', message: '已经读到时间线末尾了。' });
+      this.patch({ state: 'idle', message: t('reader.endOfTimeline') });
     }
   }
 
@@ -551,11 +552,11 @@ export class Reader {
 
     const pair = translationPair(detectedLang, target);
     if (!pair) {
-      return { ...original, note: `${detectedLang} → ${target} 暂不支持，读原文` };
+      return { ...original, note: t('reader.pairUnsupported', [detectedLang, target]) };
     }
 
     if (!this.translation.isSupported()) {
-      return { ...original, note: '本机不支持设备端翻译，读原文' };
+      return { ...original, note: t('reader.translationUnsupported') };
     }
 
     const readiness = await this.translation.readiness(detectedLang, target);
@@ -568,13 +569,13 @@ export class Reader {
         state: 'need-language-pack',
         pendingPack: { from: pair.from, to: pair.to },
         packProgress: null,
-        message: `需要先下载 ${pair.from} → ${pair.to} 语言包（约十几秒，只需一次）`,
+        message: t('reader.packNeeded', [pair.from, pair.to]),
       });
       return null;
     }
 
     if (readiness !== 'ready') {
-      return { ...original, note: '设备端翻译当前不可用，读原文' };
+      return { ...original, note: t('reader.translationUnavailable') };
     }
 
     try {
@@ -595,7 +596,7 @@ export class Reader {
       };
     } catch (error) {
       console.warn('[ReadX] 翻译失败，改读原文', error);
-      return { ...original, note: '翻译失败，读原文' };
+      return { ...original, note: t('reader.translationFailed') };
     }
   }
 
@@ -764,7 +765,7 @@ export class Reader {
     const pending = this.pendingPack;
     if (!pending) return;
 
-    this.patch({ state: 'loading', message: '正在下载语言包…', packProgress: 0 });
+    this.patch({ state: 'loading', message: t('reader.packDownloading'), packProgress: 0 });
 
     const result = await this.translation.prepare(pending.from, pending.to, (ratio) => {
       this.patch({ packProgress: ratio });
@@ -772,7 +773,7 @@ export class Reader {
 
     if (result === 'ready') {
       this.pendingPack = null;
-      this.patch({ pendingPack: null, packProgress: null, message: '语言包已就绪' });
+      this.patch({ pendingPack: null, packProgress: null, message: t('reader.packReady') });
       const post = pending.post;
       if (post.isConnected) {
         await this.run(post);
@@ -787,8 +788,8 @@ export class Reader {
       packProgress: null,
       message:
         result === 'unsupported'
-          ? '这一对语言不受支持'
-          : '语言包下载失败。可到 chrome://on-device-translation-internals 手动安装',
+          ? t('reader.packUnsupported')
+          : t('reader.packDownloadFailed'),
     });
   }
 

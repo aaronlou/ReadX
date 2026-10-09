@@ -2,6 +2,7 @@ import ReactDOM from 'react-dom/client';
 import { browser, createShadowRootUi, defineContentScript } from '#imports';
 import { Reader } from '@/core/reader';
 import { probePageContext } from '@/diagnostics/pageProbe';
+import { t } from '@/i18n';
 import { DEV_MATCHES, X_MATCHES } from '@/matches';
 import { getSettings, watchSettings } from '@/settings';
 import { ChromeTranslatorProvider } from '@/translate/chromeTranslator';
@@ -29,7 +30,7 @@ export default defineContentScript({
     const tts = new TtsEngineSwitch(systemTts, cloudTts, () => settings.ttsEngine);
 
     if (!systemTts.isSupported()) {
-      console.warn('[ReadX] 当前浏览器没有 Web Speech API，系统语音不可用。');
+      console.warn(`[ReadX] ${t('content.noWebSpeech')}`);
     }
     await systemTts.ensureReady();
 
@@ -37,7 +38,7 @@ export default defineContentScript({
     const reader = new Reader(tts, new ChromeTranslatorProvider(), settings);
 
     tts.onError = (message, hint) => {
-      console.warn('[ReadX] 语音引擎', message, hint ?? '');
+      console.warn('[ReadX]', t('content.speechEngine'), message, hint ?? '');
       const text = hint ? `${message} · ${hint}` : message;
       // 既要弹一次提示，也要在面板上留住 —— 否则用户只会觉得"声音怎么变回去了"
       reader.note(text);

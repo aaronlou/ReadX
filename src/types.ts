@@ -78,6 +78,16 @@ export type ReaderCommand = 'toggle' | 'next' | 'prev' | 'stop';
  */
 export type ProbeContext = 'isolated-world' | 'extension-page';
 
+/**
+ * 探测结果的**机器可判**状态。
+ *
+ * ⚠️ 之所以要单独有这个字段：诊断表按状态上色，如果拿**显示文案**去比对，
+ * 一换界面语言就静默失效 —— 英文环境下 "API not available" 不等于
+ * "API 不存在"，那两个红色判定会凭空消失，而且没有任何报错。
+ * 显示归显示，判断归判断。
+ */
+export type ProbeStatus = 'ok' | 'unavailable' | 'missing' | 'threw';
+
 export interface AiProbeReport {
   context: ProbeContext;
   url: string;
@@ -87,6 +97,9 @@ export interface AiProbeReport {
   globals: Record<string, string>;
   translatorAvailability: string;
   languageDetectorAvailability: string;
+  /** 与上面两个字符串配套的状态，供 UI 上色用 */
+  translatorStatus: ProbeStatus;
+  languageDetectorStatus: ProbeStatus;
   at: string;
 }
 

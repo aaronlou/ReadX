@@ -1,3 +1,5 @@
+import { t } from '@/i18n';
+
 /**
  * Chrome 内置 Translator API 支持的语言。
  *
@@ -83,49 +85,50 @@ export function translationPair(
 
 /** UI 上展示用的名称。没收录的就直接显示代码。 */
 const LABELS: Record<string, string> = {
-  ar: 'العربية',
-  bg: 'Български',
-  bn: 'বাংলা',
-  cs: 'Čeština',
-  da: 'Dansk',
-  de: 'Deutsch',
-  el: 'Ελληνικά',
-  en: 'English',
-  es: 'Español',
-  fi: 'Suomi',
-  fr: 'Français',
-  he: 'עברית',
-  hi: 'हिन्दी',
-  hr: 'Hrvatski',
-  hu: 'Magyar',
-  id: 'Bahasa Indonesia',
-  it: 'Italiano',
-  ja: '日本語',
-  kn: 'ಕನ್ನಡ',
-  ko: '한국어',
-  lt: 'Lietuvių',
-  mr: 'मराठी',
-  nl: 'Nederlands',
-  no: 'Norsk',
-  pl: 'Polski',
-  pt: 'Português',
-  ro: 'Română',
-  ru: 'Русский',
-  sk: 'Slovenčina',
-  sl: 'Slovenščina',
-  sv: 'Svenska',
-  ta: 'தமிழ்',
-  te: 'తెలుగు',
-  th: 'ไทย',
-  tr: 'Türkçe',
-  uk: 'Українська',
-  vi: 'Tiếng Việt',
-  zh: '中文（简体）',
-  'zh-Hant': '中文（繁體）',
+  ar: 'translate.langAr',
+  bg: 'translate.langBg',
+  bn: 'translate.langBn',
+  cs: 'translate.langCs',
+  da: 'translate.langDa',
+  de: 'translate.langDe',
+  el: 'translate.langEl',
+  en: 'translate.langEn',
+  es: 'translate.langEs',
+  fi: 'translate.langFi',
+  fr: 'translate.langFr',
+  he: 'translate.langHe',
+  hi: 'translate.langHi',
+  hr: 'translate.langHr',
+  hu: 'translate.langHu',
+  id: 'translate.langId',
+  it: 'translate.langIt',
+  ja: 'translate.langJa',
+  kn: 'translate.langKn',
+  ko: 'translate.langKo',
+  lt: 'translate.langLt',
+  mr: 'translate.langMr',
+  nl: 'translate.langNl',
+  no: 'translate.langNo',
+  pl: 'translate.langPl',
+  pt: 'translate.langPt',
+  ro: 'translate.langRo',
+  ru: 'translate.langRu',
+  sk: 'translate.langSk',
+  sl: 'translate.langSl',
+  sv: 'translate.langSv',
+  ta: 'translate.langTa',
+  te: 'translate.langTe',
+  th: 'translate.langTh',
+  tr: 'translate.langTr',
+  uk: 'translate.langUk',
+  vi: 'translate.langVi',
+  zh: 'translate.langZhHans',
+  'zh-Hant': 'translate.langZhHant',
 };
 
 export function languageLabel(lang: string): string {
-  return LABELS[lang] ?? lang;
+  const key = LABELS[lang];
+  return key ? t(key) : lang;
 }
 
 /** 选择器里优先展示的语种 —— 把最常用的排前面，而不是按字母序 */

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { browser } from '#imports';
 import { DEFAULT_SETTINGS } from '../settings';
 import { CloudTtsProvider } from './cloudTts';
+import { en } from '../test/i18n';
 
 /**
  * 通用云语音引擎。
@@ -215,7 +216,10 @@ describe('CloudTtsProvider 失败处理', () => {
     try {
       const outcome = await provider.speak('你好', SPEAK_OPTS);
       expect(outcome).toBe('error');
-      expect(onError).toHaveBeenCalledWith(expect.stringContaining('播放'), expect.any(String));
+      expect(onError).toHaveBeenCalledWith(
+        en('cloudTts.playbackRejected', 'NotAllowedError'),
+        expect.any(String),
+      );
     } finally {
       playRejects = false;
     }

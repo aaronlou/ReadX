@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { TtsEngine } from '../settings';
 import { TtsEngineSwitch } from './engineSwitch';
 import type { SpeakOutcome, TtsProvider } from './provider';
+import { en } from '../test/i18n';
 
 class StubProvider implements TtsProvider {
   readonly name: string;
@@ -105,6 +106,7 @@ describe('TtsEngineSwitch', () => {
 
     await switcher.speak('一', OPTS);
 
+    // 子引擎报的具体原因必须原样带出来（这里喂的是字面量，与界面语言无关）
     expect(onError).toHaveBeenCalledWith(
       expect.stringContaining('还没有配置凭据'),
       '到扩展的选项页填写',
@@ -120,7 +122,7 @@ describe('TtsEngineSwitch', () => {
     await switcher.speak('一', OPTS);
 
     expect(onError).toHaveBeenCalledWith(
-      expect.stringContaining('云语音不可用'),
+      en('engineSwitch.degraded'),
       expect.any(String),
     );
   });

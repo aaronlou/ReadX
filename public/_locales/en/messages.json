@@ -1,0 +1,991 @@
+{
+  "bg.notConfigured": {
+    "message": "$1$ credentials aren't configured yet"
+  },
+  "bg.notConfiguredHint": {
+    "message": "Add them on the extension's settings page"
+  },
+  "bg.synthesizeFailed": {
+    "message": "Synthesis failed"
+  },
+  "bg.textTooLong": {
+    "message": "This text is longer than $1$'s $2$-character single-request limit"
+  },
+  "bg.textTooLongHint": {
+    "message": "Lower the reading length per post, or switch to another provider"
+  },
+  "bg.unknownProvider": {
+    "message": "Unknown voice provider: $1$"
+  },
+  "cloudTts.noVoiceForLang": {
+    "message": "$1$ has no voice for $2$"
+  },
+  "cloudTts.noVoiceForLangHint": {
+    "message": "Pick a voice for this language in settings"
+  },
+  "cloudTts.playbackFailed": {
+    "message": "Audio playback failed"
+  },
+  "cloudTts.playbackRejected": {
+    "message": "Playback was blocked: $1$"
+  },
+  "cloudTts.playbackRejectedHint": {
+    "message": "Click the page and try again"
+  },
+  "cloudTts.synthesisFailed": {
+    "message": "Speech synthesis failed"
+  },
+  "cloudTts.unknownProvider": {
+    "message": "Unknown voice provider: $1$"
+  },
+  "cloudTts.unknownProviderHint": {
+    "message": "Choose a different one in settings"
+  },
+  "cmdNextPost": {
+    "message": "Skip to next post"
+  },
+  "cmdPrevPost": {
+    "message": "Back to previous post"
+  },
+  "cmdToggleReading": {
+    "message": "Start / pause reading"
+  },
+  "content.noWebSpeech": {
+    "message": "This browser has no Web Speech API — system voices are unavailable."
+  },
+  "content.speechEngine": {
+    "message": "Speech engine"
+  },
+  "engineSwitch.degraded": {
+    "message": "Cloud voice unavailable — temporarily using system voice"
+  },
+  "engineSwitch.degradedHint": {
+    "message": "Check your credentials, domain permission, and balance in settings"
+  },
+  "engineSwitch.degradedWithDetail": {
+    "message": "$1$ — temporarily using system voice"
+  },
+  "extDescription": {
+    "message": "Turn your X timeline into audio: auto-scrolls to the next post and reads it aloud in the right language, with optional translation.",
+    "description": "Max 132 characters — shown in the Chrome Web Store listing"
+  },
+  "extName": {
+    "message": "ReadX — Listen to X",
+    "description": "Extension name shown in the Chrome Web Store and toolbar"
+  },
+  "options.contextContentScript": {
+    "message": "Content script"
+  },
+  "options.contextExtensionPage": {
+    "message": "Extension page (this one)"
+  },
+  "options.copied": {
+    "message": "Copied ✓"
+  },
+  "options.copiedLink": {
+    "message": "Copied"
+  },
+  "options.copyLink": {
+    "message": "Copy"
+  },
+  "options.copyReport": {
+    "message": "Copy report"
+  },
+  "options.footer": {
+    "message": "ReadX isn't an official X Corp product and isn't affiliated with X Corp. Reading and translation both happen on your device — nothing is uploaded."
+  },
+  "options.howToTitle": {
+    "message": "How to use"
+  },
+  "options.loading": {
+    "message": "Loading…"
+  },
+  "options.noTabsAfter": {
+    "message": "and come back to run the check."
+  },
+  "options.noTabsBefore": {
+    "message": "No tab with the content script was found. Open"
+  },
+  "options.notChecked": {
+    "message": "not checked"
+  },
+  "options.probe": {
+    "message": "Check"
+  },
+  "options.probeHint": {
+    "message": "Translation runs on Chrome's built-in on-device model — free, offline, and nothing leaves your machine. Use this section to check whether it works on yours."
+  },
+  "options.probeIdleHint": {
+    "message": "Click Check to test both this extension page and your open tabs."
+  },
+  "options.probeTitle": {
+    "message": "Translation compatibility"
+  },
+  "options.probing": {
+    "message": "Checking…"
+  },
+  "options.reportChromeVersion": {
+    "message": "Chrome version"
+  },
+  "options.reportItem": {
+    "message": "Item"
+  },
+  "options.reportSecureContext": {
+    "message": "Secure context"
+  },
+  "options.step1Open": {
+    "message": "Open"
+  },
+  "options.step1Rest": {
+    "message": ", and a control bar appears in the bottom-right corner of the page."
+  },
+  "options.step2Rest": {
+    "message": "). It scrolls to the next post on its own — and if you scroll yourself, it steps aside and picks up from where you are."
+  },
+  "options.step2Start": {
+    "message": "to start reading (shortcut"
+  },
+  "options.step2Tap": {
+    "message": "Tap"
+  },
+  "options.step3Bold2": {
+    "message": "posts already in that language are read as-is"
+  },
+  "options.step3Intro": {
+    "message": "Want posts read in another language? In the control bar or the popup, set \""
+  },
+  "options.step3LangLabel": {
+    "message": "Reading language"
+  },
+  "options.step3Middle": {
+    "message": "\" to the language you want. Posts in other languages are translated first;"
+  },
+  "options.step3Outro": {
+    "message": ", with no pointless translation."
+  },
+  "options.step4": {
+    "message": "The first time you pick a language, its pack is downloaded once (about ten seconds, one time only). A download button and progress bar appear in the control bar — Chrome requires that you start this yourself with a click."
+  },
+  "options.step5": {
+    "message": "No sound? First check that your system has a voice for that language (macOS: System Settings → Accessibility → Spoken Content → System Voice)."
+  },
+  "options.stuckStep1After": {
+    "message": "in a new tab, which lists every language pack, supports manual downloads, and shows why a download failed. Translation needs the source and target packs—"
+  },
+  "options.stuckStep1Bold": {
+    "message": "both have to be installed."
+  },
+  "options.stuckStep1Note": {
+    "message": "If that page won't open or is empty, this machine or this Chrome version doesn't support built-in translation at all."
+  },
+  "options.stuckStep1Open": {
+    "message": "Open"
+  },
+  "options.stuckStep2After": {
+    "message": ", find the entry for Translation / Optimization Guide, and click \"Check for update\". If the version stays at"
+  },
+  "options.stuckStep2End": {
+    "message": "the component was never delivered."
+  },
+  "options.stuckStep2Open": {
+    "message": "Open"
+  },
+  "options.stuckStep3": {
+    "message": "Check that you're on the desktop version of Chrome 138+. Older versions have no built-in translation, and ReadX falls back to reading the original text."
+  },
+  "options.stuckTitle": {
+    "message": "If \"Download language pack\" keeps hanging"
+  },
+  "options.tabLabel": {
+    "message": "Tab #$1$"
+  },
+  "options.tagline": {
+    "message": "Listen to X: it auto-scrolls to the next post, reads it in its own language, and translates first when needed."
+  },
+  "options.unknownUrl": {
+    "message": "(unknown URL)"
+  },
+  "options.verdict1Is": {
+    "message": "is a"
+  },
+  "options.verdict1Then": {
+    "message": "→ your browser supports on-device translation."
+  },
+  "options.verdict2Download": {
+    "message": "→ it isn't downloaded yet — click Download on the page once."
+  },
+  "options.verdict2Is": {
+    "message": "is"
+  },
+  "options.verdict2Ready": {
+    "message": "→ the language pack is ready;"
+  },
+  "options.verdict3Bold": {
+    "message": "reading without translating"
+  },
+  "options.verdict3End": {
+    "message": "\"."
+  },
+  "options.verdict3Is": {
+    "message": "is"
+  },
+  "options.verdict3Or": {
+    "message": "or"
+  },
+  "options.verdict3Then": {
+    "message": "→ on-device translation isn't available on this computer, so ReadX falls back to \""
+  },
+  "options.verdictApiBody": {
+    "message": "This usually means the hardware doesn't meet Google's requirements (16 GB RAM / 22 GB free disk / 4+ cores). ReadX falls back to reading the original text."
+  },
+  "options.verdictApiUnavailable": {
+    "message": "The API is there, but it isn't usable on this machine right now ($1$)."
+  },
+  "options.verdictChromeVersion": {
+    "message": "You're on Chrome $1$; built-in translation requires the 138+ desktop version."
+  },
+  "options.verdictDownloadOnFirstUse": {
+    "message": "On first use, click Download on the page once."
+  },
+  "options.verdictNoApiBody": {
+    "message": "Reading still works — it just won't translate automatically."
+  },
+  "options.verdictNoApiTitle": {
+    "message": "This browser doesn't offer on-device translation."
+  },
+  "options.verdictReady": {
+    "message": "The language pack is ready."
+  },
+  "options.verdictTitle": {
+    "message": "Reading the results"
+  },
+  "options.verdictUsableTitle": {
+    "message": "On-device translation works."
+  },
+  "options.voiceHint": {
+    "message": "System voices need no setup but sound robotic. Doubao Voice sounds much more natural, but you bring your own API key — and its domain permission is only requested when you turn it on."
+  },
+  "options.voiceTitle": {
+    "message": "Voice"
+  },
+  "overlay.autoScroll": {
+    "message": "Auto-scroll to next post"
+  },
+  "overlay.collapseButton": {
+    "message": "Collapse"
+  },
+  "overlay.expandButton": {
+    "message": "Expand"
+  },
+  "overlay.followPostLanguage": {
+    "message": "Match each post"
+  },
+  "overlay.introBodyEnd": {
+    "message": "to hear the post you're on. It scrolls to the next one for you, and gets out of the way the moment you scroll yourself."
+  },
+  "overlay.introBodyStart": {
+    "message": "Tap"
+  },
+  "overlay.introDismiss": {
+    "message": "Got it"
+  },
+  "overlay.introShortcuts": {
+    "message": "Shortcuts: $1$ to play or pause, $2$ for the next post. You can change them in Settings."
+  },
+  "overlay.introTitle": {
+    "message": "ReadX is ready"
+  },
+  "overlay.introTranslate": {
+    "message": "Pick a reading language below and foreign posts get translated before they're read aloud."
+  },
+  "overlay.langSourceAssumed": {
+    "message": "assumed"
+  },
+  "overlay.langSourceDetected": {
+    "message": "detected"
+  },
+  "overlay.langSourcePageScript": {
+    "message": "page script"
+  },
+  "overlay.langSourcePageText": {
+    "message": "page text"
+  },
+  "overlay.nextButton": {
+    "message": "Next post ($1$)"
+  },
+  "overlay.notTranslatedBadge": {
+    "message": "Not translated"
+  },
+  "overlay.notTranslatedTitle": {
+    "message": "Can't translate — reading the original"
+  },
+  "overlay.packDownloadButton": {
+    "message": "Download"
+  },
+  "overlay.packDownloading": {
+    "message": "Downloading the $1$ → $2$ language pack…"
+  },
+  "overlay.packDownloadingButton": {
+    "message": "Downloading…"
+  },
+  "overlay.packNeeded": {
+    "message": "The $1$ → $2$ language pack isn't downloaded yet (one-time download)"
+  },
+  "overlay.playPauseButton": {
+    "message": "Play / Pause ($1$)"
+  },
+  "overlay.prevButton": {
+    "message": "Previous post ($1$)"
+  },
+  "overlay.progress": {
+    "message": "Post $1$ of $2$"
+  },
+  "overlay.readAuthor": {
+    "message": "Read author name first"
+  },
+  "overlay.readingLanguage": {
+    "message": "Reading language"
+  },
+  "overlay.skipAds": {
+    "message": "Skip promoted posts"
+  },
+  "overlay.speechEngine": {
+    "message": "Speech engine"
+  },
+  "overlay.speed": {
+    "message": "Speed"
+  },
+  "overlay.stateError": {
+    "message": "Error"
+  },
+  "overlay.stateIdle": {
+    "message": "Idle"
+  },
+  "overlay.stateLocating": {
+    "message": "Finding"
+  },
+  "overlay.stateNeedLanguagePack": {
+    "message": "Language pack needed"
+  },
+  "overlay.statePaused": {
+    "message": "Paused"
+  },
+  "overlay.stateSpeaking": {
+    "message": "Reading"
+  },
+  "overlay.stopButton": {
+    "message": "Stop"
+  },
+  "overlay.translatedBadge": {
+    "message": "Translated · $1$"
+  },
+  "overlay.translatedTitle": {
+    "message": "Translated from $1$"
+  },
+  "popup.authorizing": {
+    "message": "Authorizing…"
+  },
+  "popup.autoAdvance": {
+    "message": "Auto-advance to next post"
+  },
+  "popup.cannotConnect": {
+    "message": "Can't reach the page"
+  },
+  "popup.cloudEnabled": {
+    "message": "$1$ is on. Add your credentials and pick a voice in Settings"
+  },
+  "popup.cloudFallback": {
+    "message": "Cloud voice"
+  },
+  "popup.engine": {
+    "message": "Voice engine"
+  },
+  "popup.followOriginal": {
+    "message": "Match each post's language"
+  },
+  "popup.nextPost": {
+    "message": "⏭ Next"
+  },
+  "popup.noActiveTab": {
+    "message": "No active tab found"
+  },
+  "popup.noPageResponse": {
+    "message": "The page didn't respond"
+  },
+  "popup.noVoiceForLang": {
+    "message": "No voice for this language is installed. The default voice will be used, and it may mispronounce words."
+  },
+  "popup.notConfigured": {
+    "message": "$1$ isn't set up yet"
+  },
+  "popup.notConfiguredHint": {
+    "message": "Add your API key and pick a voice in Settings →"
+  },
+  "popup.notConnected": {
+    "message": "Not connected"
+  },
+  "popup.openSettings": {
+    "message": "Open settings"
+  },
+  "popup.openSettingsHint": {
+    "message": "Voice credentials, voices, translation check →"
+  },
+  "popup.openXFirst": {
+    "message": "Open x.com first (or the dev mock page)"
+  },
+  "popup.packDownloading": {
+    "message": "Downloading the $1$ → $2$ language pack… $3$%"
+  },
+  "popup.packNeeded": {
+    "message": "The $1$ → $2$ language pack isn't downloaded. Click Download in the panel at the bottom right of the page"
+  },
+  "popup.pause": {
+    "message": "⏸ Pause"
+  },
+  "popup.permissionDenied": {
+    "message": "Access to $1$ wasn't granted, so it can't be turned on"
+  },
+  "popup.permissionFailed": {
+    "message": "Couldn't request permission: $1$"
+  },
+  "popup.play": {
+    "message": "▶ Play"
+  },
+  "popup.prevPost": {
+    "message": "⏮ Previous"
+  },
+  "popup.rate": {
+    "message": "Speed"
+  },
+  "popup.readAuthor": {
+    "message": "Say the author's name first"
+  },
+  "popup.readingLang": {
+    "message": "Reading language"
+  },
+  "popup.sentenceProgress": {
+    "message": "Sentence $1$"
+  },
+  "popup.shortcuts": {
+    "message": "Shortcuts: Alt+Shift+P play/pause · Alt+Shift+N next post · Alt+Shift+B previous post"
+  },
+  "popup.skipAds": {
+    "message": "Skip promoted posts"
+  },
+  "popup.skipMediaOnly": {
+    "message": "Skip posts with no text"
+  },
+  "popup.source": {
+    "message": "Source: $1$"
+  },
+  "popup.stateError": {
+    "message": "Error"
+  },
+  "popup.stateIdle": {
+    "message": "Idle"
+  },
+  "popup.stateLoading": {
+    "message": "Locating"
+  },
+  "popup.stateNeedLanguagePack": {
+    "message": "Waiting for language pack"
+  },
+  "popup.statePaused": {
+    "message": "Paused"
+  },
+  "popup.stateSpeaking": {
+    "message": "Reading"
+  },
+  "popup.stop": {
+    "message": "⏹ Stop"
+  },
+  "popup.systemVoice": {
+    "message": "System voice"
+  },
+  "popup.tagline": {
+    "message": "Listen to X without looking"
+  },
+  "popup.translateHint": {
+    "message": "Posts in other languages are translated before they're read; posts already in that language are read as-is."
+  },
+  "popup.unsupported": {
+    "message": "This environment doesn't support the Web Speech API, so reading aloud isn't available."
+  },
+  "popup.voiceAuto": {
+    "message": "Auto"
+  },
+  "popup.voiceLocal": {
+    "message": "On-device"
+  },
+  "popup.voiceOnline": {
+    "message": "Online"
+  },
+  "popup.voiceOption": {
+    "message": "$1$ ($2$ · $3$)"
+  },
+  "popup.voicePickerLabel": {
+    "message": "Voice ($1$ available for $2$)"
+  },
+  "popup.volume": {
+    "message": "Volume"
+  },
+  "popup.waitingLang": {
+    "message": "Detecting language…"
+  },
+  "probe.apiMissing": {
+    "message": "API not available"
+  },
+  "probe.notDetected": {
+    "message": "Not checked"
+  },
+  "probe.threw": {
+    "message": "Threw: $1$: $2$"
+  },
+  "provider.common.errAuth": {
+    "message": "The API key may be invalid, or the $1 service isn't enabled"
+  },
+  "provider.common.errEmptyText": {
+    "message": "Nothing to synthesize"
+  },
+  "provider.common.errNotFound": {
+    "message": "Wrong API endpoint or model name"
+  },
+  "provider.common.errRateLimited": {
+    "message": "Rate limited or out of quota — try again in a moment"
+  },
+  "provider.common.errServer": {
+    "message": "The $1 service hit a server error — try again later"
+  },
+  "provider.doubao.credAccessKeyHelp": {
+    "message": "If you don't have an API key, authenticate with this plus the App ID instead"
+  },
+  "provider.doubao.credAccessKeyLabel": {
+    "message": "Access Key (legacy console only)"
+  },
+  "provider.doubao.credAccessKeyPlaceholder": {
+    "message": "Only needed for legacy authentication"
+  },
+  "provider.doubao.credApiKeyHelp": {
+    "message": "Get it from Speech → App Management in the ByteDance console"
+  },
+  "provider.doubao.credApiKeyLabel": {
+    "message": "API Key"
+  },
+  "provider.doubao.credApiKeyPlaceholder": {
+    "message": "Paste your API key"
+  },
+  "provider.doubao.credAppIdHelp": {
+    "message": "The API uses it to identify which app the request belongs to. A \"resource not granted\" error usually means this field is missing."
+  },
+  "provider.doubao.credAppIdLabel": {
+    "message": "App ID (strongly recommended)"
+  },
+  "provider.doubao.credAppIdPlaceholder": {
+    "message": "From the same App Management page"
+  },
+  "provider.doubao.errRequestFailed": {
+    "message": "Couldn't reach Doubao Voice: $1"
+  },
+  "provider.doubao.errRequestFailedHint": {
+    "message": "Check your network, or make sure access to openspeech.bytedance.com is granted"
+  },
+  "provider.doubao.errResourceNotGrantedHint": {
+    "message": "Enable the Audio Generation service under Speech → App Management in the ByteDance console, and paste the App ID from that same page — the API uses it to identify your app"
+  },
+  "provider.doubao.errServiceNotActivatedHint": {
+    "message": "Enable the matching service in the ByteDance console"
+  },
+  "provider.doubao.errSynthesizeFailed": {
+    "message": "Doubao Voice synthesis failed (HTTP $1)"
+  },
+  "provider.doubao.langEn": {
+    "message": "English"
+  },
+  "provider.doubao.langZh": {
+    "message": "Chinese"
+  },
+  "provider.doubao.name": {
+    "message": "Doubao Voice"
+  },
+  "provider.doubao.summary": {
+    "message": "ByteDance's voice engine — natural Mandarin, 30+ voices"
+  },
+  "provider.doubao.voiceNoteAudiobook": {
+    "message": "Audiobook"
+  },
+  "provider.doubao.voiceNoteVideoNarration": {
+    "message": "Video narration"
+  },
+  "provider.openai.credApiKeyHelp": {
+    "message": "Create one on the API keys page at platform.openai.com"
+  },
+  "provider.openai.credApiKeyLabel": {
+    "message": "API Key"
+  },
+  "provider.openai.credApiKeyPlaceholder": {
+    "message": "sk-..."
+  },
+  "provider.openai.errEmptyAudio": {
+    "message": "OpenAI returned no audio"
+  },
+  "provider.openai.errRequestFailed": {
+    "message": "Couldn't reach OpenAI Voice: $1"
+  },
+  "provider.openai.errRequestFailedHint": {
+    "message": "Check your network, or make sure access to api.openai.com is granted"
+  },
+  "provider.openai.errSynthesizeFailed": {
+    "message": "OpenAI Voice synthesis failed (HTTP $1)"
+  },
+  "provider.openai.langEn": {
+    "message": "English"
+  },
+  "provider.openai.langZh": {
+    "message": "Chinese"
+  },
+  "provider.openai.name": {
+    "message": "OpenAI Voice"
+  },
+  "provider.openai.summary": {
+    "message": "Language-agnostic voices that read both English and Chinese — the simplest setup"
+  },
+  "provider.openai.voiceNoteBright": {
+    "message": "Bright"
+  },
+  "provider.openai.voiceNoteBritish": {
+    "message": "British accent"
+  },
+  "provider.openai.voiceNoteDeepMale": {
+    "message": "Deep male"
+  },
+  "provider.openai.voiceNoteExpressive": {
+    "message": "Expressive"
+  },
+  "provider.openai.voiceNoteFemaleGeneral": {
+    "message": "Female · general purpose"
+  },
+  "provider.openai.voiceNoteGentle": {
+    "message": "Warm"
+  },
+  "provider.openai.voiceNoteMale": {
+    "message": "Male"
+  },
+  "provider.openai.voiceNoteNarrative": {
+    "message": "Narrative"
+  },
+  "provider.openai.voiceNoteNeutral": {
+    "message": "Neutral"
+  },
+  "provider.openai.voiceNoteSoftFemale": {
+    "message": "Soft female"
+  },
+  "provider.openai.voiceNoteSteady": {
+    "message": "Steady"
+  },
+  "provider.openrouter.credApiKeyHelp": {
+    "message": "Create one at openrouter.ai/keys"
+  },
+  "provider.openrouter.credApiKeyLabel": {
+    "message": "API Key"
+  },
+  "provider.openrouter.credApiKeyPlaceholder": {
+    "message": "sk-or-v1-..."
+  },
+  "provider.openrouter.credModelHelp": {
+    "message": "Leave blank to use $1. To use ByteDance voices, enter $2"
+  },
+  "provider.openrouter.credModelLabel": {
+    "message": "Model (optional)"
+  },
+  "provider.openrouter.errEmptyAudio": {
+    "message": "OpenRouter returned no audio"
+  },
+  "provider.openrouter.errInsufficientCreditsHint": {
+    "message": "OpenRouter is out of credits — top up your account or switch to a free model"
+  },
+  "provider.openrouter.errModelNotFoundHint": {
+    "message": "Wrong model name. Filter openrouter.ai/models by output modality = speech to see the available TTS models"
+  },
+  "provider.openrouter.errRequestFailed": {
+    "message": "Couldn't reach OpenRouter: $1"
+  },
+  "provider.openrouter.errRequestFailedHint": {
+    "message": "Check your network, or make sure access to openrouter.ai is granted"
+  },
+  "provider.openrouter.errSynthesizeFailed": {
+    "message": "OpenRouter synthesis failed (HTTP $1)"
+  },
+  "provider.openrouter.langEn": {
+    "message": "English"
+  },
+  "provider.openrouter.langZh": {
+    "message": "Chinese"
+  },
+  "provider.openrouter.name": {
+    "message": "OpenRouter"
+  },
+  "provider.openrouter.summary": {
+    "message": "One key, many models — including OpenAI and ByteDance Seed Audio"
+  },
+  "reader.doneNoAutoAdvance": {
+    "message": "Finished this post (auto-advance is off)"
+  },
+  "reader.endOfTimeline": {
+    "message": "You've reached the end of your timeline."
+  },
+  "reader.followingScroll": {
+    "message": "Following your scroll position"
+  },
+  "reader.loadingMore": {
+    "message": "Loading more posts…"
+  },
+  "reader.locating": {
+    "message": "Finding the next post…"
+  },
+  "reader.noPosts": {
+    "message": "No posts found on this page. Open an X timeline, list, or post detail page and try again."
+  },
+  "reader.packDownloadFailed": {
+    "message": "Language pack download failed. You can install it manually at chrome://on-device-translation-internals"
+  },
+  "reader.packDownloading": {
+    "message": "Downloading language pack…"
+  },
+  "reader.packNeeded": {
+    "message": "Download the $1$ → $2$ language pack first — about ten seconds, one time only"
+  },
+  "reader.packReady": {
+    "message": "Language pack ready"
+  },
+  "reader.packUnsupported": {
+    "message": "This language pair isn't supported"
+  },
+  "reader.pairUnsupported": {
+    "message": "$1$ → $2$ isn't supported — reading the original"
+  },
+  "reader.paused": {
+    "message": "Paused"
+  },
+  "reader.skipAd": {
+    "message": "Skipped: promoted post"
+  },
+  "reader.skipEmpty": {
+    "message": "Skipped: no readable text in this post"
+  },
+  "reader.translationFailed": {
+    "message": "Translation failed — reading the original"
+  },
+  "reader.translationUnavailable": {
+    "message": "Translation is unavailable right now — reading the original"
+  },
+  "reader.translationUnsupported": {
+    "message": "On-device translation isn't available here — reading the original"
+  },
+  "translate.langAr": {
+    "message": "Arabic"
+  },
+  "translate.langBg": {
+    "message": "Bulgarian"
+  },
+  "translate.langBn": {
+    "message": "Bengali"
+  },
+  "translate.langCs": {
+    "message": "Czech"
+  },
+  "translate.langDa": {
+    "message": "Danish"
+  },
+  "translate.langDe": {
+    "message": "German"
+  },
+  "translate.langEl": {
+    "message": "Greek"
+  },
+  "translate.langEn": {
+    "message": "English"
+  },
+  "translate.langEs": {
+    "message": "Spanish"
+  },
+  "translate.langFi": {
+    "message": "Finnish"
+  },
+  "translate.langFr": {
+    "message": "French"
+  },
+  "translate.langHe": {
+    "message": "Hebrew"
+  },
+  "translate.langHi": {
+    "message": "Hindi"
+  },
+  "translate.langHr": {
+    "message": "Croatian"
+  },
+  "translate.langHu": {
+    "message": "Hungarian"
+  },
+  "translate.langId": {
+    "message": "Indonesian"
+  },
+  "translate.langIt": {
+    "message": "Italian"
+  },
+  "translate.langJa": {
+    "message": "Japanese"
+  },
+  "translate.langKn": {
+    "message": "Kannada"
+  },
+  "translate.langKo": {
+    "message": "Korean"
+  },
+  "translate.langLt": {
+    "message": "Lithuanian"
+  },
+  "translate.langMr": {
+    "message": "Marathi"
+  },
+  "translate.langNl": {
+    "message": "Dutch"
+  },
+  "translate.langNo": {
+    "message": "Norwegian"
+  },
+  "translate.langPl": {
+    "message": "Polish"
+  },
+  "translate.langPt": {
+    "message": "Portuguese"
+  },
+  "translate.langRo": {
+    "message": "Romanian"
+  },
+  "translate.langRu": {
+    "message": "Russian"
+  },
+  "translate.langSk": {
+    "message": "Slovak"
+  },
+  "translate.langSl": {
+    "message": "Slovenian"
+  },
+  "translate.langSv": {
+    "message": "Swedish"
+  },
+  "translate.langTa": {
+    "message": "Tamil"
+  },
+  "translate.langTe": {
+    "message": "Telugu"
+  },
+  "translate.langTh": {
+    "message": "Thai"
+  },
+  "translate.langTr": {
+    "message": "Turkish"
+  },
+  "translate.langUk": {
+    "message": "Ukrainian"
+  },
+  "translate.langVi": {
+    "message": "Vietnamese"
+  },
+  "translate.langZhHans": {
+    "message": "Chinese (Simplified)"
+  },
+  "translate.langZhHant": {
+    "message": "Chinese (Traditional)"
+  },
+  "tts.audioPlaybackFailed": {
+    "message": "Couldn't play the audio"
+  },
+  "tts.credentialsSaved": {
+    "message": "Credentials saved — stored on this device only, never synced to the cloud"
+  },
+  "tts.credentialsTitle": {
+    "message": "$1$ credentials"
+  },
+  "tts.currentValue": {
+    "message": "Current: $1$"
+  },
+  "tts.defaultVoice": {
+    "message": "Default"
+  },
+  "tts.defaultVoiceName": {
+    "message": " ($1$)"
+  },
+  "tts.enabled": {
+    "message": "$1$ enabled"
+  },
+  "tts.grantAccess": {
+    "message": "Grant access"
+  },
+  "tts.grantIntro": {
+    "message": "ReadX needs permission to access"
+  },
+  "tts.grantReason": {
+    "message": ", otherwise $1$ can't send requests."
+  },
+  "tts.maxChars": {
+    "message": "Up to $1$ characters per request"
+  },
+  "tts.noAudioReturned": {
+    "message": "no audio returned"
+  },
+  "tts.noVoiceForLang": {
+    "message": "$1$ has no voice for $2$"
+  },
+  "tts.permissionDenied": {
+    "message": "Access to $1$ wasn't granted, so $2$ can't work"
+  },
+  "tts.preview": {
+    "message": "Preview"
+  },
+  "tts.previewFailed": {
+    "message": "Preview failed: $1$"
+  },
+  "tts.previewHint": {
+    "message": " ($1$)"
+  },
+  "tts.previewOk": {
+    "message": "✓ Preview played"
+  },
+  "tts.previewing": {
+    "message": "Previewing…"
+  },
+  "tts.privacyBody": {
+    "message": ": with cloud voice on, the text being read is sent to $1$'s servers — the only content that leaves your device. Translation still happens on-device. To stay fully offline, keep System voice."
+  },
+  "tts.privacyNotice": {
+    "message": "Note"
+  },
+  "tts.sampleText": {
+    "message": "This post makes a good point, and it should sound natural when read aloud."
+  },
+  "tts.save": {
+    "message": "Save"
+  },
+  "tts.storageAfter": {
+    "message": "), never synced to the cloud, and never exposed to a page's JS environment."
+  },
+  "tts.storageBefore": {
+    "message": "Stored only on this device ("
+  },
+  "tts.switchToSystem": {
+    "message": "Switch to System voice"
+  },
+  "tts.systemVoice": {
+    "message": "System voice"
+  },
+  "tts.systemVoiceHint": {
+    "message": "No setup, works offline, sounds robotic"
+  },
+  "tts.voicesHint": {
+    "message": "Pick a voice for each language. Some providers have language-agnostic voices (one voice reads both Chinese and English); others give each voice a single language — the wrong one sounds noticeably off."
+  },
+  "tts.voicesTitle": {
+    "message": "Voices"
+  }
+}

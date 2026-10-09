@@ -3,13 +3,7 @@ import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'wxt';
 import { DEV_MATCHES, X_MATCHES } from './src/matches';
-import { CLOUD_TTS_PROVIDERS } from './src/tts/providers';
-
-/**
- * 所有云语音服务商的接口域名，从注册表里推导出来 ——
- * 加一家服务商只需要写它的 spec，这里不用改。
- */
-const CLOUD_TTS_ORIGINS = [...new Set(CLOUD_TTS_PROVIDERS.flatMap((p) => p.origins))];
+import { CLOUD_TTS_ORIGINS } from './src/tts/providers/origins';
 
 /**
  * `npm run dev` 拉起浏览器的能力由 web-ext 提供（WXT 在 import 失败时会
@@ -41,9 +35,12 @@ export default defineConfig({
   },
 
   manifest: (env) => ({
-    name: 'ReadX',
+    // 用 __MSG_*__ 让名称和描述跟着浏览器语言走 —— 海外用户在商店里
+    // 看到的就是英文，而不是一串中文。default_locale 必须是 'en'。
+    name: '__MSG_extName__',
     // Chrome 对 manifest description 有 132 字符上限；商店里的长描述另填
-    description: '用耳朵刷 X：自动滚到下一条帖子并按语言朗读，可指定朗读语言并自动翻译。',
+    description: '__MSG_extDescription__',
+    default_locale: 'en',
     permissions: ['storage'],
     host_permissions: env.mode === 'development' ? DEV_MATCHES : X_MATCHES,
     /**
@@ -55,15 +52,15 @@ export default defineConfig({
     commands: {
       'toggle-reading': {
         suggested_key: { default: 'Alt+Shift+P' },
-        description: '开始 / 暂停朗读',
+        description: '__MSG_cmdToggleReading__',
       },
       'next-post': {
         suggested_key: { default: 'Alt+Shift+N' },
-        description: '跳到下一个帖子',
+        description: '__MSG_cmdNextPost__',
       },
       'prev-post': {
         suggested_key: { default: 'Alt+Shift+B' },
-        description: '回到上一个帖子',
+        description: '__MSG_cmdPrevPost__',
       },
     },
   }),

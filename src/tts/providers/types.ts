@@ -1,3 +1,5 @@
+import { t } from '@/i18n';
+
 /**
  * 云语音服务商的接入规范。
  *
@@ -132,9 +134,9 @@ export function resolveVoice(
 
 /** 把常见 HTTP 失败翻译成"下一步该干什么" */
 export function describeHttpFailure(status: number, serviceName: string): string | undefined {
-  if (status === 401 || status === 403) return `API Key 可能无效，或没有开通 ${serviceName} 服务`;
-  if (status === 404) return '接口地址或模型名不对';
-  if (status === 429) return '触发限流或额度用尽，稍后再试';
-  if (status >= 500) return `${serviceName} 服务端异常，稍后重试`;
+  if (status === 401 || status === 403) return t('provider.common.errAuth', serviceName);
+  if (status === 404) return t('provider.common.errNotFound');
+  if (status === 429) return t('provider.common.errRateLimited');
+  if (status >= 500) return t('provider.common.errServer', serviceName);
   return undefined;
 }

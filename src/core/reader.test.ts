@@ -8,6 +8,7 @@ import type {
 } from '../translate/provider';
 import { DEFAULT_SETTINGS, type ReadXSettings } from '../settings';
 import { Reader } from './reader';
+import { en } from '../test/i18n';
 
 /**
  * Reader 的滚动/推进逻辑依赖真实布局（getBoundingClientRect、scrollY），
@@ -310,7 +311,7 @@ describe('Reader.next()', () => {
     // 然后必须给出可见提示。注意这一步要等真实的超时，所以这里 await 整个 next()
     await reader.next();
 
-    expect(reader.snapshot.message).toMatch(/末尾/);
+    expect(reader.snapshot.message).toBe(en('reader.endOfTimeline'));
     expect(reader.snapshot.state).toBe('idle');
   });
 
@@ -474,7 +475,7 @@ describe('Reader 翻译', () => {
     expect(tts.spoken.join(' ')).toContain('The best way to get startup ideas');
     expect(reader.snapshot.translatedFrom).toBeNull();
     // 必须告诉用户"为什么我要中文却在读英文"，不能默默降级
-    expect(messages.some((m) => /不支持/.test(m))).toBe(true);
+    expect(messages).toContain(en('reader.translationUnsupported'));
   });
 
   it('翻译失败时同样降级读原文，并说明原因', async () => {
@@ -495,7 +496,7 @@ describe('Reader 翻译', () => {
 
     expect(reader.snapshot.lang).toBe('en');
     expect(tts.spoken.join(' ')).toContain('The best way to get startup ideas');
-    expect(messages.some((m) => /翻译失败/.test(m))).toBe(true);
+    expect(messages).toContain(en('reader.translationFailed'));
   });
 });
 

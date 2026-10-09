@@ -1,5 +1,6 @@
 import { browser, defineBackground } from '#imports';
 import { getProviderCredentials } from '@/credentials';
+import { t } from '@/i18n';
 import type { CldResult } from '@/lang/cld';
 import { CloudTtsError, findCloudProvider } from '@/tts/providers';
 import type {
@@ -66,7 +67,7 @@ export default defineBackground(() => {
           .catch((error: unknown) =>
             sendResponse({
               ok: false,
-              error: error instanceof Error ? error.message : '合成失败',
+              error: error instanceof Error ? error.message : t('bg.synthesizeFailed'),
             } satisfies CloudTtsSynthesizeResponse),
           );
         return true;
@@ -82,20 +83,24 @@ async function handleCloudTts(
 ): Promise<CloudTtsSynthesizeResponse> {
   const spec = findCloudProvider(message.providerId);
   if (!spec) {
-    return { ok: false, error: `未知的语音服务商：${message.providerId}` };
+    return { ok: false, error: t('bg.unknownProvider', [message.providerId]) };
   }
 
   if (message.text.length > spec.maxChars) {
     return {
       ok: false,
-      error: `这段文本超过了 ${spec.name} 单次 ${spec.maxChars} 字符的上限`,
-      hint: '调小每条的朗读长度，或换一个服务商',
+      error: t('bg.textTooLong', [spec.name, String(spec.maxChars)]),
+      hint: t('bg.textTooLongHint'),
     };
   }
 
   const credentials = await getProviderCredentials(spec.id);
   if (!spec.isConfigured(credentials)) {
-    return { ok: false, error: `${spec.name} 还没有配置凭据`, hint: '到扩展的选项页填写' };
+    return {
+      ok: false,
+      error: t('bg.notConfigured', [spec.name]),
+      hint: t('bg.notConfiguredHint'),
+    };
   }
 
   try {

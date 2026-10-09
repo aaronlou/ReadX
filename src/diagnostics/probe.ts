@@ -1,4 +1,5 @@
-import type { AiProbeReport, ProbeContext } from '../types';
+import { t } from '@/i18n';
+import type { AiProbeReport, ProbeContext, ProbeStatus } from '../types';
 
 /**
  * 探测 Chrome 内置 AI（Translator / LanguageDetector）在当前 JS realm 里能不能用。
@@ -25,12 +26,20 @@ function kindOf(value: unknown): string {
   return typeof value;
 }
 
-async function attempt(fn: () => Promise<string>): Promise<string> {
+/**
+ * 跑一次探测，同时给出**显示文本**和**机器可判状态**。
+ *
+ * 两者必须一起返回：UI 上色要靠状态，绝不能回头去比显示文本 ——
+ * 那样一换界面语言就会静默失效。
+ */
+async function attempt(
+  fn: () => Promise<{ text: string; status: ProbeStatus }>,
+): Promise<{ text: string; status: ProbeStatus }> {
   try {
     return await fn();
   } catch (error) {
     const err = error as Error;
-    return `抛错：${err.name}: ${err.message}`;
+    return { text: t('probe.threw', [err.name, err.message]), status: 'threw' };
   }
 }
 
@@ -59,22 +68,33 @@ export async function probeBuiltInAi(
       LanguageModel: kindOf(g.LanguageModel),
       Summarizer: kindOf(g.Summarizer),
     },
-    translatorAvailability: '未检测',
-    languageDetectorAvailability: '未检测',
+    translatorAvailability: t('probe.notDetected'),
+    languageDetectorAvailability: t('probe.notDetected'),
+    translatorStatus: 'missing',
+    languageDetectorStatus: 'missing',
     at: new Date().toISOString(),
   };
 
-  report.translatorAvailability = await attempt(async () =>
+  const translator = await attempt(async () =>
     g.Translator?.availability
-      ? String(await g.Translator.availability({ sourceLanguage: pair.from, targetLanguage: pair.to }))
-      : 'API 不存在',
+      ? {
+          text: String(
+            await g.Translator.availability({ sourceLanguage: pair.from, targetLanguage: pair.to }),
+          ),
+          status: 'ok' as const,
+        }
+      : { text: t('probe.apiMissing'), status: 'missing' as const },
   );
+  report.translatorAvailability = translator.text;
+  report.translatorStatus = translator.status;
 
-  report.languageDetectorAvailability = await attempt(async () =>
+  const detector = await attempt(async () =>
     g.LanguageDetector?.availability
-      ? String(await g.LanguageDetector.availability())
-      : 'API 不存在',
+      ? { text: String(await g.LanguageDetector.availability()), status: 'ok' as const }
+      : { text: t('probe.apiMissing'), status: 'missing' as const },
   );
+  report.languageDetectorAvailability = detector.text;
+  report.languageDetectorStatus = detector.status;
 
   return report;
 }

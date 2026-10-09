@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { browser } from '#imports';
 import { probeBuiltInAi } from '@/diagnostics/probe';
+import { t } from '@/i18n';
 import { getSettings, patchSettings, type ReadXSettings } from '@/settings';
 import { TtsSettingsPanel } from '@/tts/TtsSettingsPanel';
-import type { AiProbeReport, TabProbeResult } from '@/types';
+import type { AiProbeReport, ProbeStatus, TabProbeResult } from '@/types';
 
 /**
  * 使用说明 + 翻译能力检测。
@@ -14,8 +15,8 @@ import type { AiProbeReport, TabProbeResult } from '@/types';
  */
 
 const CONTEXT_LABEL: Record<AiProbeReport['context'], string> = {
-  'extension-page': '扩展页面（本页）',
-  'isolated-world': '内容脚本',
+  'extension-page': t('options.contextExtensionPage'),
+  'isolated-world': t('options.contextContentScript'),
 };
 
 export default function App() {
@@ -52,7 +53,7 @@ export default function App() {
 
   const copyReport = useCallback(async () => {
     await navigator.clipboard.writeText(
-      JSON.stringify({ extensionPage: selfReport, tabs: tabs ?? '未检测' }, null, 2),
+      JSON.stringify({ extensionPage: selfReport, tabs: tabs ?? t('options.notChecked') }, null, 2),
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -62,48 +63,44 @@ export default function App() {
     <div className="mx-auto max-w-3xl px-6 py-10">
       <h1 className="text-xl font-bold">ReadX</h1>
       <p className="mt-1 text-sm text-slate-400">
-        用耳朵刷 X：自动滚动定位到下一条帖子，按它的语言朗读，需要时先翻译。
+        {t('options.tagline')}
       </p>
 
-      <Section title="怎么用" hint="">
+      <Section title={t('options.howToTitle')} hint="">
         <ol className="list-decimal space-y-2 pl-5 text-sm text-slate-300">
           <li>
-            打开 <Code>x.com</Code>，页面右下角会出现一条控制条。
+            {t('options.step1Open')} <Code>x.com</Code>
+            {t('options.step1Rest')}
           </li>
           <li>
-            点 <Code>▶</Code> 开始朗读（快捷键 <Code>Alt+Shift+P</Code>）。
-            它会自己滚动到下一条帖子 —— 你一旦自己滚动，它就让位并跟着你的位置继续。
+            {t('options.step2Tap')} <Code>▶</Code> {t('options.step2Start')} <Code>Alt+Shift+P</Code>
+            {t('options.step2Rest')}
           </li>
           <li>
-            想听中文？在控制条或插件弹窗里把「<b className="text-slate-200">朗读语言</b>」设成中文。
-            外语帖子会先翻译再朗读；<b className="text-slate-200">帖子本来就是中文时直接读原文</b>，不做无谓翻译。
+            {t('options.step3Intro')}
+            <b className="text-slate-200">{t('options.step3LangLabel')}</b>
+            {t('options.step3Middle')}{' '}
+            <b className="text-slate-200">{t('options.step3Bold2')}</b>
+            {t('options.step3Outro')}
           </li>
           <li>
-            首次选择某个语言时，需要下载一次语言包（十几秒，只需一次）。
-            控制条上会出现下载按钮和进度条 —— Chrome 要求这一步必须由你亲手点击触发。
+            {t('options.step4')}
           </li>
           <li>
-            没有声音？先确认系统装了对应语种的语音包
-            （macOS：系统设置 → 辅助功能 → 朗读内容 → 系统声音）。
+            {t('options.step5')}
           </li>
         </ol>
       </Section>
 
-      <Section
-        title="语音"
-        hint="系统语音零配置但偏机械；豆包语音自然得多，需要自备 API Key、并且只在你主动启用时才申请域名权限。"
-      >
+      <Section title={t('options.voiceTitle')} hint={t('options.voiceHint')}>
         {settings ? (
           <TtsSettingsPanel settings={settings} onChange={update} />
         ) : (
-          <p className="text-sm text-slate-500">加载中…</p>
+          <p className="text-sm text-slate-500">{t('options.loading')}</p>
         )}
       </Section>
 
-      <Section
-        title="翻译能力检测"
-        hint="翻译走的是 Chrome 内置的设备端模型 —— 免费、离线、内容不出本机。这里可以确认它在你机器上能不能用。"
-      >
+      <Section title={t('options.probeTitle')} hint={t('options.probeHint')}>
         <div className="mb-3 flex items-center gap-3">
           <button
             type="button"
@@ -111,30 +108,31 @@ export default function App() {
             disabled={probing}
             className="cursor-pointer rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
           >
-            {probing ? '检测中…' : '检测'}
+            {probing ? t('options.probing') : t('options.probe')}
           </button>
           <button
             type="button"
             onClick={() => void copyReport()}
             className="cursor-pointer rounded-lg bg-white/10 px-3 py-2 text-sm text-slate-200 transition-colors hover:bg-white/20"
           >
-            {copied ? '已复制 ✓' : '复制报告'}
+            {copied ? t('options.copied') : t('options.copyReport')}
           </button>
         </div>
 
         {tabs === null ? (
           <p className="text-sm text-slate-500">
-            点「检测」会同时检查扩展页面和已打开的页面。
+            {t('options.probeIdleHint')}
           </p>
         ) : tabs.length === 0 ? (
           <p className="text-sm text-amber-400">
-            没找到装了内容脚本的标签页。请先打开 <Code>x.com</Code> 再回来点检测。
+            {t('options.noTabsBefore')} <Code>x.com</Code> {t('options.noTabsAfter')}
           </p>
         ) : (
           tabs.map((tab) => (
             <div key={tab.tabId} className="mb-4 last:mb-0">
               <p className="mb-2 text-xs text-slate-500">
-                标签页 #{tab.tabId} · {tab.isolated?.url ?? '(未知地址)'}
+                {t('options.tabLabel', [String(tab.tabId)])} ·{' '}
+                {tab.isolated?.url ?? t('options.unknownUrl')}
               </p>
               <ReportTable
                 reports={[selfReport, tab.isolated].filter(Boolean) as AiProbeReport[]}
@@ -146,48 +144,49 @@ export default function App() {
         {tabs !== null && tabs.length > 0 && <Verdict isolated={tabs[0]?.isolated ?? null} />}
       </Section>
 
-      <Section title="结果怎么解读" hint="">
+      <Section title={t('options.verdictTitle')} hint="">
         <ul className="list-disc space-y-1.5 pl-5 text-sm text-slate-400">
           <li>
-            <Code>Translator</Code> 是 <Code>function</Code> → 你的浏览器支持设备端翻译。
+            <Code>Translator</Code> {t('options.verdict1Is')} <Code>function</Code>{' '}
+            {t('options.verdict1Then')}
           </li>
           <li>
-            <Code>availability</Code> 是 <Code>available</Code> → 语言包已就绪；
-            是 <Code>downloadable</Code> → 还没下载，在页面上点一次「下载」即可。
+            <Code>availability</Code> {t('options.verdict2Is')} <Code>available</Code>{' '}
+            {t('options.verdict2Ready')} {t('options.verdict2Is')} <Code>downloadable</Code>{' '}
+            {t('options.verdict2Download')}
           </li>
           <li>
-            是 <Code>unavailable</Code> 或 <Code>Translator</Code> 为 <Code>undefined</Code> →
-            本机用不了设备端翻译，ReadX 会<b className="text-slate-200">自动降级为只朗读不翻译</b>。
+            <Code>unavailable</Code> {t('options.verdict3Or')} <Code>Translator</Code>{' '}
+            {t('options.verdict3Is')} <Code>undefined</Code> {t('options.verdict3Then')}
+            <b className="text-slate-200">{t('options.verdict3Bold')}</b>
+            {t('options.verdict3End')}
           </li>
         </ul>
       </Section>
 
-      <Section title="如果「下载语言包」一直卡住" hint="">
+      <Section title={t('options.stuckTitle')} hint="">
         <ol className="list-decimal space-y-2.5 pl-5 text-sm text-slate-400">
           <li>
-            新标签页打开 <ChromeUrl value="chrome://on-device-translation-internals" />
-            ，这里会列出所有语言包、支持手动下载，并显示下载失败的原因。
-            翻译需要源语言和目标语言<b className="text-slate-200">两个包都装</b>。
+            {t('options.stuckStep1Open')} <ChromeUrl value="chrome://on-device-translation-internals" />{' '}
+            {t('options.stuckStep1After')}
+            <b className="text-slate-200">{t('options.stuckStep1Bold')}</b>
             <br />
             <span className="text-slate-500">
-              如果这个页面打不开或没有内容，说明这台机器/这个版本根本不支持内置翻译。
+              {t('options.stuckStep1Note')}
             </span>
           </li>
           <li>
-            打开 <ChromeUrl value="chrome://components" />
-            ，找与 Translation / Optimization Guide 相关的条目点「检查是否有更新」。
-            版本停在 <Code>0.0.0.0</Code> 就是组件压根没下发。
+            {t('options.stuckStep2Open')} <ChromeUrl value="chrome://components" />
+            {t('options.stuckStep2After')} <Code>0.0.0.0</Code> {t('options.stuckStep2End')}
           </li>
           <li>
-            确认 Chrome 是 138+ 的桌面版。低于这个版本没有内置翻译，
-            ReadX 会退化为只朗读原文。
+            {t('options.stuckStep3')}
           </li>
         </ol>
       </Section>
 
       <p className="mt-10 text-xs text-slate-600">
-        ReadX 不是 X Corp 的官方产品，与 X Corp 无关联。朗读与翻译都在你的设备上完成，
-        不会上传任何内容。
+        {t('options.footer')}
       </p>
     </div>
   );
@@ -204,10 +203,10 @@ function Verdict({ isolated }: { isolated: AiProbeReport | null }) {
   if (supported && usable) {
     return (
       <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300">
-        <b>可以用设备端翻译。</b>
+        <b>{t('options.verdictUsableTitle')}</b>
         {isolated.translatorAvailability === 'available'
-          ? '语言包已就绪。'
-          : '首次使用时在页面上点一下「下载」即可（只需一次）。'}
+          ? t('options.verdictReady')
+          : t('options.verdictDownloadOnFirstUse')}
       </div>
     );
   }
@@ -215,20 +214,19 @@ function Verdict({ isolated }: { isolated: AiProbeReport | null }) {
   if (supported) {
     return (
       <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
-        <b>API 在，但本机当前不可用（{isolated.translatorAvailability}）。</b>
-        大概率是硬件没达到官方门槛（16GB 内存 / 22GB 空闲磁盘 / 4 核以上）。
-        ReadX 会自动降级为只朗读原文。
+        <b>{t('options.verdictApiUnavailable', [isolated.translatorAvailability])}</b>{' '}
+        {t('options.verdictApiBody')}
       </div>
     );
   }
 
   return (
     <div className="mt-6 rounded-xl border border-slate-500/30 bg-slate-500/10 p-4 text-sm text-slate-300">
-      <b>这个浏览器不提供设备端翻译。</b>
+      <b>{t('options.verdictNoApiTitle')}</b>{' '}
       {isolated.chromeVersion && Number(isolated.chromeVersion) < 138 && (
-        <> 当前 Chrome {isolated.chromeVersion}，内置翻译需要 138+ 桌面版。</>
+        <>{t('options.verdictChromeVersion', [isolated.chromeVersion])}</>
       )}{' '}
-      朗读功能不受影响，只是不会自动翻译。
+      {t('options.verdictNoApiBody')}
     </div>
   );
 }
@@ -277,19 +275,32 @@ function ChromeUrl({ value }: { value: string }) {
         }}
         className="ml-1 cursor-pointer rounded border border-slate-700 px-1.5 py-0.5 text-[11px] text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-200"
       >
-        {copied ? '已复制' : '复制'}
+        {copied ? t('options.copiedLink') : t('options.copyLink')}
       </button>
     </span>
   );
 }
 
 function ReportTable({ reports }: { reports: AiProbeReport[] }) {
-  const rows: Array<[string, (r: AiProbeReport) => string]> = [
-    ['Chrome 版本', (r) => r.chromeVersion],
-    ['Translator', (r) => r.globals.Translator ?? '?'],
-    ['availability', (r) => r.translatorAvailability],
-    ['LanguageDetector', (r) => r.globals.LanguageDetector ?? '?'],
-    ['安全上下文', (r) => String(r.secureContext)],
+  // 第三列是可选的"状态着色"，只有需要区分"缺失/抛错"的行才用它
+  const rows: Array<[string, (r: AiProbeReport) => string, (r: AiProbeReport) => string]> = [
+    [t('options.reportChromeVersion'), (r) => r.chromeVersion, (r) => toneOf(r.chromeVersion)],
+    ['Translator', (r) => r.globals.Translator ?? '?', (r) => toneOf(r.globals.Translator ?? '?')],
+    [
+      'availability',
+      (r) => r.translatorAvailability,
+      (r) => statusTone(r.translatorStatus),
+    ],
+    [
+      'LanguageDetector',
+      (r) => r.globals.LanguageDetector ?? '?',
+      (r) => toneOf(r.globals.LanguageDetector ?? '?'),
+    ],
+    [
+      t('options.reportSecureContext'),
+      (r) => String(r.secureContext),
+      (r) => toneOf(String(r.secureContext)),
+    ],
   ];
 
   return (
@@ -297,7 +308,7 @@ function ReportTable({ reports }: { reports: AiProbeReport[] }) {
       <table className="w-full border-collapse text-left text-xs">
         <thead>
           <tr className="text-slate-500">
-            <th className="w-1/3 pb-2 font-medium">项目</th>
+            <th className="w-1/3 pb-2 font-medium">{t('options.reportItem')}</th>
             {reports.map((r) => (
               <th key={r.context} className="pb-2 font-medium">
                 {CONTEXT_LABEL[r.context]}
@@ -306,13 +317,13 @@ function ReportTable({ reports }: { reports: AiProbeReport[] }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map(([label, read]) => (
+          {rows.map(([label, read, tone]) => (
             <tr key={label} className="border-t border-slate-800">
               <td className="py-1.5 pr-3 text-slate-400">{label}</td>
               {reports.map((r) => {
                 const value = read(r);
                 return (
-                  <td key={r.context} className={`py-1.5 pr-3 font-mono ${toneOf(value)}`}>
+                  <td key={r.context} className={`py-1.5 pr-3 font-mono ${tone(r)}`}>
                     {value}
                   </td>
                 );
@@ -325,13 +336,25 @@ function ReportTable({ reports }: { reports: AiProbeReport[] }) {
   );
 }
 
+/**
+ * 诊断单元格的颜色。
+ *
+ * ⚠️ 这里**只处理语言无关的原始值**（'function' / 'true' / 'available' …）。
+ * 那些"没检测到 / API 不存在 / 抛错了"的情况一律走 `statusTone()` ——
+ * 曾经这里是拿中文显示文案做字面量比较的，改成英文界面后判定会静默失效。
+ */
 function toneOf(value: string): string {
-  if (value === 'undefined' || value.startsWith('抛错') || value === 'API 不存在') {
-    return 'text-rose-400';
-  }
+  if (value === 'undefined' || value === 'null') return 'text-rose-400';
   if (value === 'unavailable' || value === 'false') return 'text-amber-400';
   if (['available', 'downloadable', 'downloading', 'function', 'object', 'true'].includes(value)) {
     return 'text-emerald-400';
   }
   return 'text-slate-300';
+}
+
+/** 探测状态 → 颜色。用结构化的 status，不比对显示文案。 */
+function statusTone(status: ProbeStatus): string {
+  if (status === 'missing' || status === 'threw') return 'text-rose-400';
+  if (status === 'unavailable') return 'text-amber-400';
+  return 'text-emerald-400';
 }

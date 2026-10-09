@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { en } from '../test/i18n';
 import {
   isSameLanguage,
   isSupportedLanguage,
@@ -95,8 +96,8 @@ describe('translationPair', () => {
 
 describe('languageLabel', () => {
   it('有收录的给可读名称，没收录的直接显示代码', () => {
-    expect(languageLabel('zh')).toBe('中文（简体）');
-    expect(languageLabel('ja')).toBe('日本語');
+    expect(languageLabel('zh')).toBe(en('translate.langZhHans'));
+    expect(languageLabel('ja')).toBe(en('translate.langJa'));
     expect(languageLabel('xx')).toBe('xx');
   });
 });

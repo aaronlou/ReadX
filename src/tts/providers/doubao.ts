@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import {
   CloudTtsError,
   describeHttpFailure,
@@ -22,7 +23,9 @@ import {
  */
 
 const ENDPOINT = 'https://openspeech.bytedance.com/api/v3/tts/create';
-const ORIGIN = 'https://openspeech.bytedance.com/*';
+import { PROVIDER_ORIGINS } from './origins';
+
+const ORIGIN = PROVIDER_ORIGINS.doubao;
 const DEFAULT_MODEL = 'seed-audio-1.0';
 
 /** 列表沿用已在本机 BookReader 项目验证过的一份 */
@@ -45,13 +48,13 @@ const VOICES: ProviderVoice[] = [
   { id: 'zh_male_yizhipiannan_uranus_bigtts', name: '译制片男', lang: 'zh' },
   { id: 'zh_female_tvbnv_uranus_bigtts', name: 'TVB 女声', lang: 'zh' },
   // 有声阅读场景，念长文本比「通用」更自然
-  { id: 'zh_male_ruyaqingnian_mars_bigtts', name: '儒雅青年', lang: 'zh', note: '有声阅读' },
-  { id: 'zh_female_wenroushunv_mars_bigtts', name: '温柔淑女', lang: 'zh', note: '有声阅读' },
-  { id: 'zh_male_qingcang_mars_bigtts', name: '擎苍', lang: 'zh', note: '有声阅读' },
-  { id: 'zh_male_changtianyi_mars_bigtts', name: '悬疑解说', lang: 'zh', note: '有声阅读' },
-  { id: 'zh_female_shaoergushi_uranus_bigtts', name: '少儿故事', lang: 'zh', note: '有声阅读' },
-  { id: 'zh_female_liuchangnv_uranus_bigtts', name: '流畅女声', lang: 'zh', note: '视频配音' },
-  { id: 'zh_male_ruyayichen_uranus_bigtts', name: '儒雅逸辰', lang: 'zh', note: '视频配音' },
+  { id: 'zh_male_ruyaqingnian_mars_bigtts', name: '儒雅青年', lang: 'zh', note: t('provider.doubao.voiceNoteAudiobook') },
+  { id: 'zh_female_wenroushunv_mars_bigtts', name: '温柔淑女', lang: 'zh', note: t('provider.doubao.voiceNoteAudiobook') },
+  { id: 'zh_male_qingcang_mars_bigtts', name: '擎苍', lang: 'zh', note: t('provider.doubao.voiceNoteAudiobook') },
+  { id: 'zh_male_changtianyi_mars_bigtts', name: '悬疑解说', lang: 'zh', note: t('provider.doubao.voiceNoteAudiobook') },
+  { id: 'zh_female_shaoergushi_uranus_bigtts', name: '少儿故事', lang: 'zh', note: t('provider.doubao.voiceNoteAudiobook') },
+  { id: 'zh_female_liuchangnv_uranus_bigtts', name: '流畅女声', lang: 'zh', note: t('provider.doubao.voiceNoteVideoNarration') },
+  { id: 'zh_male_ruyayichen_uranus_bigtts', name: '儒雅逸辰', lang: 'zh', note: t('provider.doubao.voiceNoteVideoNarration') },
   // 英文
   { id: 'en_female_dacey_uranus_bigtts', name: 'Dacey', lang: 'en' },
   { id: 'en_male_tim_uranus_bigtts', name: 'Tim', lang: 'en' },
@@ -59,34 +62,34 @@ const VOICES: ProviderVoice[] = [
 
 export const doubaoSpec: CloudTtsSpec = {
   id: 'doubao',
-  name: '豆包语音',
-  summary: '火山引擎，中文音色自然，30+ 音色可选',
+  name: t('provider.doubao.name'),
+  summary: t('provider.doubao.summary'),
   origins: [ORIGIN],
   credentials: [
     {
       key: 'apiKey',
-      label: 'API Key',
+      label: t('provider.doubao.credApiKeyLabel'),
       secret: true,
-      placeholder: '粘贴 API Key',
-      help: '在「语音技术 → 应用管理」获取',
+      placeholder: t('provider.doubao.credApiKeyPlaceholder'),
+      help: t('provider.doubao.credApiKeyHelp'),
     },
     {
       key: 'appId',
-      label: 'App ID（强烈建议填）',
-      placeholder: '同上的「应用管理」页面',
-      help: '接口靠它判定请求属于哪个应用。「资源未授权 / requested resource not granted」这类报错通常就是缺了它',
+      label: t('provider.doubao.credAppIdLabel'),
+      placeholder: t('provider.doubao.credAppIdPlaceholder'),
+      help: t('provider.doubao.credAppIdHelp'),
     },
     {
       key: 'accessKey',
-      label: 'Access Key（旧版才需要）',
+      label: t('provider.doubao.credAccessKeyLabel'),
       secret: true,
-      placeholder: '只有用旧版鉴权时才填',
-      help: '没有 API Key 时可以改用它 + App ID 来鉴权',
+      placeholder: t('provider.doubao.credAccessKeyPlaceholder'),
+      help: t('provider.doubao.credAccessKeyHelp'),
     },
   ],
   pickerLangs: [
-    { code: 'zh', label: '中文' },
-    { code: 'en', label: '英文' },
+    { code: 'zh', label: t('provider.doubao.langZh') },
+    { code: 'en', label: t('provider.doubao.langEn') },
   ],
   voices: VOICES,
   defaultVoiceByLang: {
@@ -116,7 +119,7 @@ export const doubaoSpec: CloudTtsSpec = {
 
 async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeResult> {
   const text = request.text.trim();
-  if (!text) throw new CloudTtsError('待合成的文本为空');
+  if (!text) throw new CloudTtsError(t('provider.common.errEmptyText'));
 
   const { apiKey, appId, accessKey } = request.credentials;
   const headers: Record<string, string> = {
@@ -163,8 +166,8 @@ async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeR
       signal: request.signal ?? AbortSignal.timeout(30_000),
     });
   } catch (error) {
-    throw new CloudTtsError(`调用豆包语音失败：${(error as Error).message}`, {
-      hint: '检查网络，或确认已授予 openspeech.bytedance.com 的访问权限',
+    throw new CloudTtsError(t('provider.doubao.errRequestFailed', (error as Error).message), {
+      hint: t('provider.doubao.errRequestFailedHint'),
     });
   }
 
@@ -178,7 +181,7 @@ async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeR
   };
 
   if (!response.ok || !payload.audio) {
-    const message = payload.message || `豆包语音合成失败（HTTP ${response.status}）`;
+    const message = payload.message || t('provider.doubao.errSynthesizeFailed', String(response.status));
     throw new CloudTtsError(message, {
       code: payload.code ?? response.status,
       hint: hintForFailure(message, response.status),
@@ -202,12 +205,12 @@ async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeR
  */
 function hintForFailure(message: string, status: number): string | undefined {
   if (/not granted|resource_id|service_type/i.test(message)) {
-    return '到火山引擎控制台「语音技术 → 应用管理」确认两件事：①「音频生成」服务已开通 ②把该页面的 App ID 也填上（接口靠它判定请求属于哪个应用）';
+    return t('provider.doubao.errResourceNotGrantedHint');
   }
   if (/not activated|未开通|服务未开通/i.test(message)) {
-    return '到火山引擎控制台开通对应服务';
+    return t('provider.doubao.errServiceNotActivatedHint');
   }
-  return describeHttpFailure(status, '豆包语音');
+  return describeHttpFailure(status, t('provider.doubao.name'));
 }
 
 function normalizeSentences(sentences?: SubtitleSentence[]): SubtitleSentence[] {

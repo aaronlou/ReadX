@@ -1,4 +1,5 @@
 import { browser } from '#imports';
+import { t } from '@/i18n';
 import { joinSegments } from '../core/text';
 import type { ReadXSettings } from '../settings';
 import type { CloudTtsSynthesizeResponse, TtsVoice } from '../types';
@@ -122,15 +123,18 @@ export class CloudTtsProvider implements TtsProvider {
 
     const spec = this.spec;
     if (!spec) {
-      this.onError?.(`未知的语音服务商：${this.getConfig().cloudProvider}`, '到选项页重新选一个');
+      this.onError?.(
+        t('cloudTts.unknownProvider', [this.getConfig().cloudProvider]),
+        t('cloudTts.unknownProviderHint'),
+      );
       return 'error';
     }
 
     const voice = opts.voiceURI ?? this.voiceFor(opts.lang);
     if (!voice) {
       this.onError?.(
-        `${spec.name} 还没有可用于 ${opts.lang} 的音色`,
-        '到选项页为这个语言选一个音色',
+        t('cloudTts.noVoiceForLang', [spec.name, opts.lang]),
+        t('cloudTts.noVoiceForLangHint'),
       );
       return 'error';
     }
@@ -293,15 +297,18 @@ export class CloudTtsProvider implements TtsProvider {
 
     const spec = this.spec;
     if (!spec) {
-      this.onError?.(`未知的语音服务商：${this.getConfig().cloudProvider}`, '到选项页重新选一个');
+      this.onError?.(
+        t('cloudTts.unknownProvider', [this.getConfig().cloudProvider]),
+        t('cloudTts.unknownProviderHint'),
+      );
       return 'error';
     }
 
     const voice = opts.voiceURI ?? this.voiceFor(opts.lang);
     if (!voice) {
       this.onError?.(
-        `${spec.name} 还没有可用于 ${opts.lang} 的音色`,
-        '到选项页为这个语言选一个音色',
+        t('cloudTts.noVoiceForLang', [spec.name, opts.lang]),
+        t('cloudTts.noVoiceForLangHint'),
       );
       return 'error';
     }
@@ -401,7 +408,7 @@ export class CloudTtsProvider implements TtsProvider {
       audio.onended = () => done('ended');
       audio.onerror = () => {
         if (!audio.currentSrc) return;
-        this.onError?.('音频播放失败');
+        this.onError?.(t('cloudTts.playbackFailed'));
         done('error');
       };
 
@@ -423,7 +430,10 @@ export class CloudTtsProvider implements TtsProvider {
       opts.onStart?.();
       audio.play().catch((error: unknown) => {
         if ((error as Error)?.name === 'AbortError') return;
-        this.onError?.(`音频播放被拒绝：${(error as Error).message}`, '点一下页面再试');
+        this.onError?.(
+          t('cloudTts.playbackRejected', [(error as Error).message]),
+          t('cloudTts.playbackRejectedHint'),
+        );
         done('error');
       });
     });
@@ -440,7 +450,7 @@ export class CloudTtsProvider implements TtsProvider {
     })) as CloudTtsSynthesizeResponse | undefined;
 
     if (!response?.ok || !response.audio) {
-      const error = new Error(response?.error || '语音合成失败') as Error & { hint?: string };
+      const error = new Error(response?.error || t('cloudTts.synthesisFailed')) as Error & { hint?: string };
       error.hint = response?.hint;
       throw error;
     }
@@ -486,7 +496,7 @@ export class CloudTtsProvider implements TtsProvider {
       audio.onerror = () => {
         // 主动清空 src（比如 stop()）会触发一个没有 currentSrc 的 error，忽略掉
         if (!audio.currentSrc) return;
-        this.onError?.('音频播放失败');
+        this.onError?.(t('cloudTts.playbackFailed'));
         done('error');
       };
 
@@ -504,7 +514,10 @@ export class CloudTtsProvider implements TtsProvider {
       opts.onStart?.();
       audio.play().catch((error: unknown) => {
         if ((error as Error)?.name === 'AbortError') return;
-        this.onError?.(`音频播放被拒绝：${(error as Error).message}`, '点一下页面再试');
+        this.onError?.(
+          t('cloudTts.playbackRejected', [(error as Error).message]),
+          t('cloudTts.playbackRejectedHint'),
+        );
         done('error');
       });
     });

@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import { OPENAI_COMPATIBLE_VOICES } from './openai';
 import {
   CloudTtsError,
@@ -21,32 +22,34 @@ import {
  */
 
 const ENDPOINT = 'https://openrouter.ai/api/v1/audio/speech';
-const ORIGIN = 'https://openrouter.ai/*';
+import { PROVIDER_ORIGINS } from './origins';
+
+const ORIGIN = PROVIDER_ORIGINS.openrouter;
 const DEFAULT_MODEL = 'openai/gpt-4o-mini-tts-2025-12-15';
 
 export const openrouterSpec: CloudTtsSpec = {
   id: 'openrouter',
-  name: 'OpenRouter',
-  summary: '一个 Key 用多家的模型，含 OpenAI 与豆包 Seed Audio',
+  name: t('provider.openrouter.name'),
+  summary: t('provider.openrouter.summary'),
   origins: [ORIGIN],
   credentials: [
     {
       key: 'apiKey',
-      label: 'API Key',
+      label: t('provider.openrouter.credApiKeyLabel'),
       secret: true,
-      placeholder: 'sk-or-v1-...',
-      help: '在 openrouter.ai/keys 创建',
+      placeholder: t('provider.openrouter.credApiKeyPlaceholder'),
+      help: t('provider.openrouter.credApiKeyHelp'),
     },
     {
       key: 'model',
-      label: '模型（可选）',
+      label: t('provider.openrouter.credModelLabel'),
       placeholder: DEFAULT_MODEL,
-      help: `留空用 ${DEFAULT_MODEL}。想用豆包的音色可以填 bytedance-seed/seed-audio-1-0`,
+      help: t('provider.openrouter.credModelHelp', [DEFAULT_MODEL, 'bytedance-seed/seed-audio-1-0']),
     },
   ],
   pickerLangs: [
-    { code: 'zh', label: '中文' },
-    { code: 'en', label: '英文' },
+    { code: 'zh', label: t('provider.openrouter.langZh') },
+    { code: 'en', label: t('provider.openrouter.langEn') },
   ],
   // 默认模型是 OpenAI 的，所以用它那套音色
   voices: OPENAI_COMPATIBLE_VOICES,
@@ -61,7 +64,7 @@ export const openrouterSpec: CloudTtsSpec = {
 
 async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<SynthesizeResult> {
   const text = request.text.trim();
-  if (!text) throw new CloudTtsError('待合成的文本为空');
+  if (!text) throw new CloudTtsError(t('provider.common.errEmptyText'));
 
   const model = request.credentials.model?.trim() || DEFAULT_MODEL;
 
@@ -84,8 +87,8 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
       signal: request.signal ?? AbortSignal.timeout(30_000),
     });
   } catch (error) {
-    throw new CloudTtsError(`调用 OpenRouter 失败：${(error as Error).message}`, {
-      hint: '检查网络，或确认已授予 openrouter.ai 的访问权限',
+    throw new CloudTtsError(t('provider.openrouter.errRequestFailed', (error as Error).message), {
+      hint: t('provider.openrouter.errRequestFailedHint'),
     });
   }
 
@@ -98,7 +101,7 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
     const message =
       (typeof detail.error === 'object' ? detail.error?.message : detail.error) ||
       detail.message ||
-      `OpenRouter 语音合成失败（HTTP ${response.status}）`;
+      t('provider.openrouter.errSynthesizeFailed', String(response.status));
 
     throw new CloudTtsError(message, {
       code: response.status,
@@ -108,7 +111,7 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
 
   const buffer = await response.arrayBuffer();
   if (buffer.byteLength === 0) {
-    throw new CloudTtsError('OpenRouter 返回了空音频');
+    throw new CloudTtsError(t('provider.openrouter.errEmptyAudio'));
   }
 
   return {
@@ -120,10 +123,10 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
 function hintForFailure(message: string, status: number): string | undefined {
   // 模型名写错在 OpenRouter 上很常见，而且报错不太直观
   if (/model/i.test(message) && /(not found|invalid|unsupported|no endpoints)/i.test(message)) {
-    return '模型名不对。到 openrouter.ai/models 用 output modality = speech 筛一下可用的 TTS 模型';
+    return t('provider.openrouter.errModelNotFoundHint');
   }
-  if (status === 402) return 'OpenRouter 余额不足，去账户里充值或换一个免费模型';
-  return describeHttpFailure(status, 'OpenRouter');
+  if (status === 402) return t('provider.openrouter.errInsufficientCreditsHint');
+  return describeHttpFailure(status, t('provider.openrouter.name'));
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {

@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import type { TtsEngine } from '../settings';
 import type { TtsVoice } from '../types';
 import type { SpeakBlockOptions, SpeakOptions, SpeakOutcome, TtsProvider } from './provider';
@@ -130,8 +131,10 @@ export class TtsEngineSwitch implements TtsProvider {
     const detail = this.lastChildError;
     this.lastChildError = null;
     this.onError?.(
-      detail ? `${detail.message}（已临时切回系统语音）` : '云语音不可用，已临时切回系统语音',
-      detail?.hint ?? '到选项页检查凭据、域名授权和余额',
+      detail
+        ? t('engineSwitch.degradedWithDetail', [detail.message])
+        : t('engineSwitch.degraded'),
+      detail?.hint ?? t('engineSwitch.degradedHint'),
     );
 
     return this.system.speak(text, opts);

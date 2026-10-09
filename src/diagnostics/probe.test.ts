@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { probeBuiltInAi } from './probe';
+import { en } from '../test/i18n';
 
 /**
  * 探测代码最容易犯的错是在 API 不存在时抛错 ——
@@ -22,8 +23,12 @@ describe('probeBuiltInAi', () => {
     expect(report.context).toBe('isolated-world');
     expect(report.globals.Translator).toBe('undefined');
     expect(report.globals.LanguageDetector).toBe('undefined');
-    expect(report.translatorAvailability).toBe('API 不存在');
-    expect(report.languageDetectorAvailability).toBe('API 不存在');
+    expect(report.translatorAvailability).toBe(en('probe.apiMissing'));
+    expect(report.languageDetectorAvailability).toBe(en('probe.apiMissing'));
+    // ⚠️ UI 上色靠的是这个**机器可判状态**，不是上面的显示文案 ——
+    // 拿文案判断的话，换界面语言就会静默失效
+    expect(report.translatorStatus).toBe('missing');
+    expect(report.languageDetectorStatus).toBe('missing');
   });
 
   it('API 存在时如实返回 availability 结果', async () => {
@@ -51,7 +56,8 @@ describe('probeBuiltInAi', () => {
 
     const report = await probeBuiltInAi('extension-page');
 
-    expect(report.translatorAvailability).toContain('抛错');
+    expect(report.translatorAvailability).toBe(en('probe.threw', ['Error', 'boom']));
+    expect(report.translatorStatus).toBe('threw');
     expect(report.translatorAvailability).toContain('boom');
   });
 

@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { browser } from '#imports';
 import { getProviderCredentials, maskSecret, setProviderCredentials } from '@/credentials';
+import { t } from '@/i18n';
 import type { ReadXSettings } from '@/settings';
 import type { CloudTtsSynthesizeResponse } from '@/types';
 import { base64ToBlob } from '@/tts/cloudTts';
 import { CLOUD_TTS_PROVIDERS, resolveVoice, type CloudTtsSpec } from '@/tts/providers';
 
 /** 试听用的样本 */
-const SAMPLE_TEXT = '这条帖子在讲一个挺有意思的观点，读起来应该足够自然。';
+const SAMPLE_TEXT = t('tts.sampleText');
 
 /**
  * 语音引擎设置面板（选项页和 popup 共用）。
@@ -61,11 +62,11 @@ export function TtsSettingsPanel({
         const ok = await browser.permissions.request({ origins: spec.origins });
         setGranted((prev) => ({ ...prev, [spec.id]: ok }));
         if (!ok) {
-          setStatus(`没有授权访问 ${spec.origins.join('、')}，${spec.name} 无法工作`);
+          setStatus(t('tts.permissionDenied', [spec.origins.join(', '), spec.name]));
           return;
         }
         onChange({ cloudProvider: spec.id, ttsEngine: 'cloud' });
-        setStatus(`已启用 ${spec.name}`);
+        setStatus(t('tts.enabled', [spec.name]));
       } finally {
         setBusy(false);
       }
@@ -78,7 +79,7 @@ export function TtsSettingsPanel({
     const next = await getProviderCredentials(selected.id);
     setSaved(next);
     setDraft(next);
-    setStatus('凭据已保存（存在本机，不会同步到云端）');
+    setStatus(t('tts.credentialsSaved'));
   }, [draft, selected.id]);
 
   const test = useCallback(async () => {
@@ -89,7 +90,7 @@ export function TtsSettingsPanel({
       const bound = settings.cloudVoices[selected.id] ?? {};
       const voice = resolveVoice(selected, lang, bound);
       if (!voice) {
-        setStatus(`${selected.name} 没有可用于 ${lang} 的音色`);
+        setStatus(t('tts.noVoiceForLang', [selected.name, lang]));
         return;
       }
 
@@ -102,7 +103,9 @@ export function TtsSettingsPanel({
 
       if (!response?.ok || !response.audio) {
         setStatus(
-          `试听失败：${response?.error ?? '没有返回音频'}${response?.hint ? `（${response.hint}）` : ''}`,
+          `${t('tts.previewFailed', [response?.error ?? t('tts.noAudioReturned')])}${
+            response?.hint ? t('tts.previewHint', [response.hint]) : ''
+          }`,
         );
         return;
       }
@@ -114,12 +117,12 @@ export function TtsSettingsPanel({
       audio.onended = () => URL.revokeObjectURL(url);
       audio.onerror = () => {
         URL.revokeObjectURL(url);
-        setStatus('音频播放失败');
+        setStatus(t('tts.audioPlaybackFailed'));
       };
       await audio.play();
-      setStatus('✓ 试听成功');
+      setStatus(t('tts.previewOk'));
     } catch (error) {
-      setStatus(`试听失败：${(error as Error).message}`);
+      setStatus(t('tts.previewFailed', [(error as Error).message]));
     } finally {
       setBusy(false);
     }
@@ -134,8 +137,8 @@ export function TtsSettingsPanel({
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <EngineCard
           active={settings.ttsEngine === 'system'}
-          title="系统语音"
-          subtitle="零配置、离线，音色偏机械"
+          title={t('tts.systemVoice')}
+          subtitle={t('tts.systemVoiceHint')}
           onClick={() => onChange({ ttsEngine: 'system' })}
         />
         {CLOUD_TTS_PROVIDERS.map((spec) => (
@@ -151,31 +154,35 @@ export function TtsSettingsPanel({
 
       {settings.ttsEngine === 'cloud' && (
         <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200/90">
-          <b>注意</b>：启用云语音后，被朗读的文本会发送到 {selected.name} 的服务端 ——
-          这是唯一会离开你设备的内容。翻译仍然在本地完成。
-          不想发送就保持「系统语音」，那样完全离线。
+          <b>{t('tts.privacyNotice')}</b>
+          {t('tts.privacyBody', [selected.name])}
         </p>
       )}
 
       {settings.ttsEngine === 'cloud' && !granted[selected.id] && (
         <p className="rounded-lg bg-amber-500/15 px-3 py-2 text-xs text-amber-300">
-          还需要授权访问 <Code>{selected.origins.join('、')}</Code>，{selected.name} 才能发请求。
+          {t('tts.grantIntro')} <Code>{selected.origins.join(', ')}</Code>
+          {t('tts.grantReason', [selected.name])}
           <button
             type="button"
             disabled={busy}
             onClick={() => void enable(selected)}
             className="ml-2 cursor-pointer rounded bg-amber-400 px-2 py-0.5 text-[11px] font-semibold text-amber-950 disabled:opacity-50"
           >
-            去授权
+            {t('tts.grantAccess')}
           </button>
         </p>
       )}
 
       {/* ---- 凭据：完全按 spec 渲染 ---- */}
       <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-        <p className="text-xs font-medium text-slate-300">{selected.name} 凭据</p>
+        <p className="text-xs font-medium text-slate-300">
+          {t('tts.credentialsTitle', [selected.name])}
+        </p>
         <p className="mt-0.5 text-[11px] text-slate-500">
-          只保存在本机（<Code>storage.local</Code>），不会同步到云端、也不会进入页面的 JS 环境。
+          {t('tts.storageBefore')}
+          <Code>storage.local</Code>
+          {t('tts.storageAfter')}
         </p>
 
         <div className="mt-2 space-y-2">
@@ -194,7 +201,7 @@ export function TtsSettingsPanel({
               />
               {saved[field.key] && field.secret && (
                 <span className="mt-0.5 block text-[10px] text-slate-600">
-                  当前：{maskSecret(saved[field.key]!)}
+                  {t('tts.currentValue', [maskSecret(saved[field.key]!)])}
                 </span>
               )}
             </label>
@@ -208,7 +215,7 @@ export function TtsSettingsPanel({
             onClick={() => void saveCredentials()}
             className="cursor-pointer rounded-lg bg-white/10 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/20 disabled:opacity-50"
           >
-            保存
+            {t('tts.save')}
           </button>
           <button
             type="button"
@@ -216,7 +223,7 @@ export function TtsSettingsPanel({
             onClick={() => void test()}
             className="cursor-pointer rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-500"
           >
-            {busy ? '试听中…' : '试听'}
+            {busy ? t('tts.previewing') : t('tts.preview')}
           </button>
           {isActive && (
             <button
@@ -224,11 +231,11 @@ export function TtsSettingsPanel({
               onClick={() => onChange({ ttsEngine: 'system' })}
               className="cursor-pointer rounded-lg bg-white/5 px-3 py-1.5 text-xs text-slate-400 hover:bg-white/10"
             >
-              切回系统语音
+              {t('tts.switchToSystem')}
             </button>
           )}
           <span className="text-[11px] text-slate-500">
-            单次上限 {selected.maxChars} 字符
+            {t('tts.maxChars', [String(selected.maxChars)])}
           </span>
         </div>
       </div>
@@ -236,10 +243,9 @@ export function TtsSettingsPanel({
       {/* ---- 音色：只展示该服务商声明支持的语言 ---- */}
       {settings.ttsEngine === 'cloud' && (
         <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-          <p className="text-xs font-medium text-slate-300">音色</p>
+          <p className="text-xs font-medium text-slate-300">{t('tts.voicesTitle')}</p>
           <p className="mt-0.5 text-[11px] text-slate-500">
-            按语言分别选择。有的服务商音色是语言无关的（同一音色中英文都能读），
-            有的则是一个音色只会一门语言 —— 后者用错会得到很怪的发音。
+            {t('tts.voicesHint')}
           </p>
 
           <div className="mt-2 space-y-2">
@@ -265,7 +271,8 @@ export function TtsSettingsPanel({
                     className="min-w-0 flex-1 cursor-pointer rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-slate-200"
                   >
                     <option value="">
-                      默认{fallback ? `（${voiceName(selected, fallback)}）` : ''}
+                      {t('tts.defaultVoice')}
+                      {fallback ? t('tts.defaultVoiceName', [voiceName(selected, fallback)]) : ''}
                     </option>
                     {usable.map((voice) => (
                       <option key={voice.id} value={voice.id}>

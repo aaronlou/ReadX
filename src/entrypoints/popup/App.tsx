@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { browser } from '#imports';
 import { getProviderCredentials } from '@/credentials';
+import { t } from '@/i18n';
 import { getSettings, patchSettings, type ReadXSettings } from '@/settings';
 import { LANGUAGE_CHOICES, languageLabel } from '@/translate/languages';
 import { CLOUD_TTS_PROVIDERS, type CloudTtsSpec } from '@/tts/providers';
@@ -10,22 +11,22 @@ import type { GetStateResponse, ReaderCommand, ReaderSnapshot, RuntimeMessage } 
 const provider = new WebSpeechProvider();
 
 const STATE_LABEL: Record<ReaderSnapshot['state'], string> = {
-  idle: '待机',
-  loading: '定位中',
-  speaking: '朗读中',
-  paused: '已暂停',
-  error: '出错了',
-  'need-language-pack': '等待语言包',
+  idle: t('popup.stateIdle'),
+  loading: t('popup.stateLoading'),
+  speaking: t('popup.stateSpeaking'),
+  paused: t('popup.statePaused'),
+  error: t('popup.stateError'),
+  'need-language-pack': t('popup.stateNeedLanguagePack'),
 };
 
 async function sendToTab(message: RuntimeMessage): Promise<GetStateResponse> {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.id) return { ok: false, error: '没有找到活动标签页' };
+  if (!tab?.id) return { ok: false, error: t('popup.noActiveTab') };
   try {
     const response = (await browser.tabs.sendMessage(tab.id, message)) as GetStateResponse | undefined;
-    return response ?? { ok: false, error: '页面没有响应' };
+    return response ?? { ok: false, error: t('popup.noPageResponse') };
   } catch {
-    return { ok: false, error: '请先打开 x.com（或开发用的 mock 页面）再使用' };
+    return { ok: false, error: t('popup.openXFirst') };
   }
 }
 
@@ -72,7 +73,7 @@ export default function App() {
       setError(null);
     } else {
       setSnapshot(null);
-      setError(response.error ?? '无法连接页面');
+      setError(response.error ?? t('popup.cannotConnect'));
     }
   }, []);
 
@@ -107,13 +108,13 @@ export default function App() {
       try {
         const granted = await browser.permissions.request({ origins: spec.origins });
         if (!granted) {
-          setEngineStatus(`没有授权访问 ${spec.origins.join('、')}，无法启用`);
+          setEngineStatus(t('popup.permissionDenied', [spec.origins.join(', ')]));
           return;
         }
         update({ ttsEngine: 'cloud', cloudProvider: spec.id });
-        setEngineStatus(`已启用 ${spec.name}。凭据和音色到「设置」里填`);
+        setEngineStatus(t('popup.cloudEnabled', [spec.name]));
       } catch (error) {
-        setEngineStatus(`授权失败：${(error as Error).message}`);
+        setEngineStatus(t('popup.permissionFailed', [(error as Error).message]));
       } finally {
         setEngineBusy(false);
       }
@@ -142,16 +143,16 @@ export default function App() {
       <header className="flex items-center justify-between">
         <div className="flex items-baseline gap-2">
           <h1 className="text-base font-bold tracking-tight">ReadX</h1>
-          <span className="text-[11px] text-slate-500">读 X，不用盯屏幕</span>
+          <span className="text-[11px] text-slate-500">{t('popup.tagline')}</span>
         </div>
         <span className="text-[11px] tabular-nums text-slate-500">
-          {snapshot ? STATE_LABEL[snapshot.state] : '未连接'}
+          {snapshot ? STATE_LABEL[snapshot.state] : t('popup.notConnected')}
         </span>
       </header>
 
       {!supported && (
         <p className="mt-3 rounded-lg bg-rose-500/15 px-3 py-2 text-xs text-rose-300">
-          当前环境不支持 Web Speech API，朗读不可用。
+          {t('popup.unsupported')}
         </p>
       )}
 
@@ -171,12 +172,16 @@ export default function App() {
                       {snapshot.lang}
                     </span>
                   ) : (
-                    <span>等待识别语种</span>
+                    <span>{t('popup.waitingLang')}</span>
                   )}
                   {snapshot?.langSource && (
-                    <span className="text-slate-500">来源：{snapshot.langSource}</span>
+                    <span className="text-slate-500">
+                      {t('popup.source', [snapshot.langSource])}
+                    </span>
                   )}
-                  {progress && <span className="tabular-nums">句子 {progress}</span>}
+                  {progress && (
+                    <span className="tabular-nums">{t('popup.sentenceProgress', [progress])}</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -192,20 +197,24 @@ export default function App() {
               <div className="mt-2 border-t border-white/10 pt-2">
                 <p className="text-[11px] text-amber-300">
                   {snapshot.state === 'loading'
-                    ? `正在下载 ${snapshot.pendingPack.from} → ${snapshot.pendingPack.to} 语言包… ${Math.round((snapshot.packProgress ?? 0) * 100)}%`
-                    : `${snapshot.pendingPack.from} → ${snapshot.pendingPack.to} 语言包未下载，请在页面右下角的面板上点「下载」`}
+                    ? t('popup.packDownloading', [
+                        snapshot.pendingPack.from,
+                        snapshot.pendingPack.to,
+                        String(Math.round((snapshot.packProgress ?? 0) * 100)),
+                      ])
+                    : t('popup.packNeeded', [snapshot.pendingPack.from, snapshot.pendingPack.to])}
                 </p>
               </div>
             )}
           </section>
 
           <section className="mt-3 grid grid-cols-4 gap-2">
-            <ControlButton onClick={() => void command('prev')}>⏮ 上一条</ControlButton>
+            <ControlButton onClick={() => void command('prev')}>{t('popup.prevPost')}</ControlButton>
             <ControlButton primary onClick={() => void command('toggle')}>
-              {snapshot?.state === 'speaking' ? '⏸ 暂停' : '▶ 播放'}
+              {snapshot?.state === 'speaking' ? t('popup.pause') : t('popup.play')}
             </ControlButton>
-            <ControlButton onClick={() => void command('next')}>⏭ 下一条</ControlButton>
-            <ControlButton onClick={() => void command('stop')}>⏹ 停止</ControlButton>
+            <ControlButton onClick={() => void command('next')}>{t('popup.nextPost')}</ControlButton>
+            <ControlButton onClick={() => void command('stop')}>{t('popup.stop')}</ControlButton>
           </section>
         </>
       )}
@@ -215,14 +224,14 @@ export default function App() {
           {/* 引擎切换：云语音需要先申请域名权限，所以按钮必须真的可点（用户手势）。
               选项来自注册表，加服务商不用改这里。 */}
           <div>
-            <span className="text-xs text-slate-400">朗读引擎</span>
+            <span className="text-xs text-slate-400">{t('popup.engine')}</span>
             <div className="mt-1 flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={() => update({ ttsEngine: 'system' })}
                 className={engineClass(settings.ttsEngine === 'system')}
               >
-                系统语音
+                {t('popup.systemVoice')}
               </button>
               {CLOUD_TTS_PROVIDERS.map((spec) => (
                 <button
@@ -234,7 +243,7 @@ export default function App() {
                     settings.ttsEngine === 'cloud' && settings.cloudProvider === spec.id,
                   )}
                 >
-                  {engineBusy ? '授权中…' : spec.name}
+                  {engineBusy ? t('popup.authorizing') : spec.name}
                 </button>
               ))}
             </div>
@@ -252,25 +261,26 @@ export default function App() {
                 className="mt-2 w-full cursor-pointer rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-left text-[11px] leading-relaxed text-amber-200 transition-colors hover:bg-amber-400/20"
               >
                 <b>
-                  {CLOUD_TTS_PROVIDERS.find((p) => p.id === settings.cloudProvider)?.name ??
-                    '云语音'}{' '}
-                  还没有配置凭据
+                  {t('popup.notConfigured', [
+                    CLOUD_TTS_PROVIDERS.find((p) => p.id === settings.cloudProvider)?.name ??
+                      t('popup.cloudFallback'),
+                  ])}
                 </b>
                 <span className="mt-0.5 block text-amber-200/70">
-                  点这里去设置里填 API Key 和选音色 →
+                  {t('popup.notConfiguredHint')}
                 </span>
               </button>
             )}
           </div>
 
           <label className="block">
-            <span className="text-xs text-slate-400">朗读语言</span>
+            <span className="text-xs text-slate-400">{t('popup.readingLang')}</span>
             <select
               value={settings.readingLang}
               onChange={(e) => update({ readingLang: e.target.value })}
               className="mt-1 w-full cursor-pointer rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-slate-200"
             >
-              <option value="auto">跟随原文（各读各的）</option>
+              <option value="auto">{t('popup.followOriginal')}</option>
               {LANGUAGE_CHOICES.map((code) => (
                 <option key={code} value={code}>
                   {languageLabel(code)}
@@ -279,14 +289,14 @@ export default function App() {
             </select>
             {settings.readingLang !== 'auto' && (
               <span className="mt-1 block text-[11px] text-slate-500">
-                其它语言的帖子会先翻译再朗读；帖子本来就是该语言时直接读原文。
+                {t('popup.translateHint')}
               </span>
             )}
           </label>
 
           <label className="block">
             <span className="flex items-center justify-between text-xs text-slate-400">
-              语速
+              {t('popup.rate')}
               <span className="tabular-nums text-slate-300">{settings.rate.toFixed(2)}x</span>
             </span>
             <input
@@ -302,7 +312,7 @@ export default function App() {
 
           <label className="block">
             <span className="flex items-center justify-between text-xs text-slate-400">
-              音量
+              {t('popup.volume')}
               <span className="tabular-nums text-slate-300">
                 {Math.round(settings.volume * 100)}%
               </span>
@@ -321,7 +331,7 @@ export default function App() {
           {snapshot?.lang && (
             <label className="block">
               <span className="text-xs text-slate-400">
-                音色（{relevantVoices.length} 个可用于 {snapshot.lang}）
+                {t('popup.voicePickerLabel', [String(relevantVoices.length), snapshot.lang])}
               </span>
               <select
                 value={settings.voiceOverrides[snapshot.lang] ?? ''}
@@ -335,17 +345,20 @@ export default function App() {
                 }
                 className="mt-1 w-full cursor-pointer rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-slate-200"
               >
-                <option value="">自动匹配</option>
+                <option value="">{t('popup.voiceAuto')}</option>
                 {relevantVoices.map((voice) => (
                   <option key={voice.uri} value={voice.uri}>
-                    {voice.name}（{voice.lang}
-                    {voice.local ? ' · 本地' : ' · 在线'}）
+                    {t('popup.voiceOption', [
+                      voice.name,
+                      voice.lang,
+                      voice.local ? t('popup.voiceLocal') : t('popup.voiceOnline'),
+                    ])}
                   </option>
                 ))}
               </select>
               {relevantVoices.length === 0 && (
                 <span className="mt-1 block text-[11px] text-amber-400">
-                  系统里没有这个语种的音色，会用默认音色朗读，可能读得不准。
+                  {t('popup.noVoiceForLang')}
                 </span>
               )}
             </label>
@@ -353,29 +366,29 @@ export default function App() {
 
           <div className="space-y-2">
             <Toggle
-              label="读完自动滚到下一条"
+              label={t('popup.autoAdvance')}
               checked={settings.autoAdvance}
               onChange={(v) => update({ autoAdvance: v })}
             />
             <Toggle
-              label="朗读前先念作者名"
+              label={t('popup.readAuthor')}
               checked={settings.readAuthor}
               onChange={(v) => update({ readAuthor: v })}
             />
             <Toggle
-              label="跳过推广帖"
+              label={t('popup.skipAds')}
               checked={settings.skipAds}
               onChange={(v) => update({ skipAds: v })}
             />
             <Toggle
-              label="跳过没有文字的帖子"
+              label={t('popup.skipMediaOnly')}
               checked={settings.skipMediaOnly}
               onChange={(v) => update({ skipMediaOnly: v })}
             />
           </div>
 
           <p className="pt-1 text-[11px] leading-relaxed text-slate-500">
-            快捷键：Alt+Shift+P 播放/暂停 · Alt+Shift+N 下一条 · Alt+Shift+B 上一条
+            {t('popup.shortcuts')}
           </p>
 
           <button
@@ -383,9 +396,9 @@ export default function App() {
             onClick={() => void browser.runtime.openOptionsPage()}
             className="w-full cursor-pointer rounded-lg border border-white/10 px-3 py-2 text-left text-[11px] text-slate-300 transition-colors hover:bg-white/5 hover:text-slate-100"
           >
-            <b>打开设置</b>
+            <b>{t('popup.openSettings')}</b>
             <span className="mt-0.5 block text-slate-500">
-              语音引擎凭据、音色、翻译能力检测 →
+              {t('popup.openSettingsHint')}
             </span>
           </button>
         </section>
