@@ -96,6 +96,12 @@ export const doubaoSpec: CloudTtsSpec = {
   // 接口限制：text_prompt 最长 2048 字符（官方 SDK 文档口径）
   maxChars: 2048,
   /**
+   * 但**绝不能按 2048 分块**。seed-audio-1.0 的合成耗时随输出音频长度增长，
+   * 2048 字约合 500 秒音频，实测直接撞穿 30 秒超时（signal timed out）。
+   * 150 字大约 35 秒音频、几秒合成 —— 块与块之间靠预取接上，听感仍然连续。
+   */
+  chunkChars: 150,
+  /**
    * 串行合成。
    *
    * 实测预取开到 6 个并发就会撞上

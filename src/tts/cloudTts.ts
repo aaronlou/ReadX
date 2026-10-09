@@ -148,11 +148,11 @@ export class CloudTtsProvider implements TtsProvider {
     return this.play(clip, opts);
   }
 
-  /** 预取提示：等真正轮到这句时直接命中缓存 */
-  prefetch(text: string, lang: string): void {
+  /** 预取提示：等真正轮到这段时直接命中缓存 */
+  prefetch(text: string, lang: string, segments?: string[]): void {
     const spec = this.spec;
     if (!spec || !this.isSupported()) return;
-    // 队伍已经太长就别再排了，否则会把真正要读的句子堵在后面
+    // 队伍已经太长就别再排了，否则会把真正要读的堵在后面
     if (this.prefetchQueue.length >= MAX_QUEUED_PREFETCH) {
       console.debug('[ReadX] 预取队伍已满，跳过', preview(text));
       return;
@@ -160,11 +160,16 @@ export class CloudTtsProvider implements TtsProvider {
 
     const voice = this.voiceFor(lang);
     if (!voice) return;
-    // 已经缓存或在合成中的就不用再发了
-    if (this.clips.has(this.cacheKey(spec, text, voice))) return;
 
-    console.debug('[ReadX] 预取 →', preview(text));
-    void this.getClip(spec, text, voice, 'prefetch').catch(() => {
+    // 只热**第一块**。分块方式必须和 speakBlock 完全一致，否则缓存键对不上；
+    // 后面的块不用管 —— 它们要几十秒后才需要，那时第一块正在播，来得及。
+    const budget = Math.max(1, Math.min(spec.chunkChars ?? spec.maxChars, spec.maxChars));
+    const first = chunkSegments(budget, segments ?? [], text)[0];
+    if (!first) return;
+    if (this.clips.has(this.cacheKey(spec, first.text, voice))) return;
+
+    console.debug('[ReadX] 预取 →', preview(first.text));
+    void this.getClip(spec, first.text, voice, 'prefetch').catch(() => {
       // 预取失败无所谓，真读到时候会再试一次
     });
   }
@@ -301,11 +306,23 @@ export class CloudTtsProvider implements TtsProvider {
       return 'error';
     }
 
-    const chunks = chunkSegments(spec.maxChars, opts.segments, text);
+    // 分块按**延迟预算**（chunkChars）而不是接口上限 —— 见 CloudTtsSpec 里的说明
+    const budget = Math.max(1, Math.min(spec.chunkChars ?? spec.maxChars, spec.maxChars));
+    const chunks = chunkSegments(budget, opts.segments, text);
     let indexOffset = 0;
 
-    for (const chunk of chunks) {
+    for (let i = 0; i < chunks.length; i += 1) {
       if (opts.signal?.aborted) return 'cancelled';
+      const chunk = chunks[i]!;
+
+      // ⚠️ 关键：**在播这一块的同时**把下一块合成上。
+      // 等这一块播完再去请求下一块，块与块之间必然断一次。
+      const next = chunks[i + 1];
+      if (next) {
+        void this.getClip(spec, next.text, voice, 'prefetch').catch(() => {
+          // 预取失败无所谓，真轮到它时会再试
+        });
+      }
 
       let clip: Clip;
       try {
@@ -546,7 +563,6 @@ function chunkSegments(
   if (current.length) chunks.push({ text: joinSegments(current), segments: current });
   return chunks;
 }
-
 interface TimelineEntry {
   start: number;
   end: number;

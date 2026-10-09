@@ -63,8 +63,11 @@ export interface TtsProvider {
    * 对本地合成的引擎（Web Speech）没意义，但对云端引擎很关键 ——
    * 网络往返几百毫秒到几秒，不预取的话每句之间都会断一下。
    * 实现方应当把它当作 best-effort：失败静默忽略。
+   *
+   * `segments` 是这段文本的句子划分。整段合成的引擎需要它来保证
+   * **分块边界和真正朗读时完全一致**，否则缓存键对不上，预取就白做了。
    */
-  prefetch?(text: string, lang: string): void;
+  prefetch?(text: string, lang: string, segments?: string[]): void;
   /**
    * 是否值得**整段**朗读。
    *

@@ -83,8 +83,17 @@ export interface CloudTtsSpec {
   defaultVoiceByLang: Record<string, string>;
   /** 语言无关服务商的兜底音色 */
   fallbackVoice?: string;
-  /** 单次请求的文本上限 */
+  /** 单次请求的文本上限（接口约束） */
   maxChars: number;
+  /**
+   * 单次请求的**延迟预算**（字符数），通常远小于 maxChars。
+   *
+   * 这两个不是一回事：maxChars 是接口"最多能吃多少"，而合成耗时随输出音频
+   * 长度增长，按 maxChars 分块会得到几分钟的音频、几十秒的合成，直接超时。
+   * 这里按"几秒能合成完"来定，块与块之间靠预取接上。
+   * 不填则不分块（适合合成很快的服务商）。
+   */
+  chunkChars?: number;
   /**
    * 同时在飞的合成请求上限。
    *

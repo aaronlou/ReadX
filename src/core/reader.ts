@@ -698,10 +698,12 @@ export class Reader {
     const script = this.buildScript(data, readLang, text, quotedText);
     if (!script.length) return;
 
-    // 整段朗读的引擎：直接把整条帖子热成一个请求。这比逐句预取更划算 ——
-    // 换到下一条时它已经是完整的一整段音频，连段内停顿都没有。
+    // 整段朗读的引擎：把整条帖子热成一个请求。这比逐句预取更划算 ——
+    // 换到下一条时它的开头已经是现成的音频了。
+    // 必须把 segments 一起传，保证分块边界和真正朗读时完全一致，
+    // 否则缓存键对不上，预取等于白发。
     if (this.tts.supportsBlock && this.tts.speakBlock) {
-      this.tts.prefetch?.(joinSegments(script), readLang);
+      this.tts.prefetch?.(joinSegments(script), readLang, script);
       return;
     }
 

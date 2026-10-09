@@ -307,16 +307,37 @@ describe('CloudTtsProvider 整段朗读', () => {
     expect((sendMessage.mock.calls[0]![0] as { text: string }).text).toBe(BLOCK_TEXT);
   });
 
-  it('超过单次上限的长帖子会分块，但块数远少于句数', async () => {
-    // 每句 300 字，10 句 = 3000 字 > 豆包上限 2048
-    const segments = Array.from({ length: 10 }, (_, i) => `第${i}句${'啊'.repeat(297)}。`);
+  // 分块按的是**延迟预算**（chunkChars）而不是接口上限 maxChars。
+  // 两者的区别很要命：按 maxChars(2048) 分块会得到几百秒的音频、
+  // 几十秒的合成，实测直接撞穿 30 秒超时。
+  it('按延迟预算分块，块数远少于句数', async () => {
+    // 10 句、每句约 23 字 → 共 230 字，豆包预算 150 字/块 → 2 块
+    const segments = Array.from({ length: 10 }, (_, i) => `这是第${i}句话，我在这里多写一些字来凑够长度。`);
     const provider = makeProvider();
 
     await provider.speakBlock(segments.join(''), blockOpts({ segments }));
 
-    // 换成逐句就是 10 次请求
-    expect(sendMessage.mock.calls.length).toBeLessThan(10);
-    expect(sendMessage.mock.calls.length).toBeGreaterThan(1);
+    const chunks = sendMessage.mock.calls.length;
+    expect(chunks).toBeGreaterThan(1);
+    expect(chunks).toBeLessThan(10); // 换成逐句就是 10 次
+  });
+
+  // 这是块与块之间不断的关键：等这一块播完再去请求下一块，中间必然断一次。
+  it('播放当前块的同时就把下一块合成上', async () => {
+    audioAutoEnd = false;
+    const segments = Array.from({ length: 10 }, (_, i) => `这是第${i}句话，我在这里多写一些字来凑够长度。`);
+    const started: string[] = [];
+    sendMessage.mockImplementation(async (message: { text: string }) => {
+      started.push(message.text);
+      return { ok: true, audio: 'QUJD', mimeType: 'audio/mpeg', duration: 1, sentences: [] };
+    });
+
+    void makeProvider().speakBlock(segments.join(''), blockOpts({ segments }));
+    await flushAsync();
+
+    // 第一块还在播（audioAutoEnd = false），第二块就应该已经发出去了
+    expect(started.length).toBeGreaterThanOrEqual(2);
+    lastAudio!.finish();
   });
 
   it('按句级时间戳回报读到第几句', async () => {
@@ -390,7 +411,7 @@ describe('CloudTtsProvider 整段朗读', () => {
       return { ok: true, audio: 'QUJD', mimeType: 'audio/mpeg', duration: 1, sentences: [] };
     });
 
-    const segments = Array.from({ length: 10 }, (_, i) => `第${i}句${'啊'.repeat(297)}。`);
+    const segments = Array.from({ length: 10 }, (_, i) => `这是第${i}句话，我在这里多写一些字来凑够长度。`);
     await makeProvider().speakBlock(segments.join(''), blockOpts({ segments }));
 
     expect(peak).toBe(1);

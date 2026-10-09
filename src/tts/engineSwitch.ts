@@ -91,8 +91,8 @@ export class TtsEngineSwitch implements TtsProvider {
     return this.active().voiceFor?.(lang);
   }
 
-  prefetch(text: string, lang: string): void {
-    this.active().prefetch?.(text, lang);
+  prefetch(text: string, lang: string, segments?: string[]): void {
+    this.active().prefetch?.(text, lang, segments);
   }
 
   /** 当前引擎是否值得整段朗读 —— 由具体引擎决定，ReadX 上层据此选路径 */
