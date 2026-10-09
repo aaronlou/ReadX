@@ -24,6 +24,9 @@ web-ext.config.ts
 # 会导致每次 dev 都重新下载一遍翻译模型。
 .chrome-profile
 
+# 图标方案对比图 / 工具栏模拟图，由 scripts/make-icons.py 生成，随时可重出
+.icon-preview
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
