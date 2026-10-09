@@ -1,11 +1,6 @@
 {
   "bg_notConfigured": {
-    "message": "$p1$ credentials aren't configured yet",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0} credentials aren't configured yet"
   },
   "bg_notConfiguredHint": {
     "message": "Add them on the extension's settings page"
@@ -14,37 +9,16 @@
     "message": "Synthesis failed"
   },
   "bg_textTooLong": {
-    "message": "This text is longer than $p1$'s $p2$-character single-request limit",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "This text is longer than {0}'s {1}-character single-request limit"
   },
   "bg_textTooLongHint": {
     "message": "Lower the reading length per post, or switch to another provider"
   },
   "bg_unknownProvider": {
-    "message": "Unknown voice provider: $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Unknown voice provider: {0}"
   },
   "cloudTts_noVoiceForLang": {
-    "message": "$p1$ has no voice for $p2$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "{0} has no voice for {1}"
   },
   "cloudTts_noVoiceForLangHint": {
     "message": "Pick a voice for this language in settings"
@@ -53,12 +27,7 @@
     "message": "Audio playback failed"
   },
   "cloudTts_playbackRejected": {
-    "message": "Playback was blocked: $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Playback was blocked: {0}"
   },
   "cloudTts_playbackRejectedHint": {
     "message": "Click the page and try again"
@@ -67,12 +36,7 @@
     "message": "Speech synthesis failed"
   },
   "cloudTts_unknownProvider": {
-    "message": "Unknown voice provider: $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Unknown voice provider: {0}"
   },
   "cloudTts_unknownProviderHint": {
     "message": "Choose a different one in settings"
@@ -99,12 +63,7 @@
     "message": "Check your credentials, domain permission, and balance in settings"
   },
   "engineSwitch_degradedWithDetail": {
-    "message": "$p1$ — temporarily using system voice",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0} — temporarily using system voice"
   },
   "extDescription": {
     "message": "Turn your X timeline into audio: auto-scrolls to the next post and reads it aloud in the right language, with optional translation.",
@@ -238,12 +197,7 @@
     "message": "If \"Download language pack\" keeps hanging"
   },
   "options_tabLabel": {
-    "message": "Tab #$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Tab #{0}"
   },
   "options_tagline": {
     "message": "Listen to X: it auto-scrolls to the next post, reads it in its own language, and translates first when needed."
@@ -285,20 +239,10 @@
     "message": "This usually means the hardware doesn't meet Google's requirements (16 GB RAM / 22 GB free disk / 4+ cores). ReadX falls back to reading the original text."
   },
   "options_verdictApiUnavailable": {
-    "message": "The API is there, but it isn't usable on this machine right now ($p1$).",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "The API is there, but it isn't usable on this machine right now ({0})."
   },
   "options_verdictChromeVersion": {
-    "message": "You're on Chrome $p1$; built-in translation requires the 138+ desktop version.",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "You're on Chrome {0}; built-in translation requires the 138+ desktop version."
   },
   "options_verdictDownloadOnFirstUse": {
     "message": "On first use, click Download on the page once."
@@ -346,15 +290,7 @@
     "message": "Got it"
   },
   "overlay_introShortcuts": {
-    "message": "Shortcuts: $p1$ to play or pause, $p2$ for the next post. You can change them in Settings.",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "Shortcuts: {0} to play or pause, {1} for the next post. You can change them in Settings."
   },
   "overlay_introTitle": {
     "message": "ReadX is ready"
@@ -375,12 +311,7 @@
     "message": "page text"
   },
   "overlay_nextButton": {
-    "message": "Next post ($p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Next post ({0})"
   },
   "overlay_notTranslatedBadge": {
     "message": "Not translated"
@@ -392,56 +323,22 @@
     "message": "Download"
   },
   "overlay_packDownloading": {
-    "message": "Downloading the $p1$ → $p2$ language pack…",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "Downloading the {0} → {1} language pack…"
   },
   "overlay_packDownloadingButton": {
     "message": "Downloading…"
   },
   "overlay_packNeeded": {
-    "message": "The $p1$ → $p2$ language pack isn't downloaded yet (one-time download)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "The {0} → {1} language pack isn't downloaded yet (one-time download)"
   },
   "overlay_playPauseButton": {
-    "message": "Play / Pause ($p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Play / Pause ({0})"
   },
   "overlay_prevButton": {
-    "message": "Previous post ($p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Previous post ({0})"
   },
   "overlay_progress": {
-    "message": "Post $p1$ of $p2$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "Post {0} of {1}"
   },
   "overlay_readAuthor": {
     "message": "Read author name first"
@@ -480,20 +377,10 @@
     "message": "Stop"
   },
   "overlay_translatedBadge": {
-    "message": "Translated · $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Translated · {0}"
   },
   "overlay_translatedTitle": {
-    "message": "Translated from $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Translated from {0}"
   },
   "popup_authorizing": {
     "message": "Authorizing…"
@@ -505,12 +392,7 @@
     "message": "Can't reach the page"
   },
   "popup_cloudEnabled": {
-    "message": "$p1$ is on. Add your credentials and pick a voice in Settings",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0} is on. Add your credentials and pick a voice in Settings"
   },
   "popup_cloudFallback": {
     "message": "Cloud voice"
@@ -534,12 +416,7 @@
     "message": "No voice for this language is installed. The default voice will be used, and it may mispronounce words."
   },
   "popup_notConfigured": {
-    "message": "$p1$ isn't set up yet",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0} isn't set up yet"
   },
   "popup_notConfiguredHint": {
     "message": "Add your API key and pick a voice in Settings →"
@@ -557,48 +434,19 @@
     "message": "Open x.com first (or the dev mock page)"
   },
   "popup_packDownloading": {
-    "message": "Downloading the $p1$ → $p2$ language pack… $p3$%",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      },
-      "p3": {
-        "content": "$3$"
-      }
-    }
+    "message": "Downloading the {0} → {1} language pack… {2}%"
   },
   "popup_packNeeded": {
-    "message": "The $p1$ → $p2$ language pack isn't downloaded. Click Download in the panel at the bottom right of the page",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "The {0} → {1} language pack isn't downloaded. Click Download in the panel at the bottom right of the page"
   },
   "popup_pause": {
     "message": "⏸ Pause"
   },
   "popup_permissionDenied": {
-    "message": "Access to $p1$ wasn't granted, so it can't be turned on",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Access to {0} wasn't granted, so it can't be turned on"
   },
   "popup_permissionFailed": {
-    "message": "Couldn't request permission: $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Couldn't request permission: {0}"
   },
   "popup_play": {
     "message": "▶ Play"
@@ -616,12 +464,7 @@
     "message": "Reading language"
   },
   "popup_sentenceProgress": {
-    "message": "Sentence $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Sentence {0}"
   },
   "popup_shortcuts": {
     "message": "Shortcuts: Alt+Shift+P play/pause · Alt+Shift+N next post · Alt+Shift+B previous post"
@@ -633,12 +476,7 @@
     "message": "Skip posts with no text"
   },
   "popup_source": {
-    "message": "Source: $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Source: {0}"
   },
   "popup_stateError": {
     "message": "Error"
@@ -683,29 +521,10 @@
     "message": "Online"
   },
   "popup_voiceOption": {
-    "message": "$p1$ ($p2$ · $p3$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      },
-      "p3": {
-        "content": "$3$"
-      }
-    }
+    "message": "{0} ({1} · {2})"
   },
   "popup_voicePickerLabel": {
-    "message": "Voice ($p1$ available for $p2$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "Voice ({0} available for {1})"
   },
   "popup_volume": {
     "message": "Volume"
@@ -720,23 +539,10 @@
     "message": "Not checked"
   },
   "probe_threw": {
-    "message": "Threw: $p1$: $p2$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "Threw: {0}: {1}"
   },
   "provider_common_errAuth": {
-    "message": "The API key may be invalid, or the $p1$ service isn't enabled",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "The API key may be invalid, or the {0} service isn't enabled"
   },
   "provider_common_errEmptyText": {
     "message": "Nothing to synthesize"
@@ -748,12 +554,7 @@
     "message": "Rate limited or out of quota — try again in a moment"
   },
   "provider_common_errServer": {
-    "message": "The $p1$ service hit a server error — try again later",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "The {0} service hit a server error — try again later"
   },
   "provider_doubao_credAccessKeyHelp": {
     "message": "If you don't have an API key, authenticate with this plus the App ID instead"
@@ -783,12 +584,7 @@
     "message": "From the same App Management page"
   },
   "provider_doubao_errRequestFailed": {
-    "message": "Couldn't reach Doubao Voice: $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Couldn't reach Doubao Voice: {0}"
   },
   "provider_doubao_errRequestFailedHint": {
     "message": "Check your network, or make sure access to openspeech.bytedance.com is granted"
@@ -800,12 +596,7 @@
     "message": "Enable the matching service in the ByteDance console"
   },
   "provider_doubao_errSynthesizeFailed": {
-    "message": "Doubao Voice synthesis failed (HTTP $p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Doubao Voice synthesis failed (HTTP {0})"
   },
   "provider_doubao_langEn": {
     "message": "English"
@@ -838,23 +629,13 @@
     "message": "OpenAI returned no audio"
   },
   "provider_openai_errRequestFailed": {
-    "message": "Couldn't reach OpenAI Voice: $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Couldn't reach OpenAI Voice: {0}"
   },
   "provider_openai_errRequestFailedHint": {
     "message": "Check your network, or make sure access to api.openai.com is granted"
   },
   "provider_openai_errSynthesizeFailed": {
-    "message": "OpenAI Voice synthesis failed (HTTP $p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "OpenAI Voice synthesis failed (HTTP {0})"
   },
   "provider_openai_langEn": {
     "message": "English"
@@ -911,15 +692,7 @@
     "message": "sk-or-v1-..."
   },
   "provider_openrouter_credModelHelp": {
-    "message": "Leave blank to use $p1$. To use ByteDance voices, enter $p2$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "Leave blank to use {0}. To use ByteDance voices, enter {1}"
   },
   "provider_openrouter_credModelLabel": {
     "message": "Model (optional)"
@@ -934,23 +707,13 @@
     "message": "Wrong model name. Filter openrouter.ai/models by output modality = speech to see the available TTS models"
   },
   "provider_openrouter_errRequestFailed": {
-    "message": "Couldn't reach OpenRouter: $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Couldn't reach OpenRouter: {0}"
   },
   "provider_openrouter_errRequestFailedHint": {
     "message": "Check your network, or make sure access to openrouter.ai is granted"
   },
   "provider_openrouter_errSynthesizeFailed": {
-    "message": "OpenRouter synthesis failed (HTTP $p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "OpenRouter synthesis failed (HTTP {0})"
   },
   "provider_openrouter_langEn": {
     "message": "English"
@@ -989,15 +752,7 @@
     "message": "Downloading language pack…"
   },
   "reader_packNeeded": {
-    "message": "Download the $p1$ → $p2$ language pack first — about ten seconds, one time only",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "Download the {0} → {1} language pack first — about ten seconds, one time only"
   },
   "reader_packReady": {
     "message": "Language pack ready"
@@ -1006,15 +761,7 @@
     "message": "This language pair isn't supported"
   },
   "reader_pairUnsupported": {
-    "message": "$p1$ → $p2$ isn't supported — reading the original",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "{0} → {1} isn't supported — reading the original"
   },
   "reader_paused": {
     "message": "Paused"
@@ -1158,39 +905,19 @@
     "message": "Credentials saved — stored on this device only, never synced to the cloud"
   },
   "tts_credentialsTitle": {
-    "message": "$p1$ credentials",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0} credentials"
   },
   "tts_currentValue": {
-    "message": "Current: $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Current: {0}"
   },
   "tts_defaultVoice": {
     "message": "Default"
   },
   "tts_defaultVoiceName": {
-    "message": " ($p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": " ({0})"
   },
   "tts_enabled": {
-    "message": "$p1$ enabled",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0} enabled"
   },
   "tts_grantAccess": {
     "message": "Grant access"
@@ -1199,64 +926,28 @@
     "message": "ReadX needs permission to access"
   },
   "tts_grantReason": {
-    "message": ", otherwise $p1$ can't send requests.",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": ", otherwise {0} can't send requests."
   },
   "tts_maxChars": {
-    "message": "Up to $p1$ characters per request",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Up to {0} characters per request"
   },
   "tts_noAudioReturned": {
     "message": "no audio returned"
   },
   "tts_noVoiceForLang": {
-    "message": "$p1$ has no voice for $p2$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "{0} has no voice for {1}"
   },
   "tts_permissionDenied": {
-    "message": "Access to $p1$ wasn't granted, so $p2$ can't work",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "Access to {0} wasn't granted, so {1} can't work"
   },
   "tts_preview": {
     "message": "Preview"
   },
   "tts_previewFailed": {
-    "message": "Preview failed: $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "Preview failed: {0}"
   },
   "tts_previewHint": {
-    "message": " ($p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": " ({0})"
   },
   "tts_previewOk": {
     "message": "✓ Preview played"
@@ -1265,12 +956,7 @@
     "message": "Previewing…"
   },
   "tts_privacyBody": {
-    "message": ": with cloud voice on, the text being read is sent to $p1$'s servers — the only content that leaves your device. Translation still happens on-device. To stay fully offline, keep System voice.",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": ": with cloud voice on, the text being read is sent to {0}'s servers — the only content that leaves your device. Translation still happens on-device. To stay fully offline, keep System voice."
   },
   "tts_privacyNotice": {
     "message": "Note"

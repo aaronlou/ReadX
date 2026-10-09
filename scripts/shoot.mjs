@@ -1,28 +1,32 @@
 #!/usr/bin/env node
 /**
- * 用 CDP 给商店截屏。
+ * 用 CDP 自动截商店要的图。
  *
- * 为什么要有这个：Chrome Web Store 要求 1280×800 的截图，手动截很难保证
- * 尺寸精确、状态一致、可重复。这里用 headless=new + DevTools Protocol 自动化：
- * 加载扩展 → 打开 mock 时间线 → 触发播放 → 截图。
+ *   npm run shoot                  # 中英两套
+ *   node scripts/shoot.mjs en      # 只出英文那套
  *
- *   npm run shoot
+ * Chrome Web Store 的 listing 可以**按语言分别上传截图**，所以这里出两套：
+ *   store/screenshots/en/   ← 给英文 listing
+ *   store/screenshots/zh/   ← 给中文 listing
  *
- * 用的是 Node 内置的 WebSocket（Node 22+），不引入 puppeteer —— 只为截几张图
- * 不值得给项目加一个几百 MB 的依赖树。
+ * 为什么需要自动化：商店要求 1280×800，手动截很难保证尺寸精确、状态一致、
+ * 可重复。这里用 headless=new + DevTools Protocol 跑完整流程。
  *
- * 前置：mock 服务在 5174 跑着（`npm run mock`）。扩展用的是 **screenshot 模式**
- * 的构建产物（`.output/chrome-mv3-screenshot`），它额外匹配 localhost；
- * 正式包不受影响。
+ * 两个踩过的坑，都写在对应代码处：
+ *   1. `--load-extension` 在 Chrome 137+ 被**静默忽略**，必须用 CDP 的
+ *      `Extensions.loadUnpacked`
+ *   2. macOS 上 Chrome 忽略 `--lang`，扩展语言跟系统走。要出英文图只能
+ *      **把 zh_CN 语言包从构建里删掉**，逼它回落到 default locale
  */
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const OUT = join(ROOT, 'store', 'screenshots');
+const SHOTS = join(ROOT, 'store', 'screenshots');
+const BUILD = join(ROOT, '.output', 'chrome-mv3-screenshot');
 const PROFILE = join(ROOT, '.shot-profile');
-const EXTENSION = join(ROOT, '.output', 'chrome-mv3-screenshot');
+const STAGING = join(ROOT, '.shot-extension');
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const PORT = 9334;
 const MOCK = 'http://localhost:5174/mock-timeline.html';
@@ -30,7 +34,6 @@ const MOCK = 'http://localhost:5174/mock-timeline.html';
 const WIDTH = 1280;
 const HEIGHT = 800;
 
-const keep = process.argv.includes('--keep');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------------------------------------------------------------- CDP 小客户端
@@ -57,6 +60,7 @@ class Cdp {
     return cdp;
   }
 
+  /** 注意：这里**剥掉了外层信封**，直接 resolve 的是 `result` 本身 */
   send(method, params = {}) {
     const id = ++this.#id;
     return new Promise((resolve, reject) => {
@@ -82,7 +86,6 @@ class Cdp {
   }
 }
 
-/** 轮询直到表达式为真 —— 比固定 sleep 稳得多 */
 async function waitFor(cdp, expression, { timeout = 15000, label = expression } = {}) {
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
@@ -95,43 +98,38 @@ async function waitFor(cdp, expression, { timeout = 15000, label = expression } 
 
 const listTargets = async () => (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
 
-async function shoot(cdp, name) {
-  const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' });
-  writeFileSync(join(OUT, `${name}.png`), Buffer.from(data, 'base64'));
-  console.log(`  ✓ ${name}.png`);
-}
+// ---------------------------------------------------------------- 单次拍摄
 
-// ---------------------------------------------------------------- 主流程
+async function capture({ locale, stripLocales, extIdRef }) {
+  const outDir = join(SHOTS, locale);
+  mkdirSync(outDir, { recursive: true });
 
-async function main() {
-  if (!existsSync(EXTENSION)) {
-    console.error(`找不到截图构建产物：${EXTENSION}\n先跑 \`npm run shoot\`（它会自动构建），或 \`npx wxt build -m screenshot\`。`);
-    process.exit(1);
+  // 准备这次要加载的扩展副本
+  rmSync(STAGING, { recursive: true, force: true });
+  cpSync(BUILD, STAGING, { recursive: true });
+  for (const extra of stripLocales) {
+    rmSync(join(STAGING, '_locales', extra), { recursive: true, force: true });
   }
 
-  mkdirSync(OUT, { recursive: true });
   rmSync(PROFILE, { recursive: true, force: true });
   mkdirSync(join(PROFILE, 'crash'), { recursive: true });
 
-  console.log('启动 headless Chrome（加载扩展）…');
   const chrome = spawn(
     CHROME,
     [
       '--headless=new',
       '--disable-gpu',
       '--no-sandbox',
-      // 这三条是必需的：不加的话 Chrome 会试着往工作区外写崩溃转储，
-      // 被沙箱挡住之后整个进程直接崩掉，报的错完全看不出原因
+      // 不加这三条的话 Chrome 会往工作区外写崩溃转储，被沙箱挡住后
+      // 整个进程直接崩，报的错完全看不出原因
       '--disable-crash-reporter',
       '--disable-breakpad',
       `--crash-dumps-dir=${join(PROFILE, 'crash')}`,
       '--no-first-run',
       '--no-default-browser-check',
       '--disable-dev-shm-usage',
-      // 固定英文：按钮的 title/aria-label 走 i18n，用英文才好可靠地选中
-      '--lang=en-US',
+      '--enable-unsafe-extension-debugging',
       `--user-data-dir=${PROFILE}`,
-      `--load-extension=${EXTENSION}`,
       `--remote-debugging-port=${PORT}`,
       `--window-size=${WIDTH},${HEIGHT}`,
       'about:blank',
@@ -148,9 +146,16 @@ async function main() {
     }
   }
 
+  const version = await (await fetch(`http://127.0.0.1:${PORT}/json/version`)).json();
+  const browser = await Cdp.attach(version.webSocketDebuggerUrl);
+  const loaded = await browser.send('Extensions.loadUnpacked', { path: STAGING });
+  browser.close();
+  const extId = loaded?.id;
+  if (!extId) throw new Error('装载扩展失败（没拿到 id）');
+  extIdRef.value = extId;
+
   const targets = await listTargets();
-  const page = targets.find((t) => t.type === 'page');
-  const cdp = await Cdp.attach(page.webSocketDebuggerUrl);
+  const cdp = await Cdp.attach(targets.find((t) => t.type === 'page').webSocketDebuggerUrl);
 
   await cdp.send('Page.enable');
   await cdp.send('Runtime.enable');
@@ -161,8 +166,13 @@ async function main() {
     mobile: false,
   });
 
+  const shoot = async (name) => {
+    const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    writeFileSync(join(outDir, `${name}.png`), Buffer.from(data, 'base64'));
+    console.log(`  ✓ ${locale}/${name}.png`);
+  };
+
   try {
-    console.log('打开 mock 时间线…');
     await cdp.send('Page.navigate', { url: MOCK });
     await waitFor(cdp, 'document.readyState === "complete"', { label: '页面加载' });
 
@@ -170,61 +180,93 @@ async function main() {
       label: '扩展注入',
       timeout: 8000,
     });
-    console.log(`  扩展已注入：${injected}`);
+    if (!injected) console.warn('  ⚠️  扩展没注入，截图里不会有控制条');
 
-    await sleep(1200);
-    await shoot(cdp, '01-timeline');
+    await sleep(1500);
+    // 隐藏 mock 页面自己的说明横幅 —— 它是给开发者看的调试提示，
+    // 出现在商店截图里会显得像个测试页面
+    await cdp.eval(`
+      (() => {
+        const b = document.querySelector('.banner');
+        if (b) b.style.display = 'none';
+        return !!b;
+      })()
+    `);
+    await sleep(400);
 
-    // 点播放：按钮的 aria-label 来自 i18n，英文下一定含 "Play"
-    const clicked = await cdp.eval(`
+    // 引导卡（首次使用的提示）—— 本身也是一张有价值的说明图
+    await shoot('01-intro');
+
+    // 关掉引导卡，点播放，截"正在朗读"那张
+    await cdp.eval(`
+      (() => {
+        const root = document.querySelector('readx-overlay')?.shadowRoot;
+        const btn = [...(root?.querySelectorAll('button') ?? [])]
+          .find((b) => /got it|知道了|明白了/i.test(b.textContent || ''));
+        btn?.click();
+        return !!btn;
+      })()
+    `);
+    await sleep(600);
+
+    const played = await cdp.eval(`
       (() => {
         const root = document.querySelector('readx-overlay')?.shadowRoot;
         if (!root) return false;
         const btn = [...root.querySelectorAll('button')]
-          .find((b) => /play|pause/i.test(b.getAttribute('aria-label') || b.title || ''));
+          .find((b) => /play|pause|播放|暂停/i.test(b.getAttribute('aria-label') || b.title || ''));
         if (!btn) return false;
         btn.click();
         return true;
       })()
     `);
-    console.log(`  已触发播放：${clicked}`);
-    await sleep(2600);
-    await shoot(cdp, '02-reading');
+    console.log(`  已触发播放：${played}`);
+    await sleep(3000);
+    await shoot('02-reading');
 
-    // 引导卡：只在首次使用时出现，重开一个干净的 profile 才能稳定复现
-    await cdp.eval(`
-      (() => {
-        const root = document.querySelector('readx-overlay')?.shadowRoot;
-        const btn = [...(root?.querySelectorAll('button') ?? [])]
-          .find((b) => /got it|dismiss/i.test(b.textContent || ''));
-        return !!btn;
-      })()
-    `);
-
-    // 设置页：扩展 id 从 service worker 的 target URL 里取
-    const worker = targets.find((t) => t.type === 'service_worker' && t.url.startsWith('chrome-extension://'));
-    const extId = worker?.url.split('/')[2];
-    if (extId) {
-      console.log('打开设置页…');
-      await cdp.send('Page.navigate', { url: `chrome-extension://${extId}/options.html` });
-      await waitFor(cdp, 'document.readyState === "complete"', { label: '设置页加载' });
-      await sleep(1200);
-      await shoot(cdp, '03-settings');
-    } else {
-      console.warn('  ⚠️  拿不到扩展 id，跳过设置页截图');
-    }
+    // 设置页
+    await cdp.send('Page.navigate', { url: `chrome-extension://${extId}/options.html` });
+    await waitFor(cdp, 'document.readyState === "complete"', { label: '设置页加载' });
+    await sleep(1800);
+    await shoot('03-settings');
   } finally {
     cdp.close();
-    if (!keep) {
-      try {
-        process.kill(-chrome.pid);
-      } catch {
-        /* 已经退了 */
-      }
+    try {
+      process.kill(-chrome.pid);
+    } catch {
+      /* 已经退了 */
     }
+    await sleep(500);
+  }
+}
+
+// ---------------------------------------------------------------- 主流程
+
+async function main() {
+  if (!existsSync(BUILD)) {
+    console.error(`找不到截图构建产物：${BUILD}\n先跑 \`npx wxt build -m screenshot\`。`);
+    process.exit(1);
   }
 
+  const only = process.argv[2];
+  const extIdRef = { value: '' };
+
+  // 英文：删掉 zh_CN，强制回落到 default locale。
+  // 中文：语言包不动 —— 这台机器的系统语言是 zh-CN，Chrome 自然选中文。
+  const runs = [
+    { locale: 'zh', stripLocales: [] },
+    { locale: 'en', stripLocales: ['zh_CN'] },
+  ].filter((r) => !only || r.locale === only);
+
+  for (const run of runs) {
+    console.log(`\n[${run.locale}] 启动 headless Chrome…`);
+    await capture({ ...run, extIdRef });
+  }
+
+  rmSync(STAGING, { recursive: true, force: true });
+
   console.log(`\n截图在 store/screenshots/（${WIDTH}×${HEIGHT}）`);
+  console.log('  上传时：英文 listing 用 en/，中文 listing 用 zh/');
 }
 
 main().catch((error) => {

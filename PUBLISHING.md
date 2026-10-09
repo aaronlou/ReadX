@@ -69,9 +69,14 @@
       和图标共用同一套 emerald 常量 —— 商店里图标和宣传图并排显示，色差会很显眼。
 - [x] **文案** —— [`store/listing.md`](store/listing.md)：中英双语的长短描述、
       分类选择、隐私表单答案、以及截图清单，全部可直接复制粘贴。
-- [ ] **截图** —— 至少 1 张，1280×800 或 640×400。**这一项必须真机截取**，
-      清单和尺寸要求在 `store/listing.md` §8。第一张是搜索结果的封面图，
-      必须一眼说清产品是什么（建议：时间线朗读中，带进度和控件）。
+- [x] **截图** —— `npm run shoot` 自动生成，1280×800，中英两套：
+      `store/screenshots/{en,zh}/{01-intro,02-reading,03-settings}.png`。
+      商店支持**按语言分别上传截图**，所以英文 listing 用 `en/`，中文用 `zh/`。
+      第一张是搜索结果的封面，所以脚本先截引导卡、再截"正在朗读"那张。
+
+      > 这些是在**本地 mock 时间线**上截的（`playground/mock-timeline.html`）。
+      > 换成真实 x.com 的截图会更有说服力，但需要登录后手动截。
+      > 脚本里已经把 mock 页面的调试横幅隐藏了，所以看起来就是普通时间线。
 
 ---
 
@@ -97,6 +102,37 @@
    浏览器/操作系统可能在厂商服务器上处理。ReadX 自己不传，但政策里讲清楚才诚实。
 3. 云语音开启后，帖子文本会发给所选服务商 —— 这是"网站内容"这一类数据，
    隐私表单里**必须勾选**，不能填"不收集"。
+
+---
+
+## 三点八、⚠️ 发布前必须**真的把扩展装进 Chrome 一次**
+
+这不是形式主义。这一轮里有两个 bug **会让扩展完全无法装载**，而它们同时
+通过了：构建成功、`tsc` 干净、178 个单元测试全绿。
+
+| bug | 表现 | 为什么测试发现不了 |
+| --- | --- | --- |
+| i18n 的 key 含点号（`popup.engine`） | `Name of a key ... is invalid` | 测试直接读 `messages.json`，绕过了 Chrome 的校验 |
+| 用了裸 `$1$` 占位符 | `Variable $1$ used but not defined` | 同上；而且构建期完全不校验 `_locales` |
+
+两者都只在 Chrome 解析 `_locales` 时才报错。**所以「能构建 + 测试通过」
+不等于「能装进浏览器」**，扩展类项目必须真的装载一次。
+
+自动化方式（`scripts/shoot.mjs` 里的做法，已跑通）：
+
+```bash
+npx wxt build -m screenshot      # 输出到 .output/chrome-mv3-screenshot，不污染正式包
+```
+
+然后用 CDP 装载并截图：
+
+```bash
+npm run shoot                    # 中英两套截图，顺带就是一次真实装载
+```
+
+**注意 `--load-extension` 这个命令行参数在 Chrome 137+ 已被静默忽略**
+—— 不报错、不警告，只是扩展根本没加载。必须用 CDP 的
+`Extensions.loadUnpacked`（需要 `--enable-unsafe-extension-debugging`）。
 
 ---
 

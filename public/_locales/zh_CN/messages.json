@@ -1,11 +1,6 @@
 {
   "bg_notConfigured": {
-    "message": "$p1$ 还没有配置凭据",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0} 还没有配置凭据"
   },
   "bg_notConfiguredHint": {
     "message": "到扩展的选项页填写"
@@ -14,37 +9,16 @@
     "message": "合成失败"
   },
   "bg_textTooLong": {
-    "message": "这段文本超过了 $p1$ 单次 $p2$ 字符的上限",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "这段文本超过了 {0} 单次 {1} 字符的上限"
   },
   "bg_textTooLongHint": {
     "message": "调小每条的朗读长度，或换一个服务商"
   },
   "bg_unknownProvider": {
-    "message": "未知的语音服务商：$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "未知的语音服务商：{0}"
   },
   "cloudTts_noVoiceForLang": {
-    "message": "$p1$ 还没有可用于 $p2$ 的音色",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "{0} 还没有可用于 {1} 的音色"
   },
   "cloudTts_noVoiceForLangHint": {
     "message": "到选项页为这个语言选一个音色"
@@ -53,12 +27,7 @@
     "message": "音频播放失败"
   },
   "cloudTts_playbackRejected": {
-    "message": "音频播放被拒绝：$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "音频播放被拒绝：{0}"
   },
   "cloudTts_playbackRejectedHint": {
     "message": "点一下页面再试"
@@ -67,12 +36,7 @@
     "message": "语音合成失败"
   },
   "cloudTts_unknownProvider": {
-    "message": "未知的语音服务商：$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "未知的语音服务商：{0}"
   },
   "cloudTts_unknownProviderHint": {
     "message": "到选项页重新选一个"
@@ -99,12 +63,7 @@
     "message": "到选项页检查凭据、域名授权和余额"
   },
   "engineSwitch_degradedWithDetail": {
-    "message": "$p1$（已临时切回系统语音）",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0}（已临时切回系统语音）"
   },
   "extDescription": {
     "message": "把 X 时间线变成音频：自动滚到下一条帖子并按语言朗读，可选设备端翻译。",
@@ -238,12 +197,7 @@
     "message": "如果「下载语言包」一直卡住"
   },
   "options_tabLabel": {
-    "message": "标签页 #$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "标签页 #{0}"
   },
   "options_tagline": {
     "message": "用耳朵刷 X：自动滚动定位到下一条帖子，按它的语言朗读，需要时先翻译。"
@@ -285,20 +239,10 @@
     "message": "大概率是硬件没达到官方门槛（16GB 内存 / 22GB 空闲磁盘 / 4 核以上）。ReadX 会自动降级为只朗读原文。"
   },
   "options_verdictApiUnavailable": {
-    "message": "API 在，但本机当前不可用（$p1$）。",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "API 在，但本机当前不可用（{0}）。"
   },
   "options_verdictChromeVersion": {
-    "message": "当前 Chrome $p1$，内置翻译需要 138+ 桌面版。",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "当前 Chrome {0}，内置翻译需要 138+ 桌面版。"
   },
   "options_verdictDownloadOnFirstUse": {
     "message": "首次使用时在页面上点一下「下载」即可（只需一次）。"
@@ -346,15 +290,7 @@
     "message": "知道了"
   },
   "overlay_introShortcuts": {
-    "message": "快捷键：$p1$ 播放 / 暂停，$p2$ 下一条。想改的话去设置里换。",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "快捷键：{0} 播放 / 暂停，{1} 下一条。想改的话去设置里换。"
   },
   "overlay_introTitle": {
     "message": "ReadX 已就绪"
@@ -375,12 +311,7 @@
     "message": "页面文字"
   },
   "overlay_nextButton": {
-    "message": "下一条 ($p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "下一条 ({0})"
   },
   "overlay_notTranslatedBadge": {
     "message": "未译"
@@ -392,56 +323,22 @@
     "message": "下载"
   },
   "overlay_packDownloading": {
-    "message": "正在下载 $p1$ → $p2$ 语言包…",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "正在下载 {0} → {1} 语言包…"
   },
   "overlay_packDownloadingButton": {
     "message": "下载中…"
   },
   "overlay_packNeeded": {
-    "message": "$p1$ → $p2$ 语言包还没下载（只需一次）",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "{0} → {1} 语言包还没下载（只需一次）"
   },
   "overlay_playPauseButton": {
-    "message": "播放 / 暂停 ($p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "播放 / 暂停 ({0})"
   },
   "overlay_prevButton": {
-    "message": "上一条 ($p1$)",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "上一条 ({0})"
   },
   "overlay_progress": {
-    "message": "第 $p1$ / $p2$ 句",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "第 {0} / {1} 句"
   },
   "overlay_readAuthor": {
     "message": "先读作者名"
@@ -480,20 +377,10 @@
     "message": "停止"
   },
   "overlay_translatedBadge": {
-    "message": "译·$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "译·{0}"
   },
   "overlay_translatedTitle": {
-    "message": "已从 $p1$ 翻译",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "已从 {0} 翻译"
   },
   "popup_authorizing": {
     "message": "授权中…"
@@ -505,12 +392,7 @@
     "message": "无法连接页面"
   },
   "popup_cloudEnabled": {
-    "message": "已启用 $p1$。凭据和音色到「设置」里填",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "已启用 {0}。凭据和音色到「设置」里填"
   },
   "popup_cloudFallback": {
     "message": "云语音"
@@ -534,12 +416,7 @@
     "message": "系统里没有这个语种的音色，会用默认音色朗读，可能读得不准。"
   },
   "popup_notConfigured": {
-    "message": "$p1$ 还没有配置凭据",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0} 还没有配置凭据"
   },
   "popup_notConfiguredHint": {
     "message": "点这里去设置里填 API Key 和选音色 →"
@@ -557,48 +434,19 @@
     "message": "请先打开 x.com（或开发用的 mock 页面）再使用"
   },
   "popup_packDownloading": {
-    "message": "正在下载 $p1$ → $p2$ 语言包… $p3$%",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      },
-      "p3": {
-        "content": "$3$"
-      }
-    }
+    "message": "正在下载 {0} → {1} 语言包… {2}%"
   },
   "popup_packNeeded": {
-    "message": "$p1$ → $p2$ 语言包未下载，请在页面右下角的面板上点「下载」",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "{0} → {1} 语言包未下载，请在页面右下角的面板上点「下载」"
   },
   "popup_pause": {
     "message": "⏸ 暂停"
   },
   "popup_permissionDenied": {
-    "message": "没有授权访问 $p1$，无法启用",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "没有授权访问 {0}，无法启用"
   },
   "popup_permissionFailed": {
-    "message": "授权失败：$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "授权失败：{0}"
   },
   "popup_play": {
     "message": "▶ 播放"
@@ -616,12 +464,7 @@
     "message": "朗读语言"
   },
   "popup_sentenceProgress": {
-    "message": "句子 $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "句子 {0}"
   },
   "popup_shortcuts": {
     "message": "快捷键：Alt+Shift+P 播放/暂停 · Alt+Shift+N 下一条 · Alt+Shift+B 上一条"
@@ -633,12 +476,7 @@
     "message": "跳过没有文字的帖子"
   },
   "popup_source": {
-    "message": "来源：$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "来源：{0}"
   },
   "popup_stateError": {
     "message": "出错了"
@@ -683,29 +521,10 @@
     "message": "在线"
   },
   "popup_voiceOption": {
-    "message": "$p1$（$p2$ · $p3$）",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      },
-      "p3": {
-        "content": "$3$"
-      }
-    }
+    "message": "{0}（{1} · {2}）"
   },
   "popup_voicePickerLabel": {
-    "message": "音色（$p1$ 个可用于 $p2$）",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "音色（{0} 个可用于 {1}）"
   },
   "popup_volume": {
     "message": "音量"
@@ -720,23 +539,10 @@
     "message": "未检测"
   },
   "probe_threw": {
-    "message": "抛错：$p1$: $p2$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "抛错：{0}: {1}"
   },
   "provider_common_errAuth": {
-    "message": "API Key 可能无效，或没有开通 $p1$ 服务",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "API Key 可能无效，或没有开通 {0} 服务"
   },
   "provider_common_errEmptyText": {
     "message": "待合成的文本为空"
@@ -748,12 +554,7 @@
     "message": "触发限流或额度用尽，稍后再试"
   },
   "provider_common_errServer": {
-    "message": "$p1$ 服务端异常，稍后重试",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0} 服务端异常，稍后重试"
   },
   "provider_doubao_credAccessKeyHelp": {
     "message": "没有 API Key 时可以改用它 + App ID 来鉴权"
@@ -783,12 +584,7 @@
     "message": "同上的「应用管理」页面"
   },
   "provider_doubao_errRequestFailed": {
-    "message": "调用豆包语音失败：$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "调用豆包语音失败：{0}"
   },
   "provider_doubao_errRequestFailedHint": {
     "message": "检查网络，或确认已授予 openspeech.bytedance.com 的访问权限"
@@ -800,12 +596,7 @@
     "message": "到火山引擎控制台开通对应服务"
   },
   "provider_doubao_errSynthesizeFailed": {
-    "message": "豆包语音合成失败（HTTP $p1$）",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "豆包语音合成失败（HTTP {0}）"
   },
   "provider_doubao_langEn": {
     "message": "英文"
@@ -838,23 +629,13 @@
     "message": "OpenAI 返回了空音频"
   },
   "provider_openai_errRequestFailed": {
-    "message": "调用 OpenAI 语音失败：$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "调用 OpenAI 语音失败：{0}"
   },
   "provider_openai_errRequestFailedHint": {
     "message": "检查网络，或确认已授予 api.openai.com 的访问权限"
   },
   "provider_openai_errSynthesizeFailed": {
-    "message": "OpenAI 语音合成失败（HTTP $p1$）",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "OpenAI 语音合成失败（HTTP {0}）"
   },
   "provider_openai_langEn": {
     "message": "英文"
@@ -911,15 +692,7 @@
     "message": "sk-or-v1-..."
   },
   "provider_openrouter_credModelHelp": {
-    "message": "留空用 $p1$。想用豆包的音色可以填 $p2$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "留空用 {0}。想用豆包的音色可以填 {1}"
   },
   "provider_openrouter_credModelLabel": {
     "message": "模型（可选）"
@@ -934,23 +707,13 @@
     "message": "模型名不对。到 openrouter.ai/models 用 output modality = speech 筛一下可用的 TTS 模型"
   },
   "provider_openrouter_errRequestFailed": {
-    "message": "调用 OpenRouter 失败：$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "调用 OpenRouter 失败：{0}"
   },
   "provider_openrouter_errRequestFailedHint": {
     "message": "检查网络，或确认已授予 openrouter.ai 的访问权限"
   },
   "provider_openrouter_errSynthesizeFailed": {
-    "message": "OpenRouter 语音合成失败（HTTP $p1$）",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "OpenRouter 语音合成失败（HTTP {0}）"
   },
   "provider_openrouter_langEn": {
     "message": "英文"
@@ -989,15 +752,7 @@
     "message": "正在下载语言包…"
   },
   "reader_packNeeded": {
-    "message": "需要先下载 $p1$ → $p2$ 语言包（约十几秒，只需一次）",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "需要先下载 {0} → {1} 语言包（约十几秒，只需一次）"
   },
   "reader_packReady": {
     "message": "语言包已就绪"
@@ -1006,15 +761,7 @@
     "message": "这一对语言不受支持"
   },
   "reader_pairUnsupported": {
-    "message": "$p1$ → $p2$ 暂不支持，读原文",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "{0} → {1} 暂不支持，读原文"
   },
   "reader_paused": {
     "message": "已暂停"
@@ -1158,39 +905,19 @@
     "message": "凭据已保存（存在本机，不会同步到云端）"
   },
   "tts_credentialsTitle": {
-    "message": "$p1$ 凭据",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "{0} 凭据"
   },
   "tts_currentValue": {
-    "message": "当前：$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "当前：{0}"
   },
   "tts_defaultVoice": {
     "message": "默认"
   },
   "tts_defaultVoiceName": {
-    "message": "（$p1$）",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "（{0}）"
   },
   "tts_enabled": {
-    "message": "已启用 $p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "已启用 {0}"
   },
   "tts_grantAccess": {
     "message": "去授权"
@@ -1199,64 +926,28 @@
     "message": "还需要授权访问"
   },
   "tts_grantReason": {
-    "message": "，$p1$ 才能发请求。",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "，{0} 才能发请求。"
   },
   "tts_maxChars": {
-    "message": "单次上限 $p1$ 字符",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "单次上限 {0} 字符"
   },
   "tts_noAudioReturned": {
     "message": "没有返回音频"
   },
   "tts_noVoiceForLang": {
-    "message": "$p1$ 没有可用于 $p2$ 的音色",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "{0} 没有可用于 {1} 的音色"
   },
   "tts_permissionDenied": {
-    "message": "没有授权访问 $p1$，$p2$ 无法工作",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      },
-      "p2": {
-        "content": "$2$"
-      }
-    }
+    "message": "没有授权访问 {0}，{1} 无法工作"
   },
   "tts_preview": {
     "message": "试听"
   },
   "tts_previewFailed": {
-    "message": "试听失败：$p1$",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "试听失败：{0}"
   },
   "tts_previewHint": {
-    "message": "（$p1$）",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "（{0}）"
   },
   "tts_previewOk": {
     "message": "✓ 试听成功"
@@ -1265,12 +956,7 @@
     "message": "试听中…"
   },
   "tts_privacyBody": {
-    "message": "：启用云语音后，被朗读的文本会发送到 $p1$ 的服务端 —— 这是唯一会离开你设备的内容。翻译仍然在本地完成。不想发送就保持「系统语音」，那样完全离线。",
-    "placeholders": {
-      "p1": {
-        "content": "$1$"
-      }
-    }
+    "message": "：启用云语音后，被朗读的文本会发送到 {0} 的服务端 —— 这是唯一会离开你设备的内容。翻译仍然在本地完成。不想发送就保持「系统语音」，那样完全离线。"
   },
   "tts_privacyNotice": {
     "message": "注意"

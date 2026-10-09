@@ -128,49 +128,43 @@ describe('i18n 文案完整性', () => {
   });
 
   /**
-   * ⚠️ Chrome **不支持裸的 `$1$` 占位符**，必须用具名形式：
+   * ⚠️ 这里校验的是我们自己的 `{0}`、`{1}` 记号，不是 Chrome 的占位符。
    *
-   *     "message": "Post $current$ of $total$",
-   *     "placeholders": { "current": { "content": "$1$" }, ... }
-   *
-   * 写成 `$1$` 会在装载扩展时直接报 `Variable $1$ used but not defined.`
-   * —— 构建不报错、tsc 不报错、直接读 messages.json 的测试也不报错，
-   * 只有真的把扩展装进 Chrome 才会暴露。这个坑我们踩过两次。
+   * 起因：Chrome 的占位符替换会**吞掉或损坏紧随其后的那个字符**
+   * （`"$p1$。后面"` → `"X??后面"`），中文界面到处出乱码。
+   * 所以改成 Chrome 不认识的记号、自己做替换，代价是得自己保证正确性 ——
+   * 就是下面这几条。
    */
-  it('占位符必须具名声明，不能裸用 $1$', () => {
+  it('消息里不该残留 Chrome 的 $ 占位符', () => {
+    const leftover: string[] = [];
+    for (const locale of LOCALES) {
+      for (const [key, entry] of Object.entries(messages[locale])) {
+        if (entry.message.includes('$')) leftover.push(`${locale}: "${key}" → ${entry.message}`);
+        if (entry.placeholders) leftover.push(`${locale}: "${key}" 还留着 placeholders`);
+      }
+    }
+    expect(leftover).toEqual([]);
+  });
+
+  it('花括号记号必须是 {数字}，不能有落单的花括号', () => {
     const broken: string[] = [];
     for (const locale of LOCALES) {
       for (const [key, entry] of Object.entries(messages[locale])) {
-        // 裸的 $1$ 一律非法
-        if (/\$\d+\$/.test(entry.message)) {
-          broken.push(`${locale}: "${key}" 消息里裸用了 $N$`);
-          continue;
-        }
-        // 消息里出现的每个 $name$ 都要有对应的 placeholders 声明
-        for (const match of entry.message.matchAll(/\$([A-Za-z0-9_]+)\$/g)) {
-          const name = match[1]!;
-          if (!entry.placeholders?.[name]) {
-            broken.push(`${locale}: "${key}" 用了 $${name}$ 但没有声明`);
-          }
-        }
-        // 声明也要指向合法的位置参数
-        for (const [name, spec] of Object.entries(entry.placeholders ?? {})) {
-          if (!/^\$\d+\$/.test(spec.content)) {
-            broken.push(`${locale}: "${key}" 的占位符 ${name} content 不合法`);
-          }
-        }
+        // 合法的 {N} 挖掉后，还剩花括号就是写错了
+        const rest = entry.message.replace(/\{\d+\}/g, '');
+        if (/[{}]/.test(rest)) broken.push(`${locale}: "${key}" → ${entry.message}`);
       }
     }
     expect(broken).toEqual([]);
   });
 
-  it('两种语言的占位符名字集合要一致', () => {
+  it('两种语言的记号集合要一致（否则某一边参数对不上）', () => {
     const mismatched: string[] = [];
     for (const key of Object.keys(messages.en)) {
-      const names = (entry: { placeholders?: Record<string, unknown> } | undefined) =>
-        Object.keys(entry?.placeholders ?? {}).sort().join(',');
-      const a = names(messages.en[key]);
-      const b = names(messages.zh_CN[key]);
+      const markers = (text: string) =>
+        [...text.matchAll(/\{(\d+)\}/g)].map((m) => m[1]).sort().join(',');
+      const a = markers(messages.en[key]?.message ?? '');
+      const b = markers(messages.zh_CN[key]?.message ?? '');
       if (a !== b) mismatched.push(`${key}: en=[${a}] zh=[${b}]`);
     }
     expect(mismatched).toEqual([]);

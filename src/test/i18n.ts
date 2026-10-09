@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { fill } from '../i18n';
 import { join } from 'node:path';
 
 /**
@@ -25,24 +26,21 @@ import { join } from 'node:path';
  */
 interface MessageEntry {
   message: string;
-  placeholders?: Record<string, { content: string }>;
 }
 
 const MESSAGES = JSON.parse(
   readFileSync(join(__dirname, '../../public/_locales/en/messages.json'), 'utf8'),
 ) as Record<string, MessageEntry>;
 
+/**
+ * 取英文文案并填充参数。
+ *
+ * 用 `{0}`、`{1}` 记号而不是 Chrome 的 `$p1$` —— 原因见 `src/i18n.ts`：
+ * Chrome 的占位符替换会吞掉/损坏紧随其后的那个字符，中文标点直接变乱码。
+ * 这里和 `t()` 用同一套记号，测试断言的才是用户真正看到的东西。
+ */
 export function en(key: string, substitutions?: string | string[]): string {
   const entry = MESSAGES[key];
   if (!entry) throw new Error(`测试引用了不存在的 i18n key：${key}`);
-
-  const subs = typeof substitutions === 'string' ? [substitutions] : (substitutions ?? []);
-
-  return entry.message.replace(/\$([A-Za-z0-9_]+)\$/g, (whole, name: string) => {
-    const positional = entry.placeholders?.[name]?.content;
-    if (!positional) return whole; // 没声明的原样留着，让断言暴露问题
-
-    const index = Number(positional.replace(/\$/g, ''));
-    return subs[index - 1] ?? '';
-  });
+  return fill(entry.message, substitutions);
 }
