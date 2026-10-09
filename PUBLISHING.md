@@ -218,15 +218,88 @@ npm run shoot                    # 中英两套截图
 
 ## 六、打包与提交
 
+### 6.1 打包
+
 ```bash
 npm run compile   # 类型检查
-npm run test      # 82 个测试
+npm run test      # 178 个单元测试
+npm run smoke     # 端到端冒烟（中英各一遍 + 正式包装载验证）
 npm run build     # 生产构建 → .output/chrome-mv3
 npm run zip       # 压缩包 → .output/readx-<version>-chrome.zip
 ```
 
-上传 `.output/*.zip`。首次提交后，后续更新要注意 `version` 必须递增
-（`package.json` 的 version 会被 WXT 写进 manifest）。
+> `.output` 是隐藏目录。在 Finder 里按 **`Cmd + Shift + .`** 才看得到。
+
+### 6.2 一次性准备：开发者账号
+
+1. 打开 [Chrome Web Store 开发者后台](https://chrome.google.com/webstore/devconsole)
+2. 用 Google 账号登录，支付**一次性 5 美元**注册费
+3. 填写发布者信息：显示名称 + **一个已验证的联系邮箱**
+   （Google 要求邮箱验证通过后才能发布）
+
+> 费用和界面以官方页面为准 —— [官方发布文档](https://developer.chrome.com/docs/webstore/publish)
+
+### 6.3 新建条目
+
+1. 后台 → **Add new item** → 把 `.output/readx-0.1.0-chrome.zip` **整个拖进去**
+2. 上传后会自动解析 manifest。上传的 zip 里 `manifest.json` 必须**在根目录**
+   （WXT 打出来的包满足这一点，不要自己重新压缩一层目录）
+
+### 6.4 Store listing 标签页
+
+文案都在 [`store/listing.md`](store/listing.md)，逐项复制即可。要填：
+
+| 字段 | 填什么 |
+| --- | --- |
+| **Description** | `store/listing.md` §3（英文）和 §4（中文）。纯文本，不支持 Markdown |
+| **Category** | **Accessibility** —— 见 `listing.md` §5 的理由 |
+| **Language** | English（主）+ Chinese (Simplified) |
+| **Store icon** | 上传后自动取包里的 `icon/128.png` |
+| **Screenshots** | `store/screenshots/en/01-intro.png` → `02-reading` → `03-settings`，**按这个顺序**（第一张是搜索结果的封面） |
+| **Small promo tile** | `store/promo-440x280.png` |
+| **Marquee promo tile** | `store/marquee-1400x560.png` |
+
+> 商店支持**按语言分别上传**。英文 listing 用 `store/screenshots/en/`，
+> 中文 listing 用 `store/screenshots/zh/`。
+>
+> 截图和宣传图的格式已核对过：**1280×800 / 440×280 / 1400×560，RGB 无 alpha
+> 通道** —— 商店明确要求 JPEG 或 24 位 PNG 且不能带 alpha，带 alpha 会被拒。
+
+### 6.5 Privacy 标签页
+
+逐项答案在 [`store/listing.md`](store/listing.md) §6，这里只强调**最容易填错的两处**：
+
+1. **「是否收集用户数据」不能填"否"。** 默认情况下帖文确实不出本机，
+   但用户开启云语音后扩展**确实会**把帖子文本发给所选服务商。
+   必须勾选 **Website content** 这一类，否则就是不实申报。
+2. **Privacy policy URL 必须填。** 用
+   `https://github.com/aaronlou/ReadX/blob/main/PRIVACY.md`
+   （仓库是 public，审核方能打开）。想更正式可以开 GitHub Pages 换成渲染后的页面。
+
+另外要贴三个 justification：**单一用途说明**、**权限用途说明**
+（都在 `PUBLISHING.md` 第四节）以及 **Are you using remote code? → No**。
+
+### 6.6 Distribution 与提交
+
+1. **Distribution** → 先选 **Unlisted** 还是 **Public**：
+   - 想自己先走一遍商店安装流程验证，选 Unlisted，拿到链接装一次确认无误
+   - 确认没问题后改回 **Public**
+2. **Submit for review**
+
+### 6.7 审核预期
+
+- 首次审核通常几天，**新开发者账号会更久**
+- ReadX 申请的权限很少（只要 `storage` + x.com 域名），
+  可选域名还是用户主动授权的，审核风险不高
+- 被拒时看拒信里的具体条款 —— 最常见的是**隐私申报与实际行为不符**，
+  对照 6.5 那两处再核一遍
+
+### 6.8 通过之后
+
+- 商店会分配一个**永久 extension ID**（和本地加载的临时 ID 不同）
+- 之后更新：改 `package.json` 的 `version` → `npm run zip` → 后台
+  该条目 → **Package** → 上传新 zip → Submit for review
+- **版本号必须递增**，否则会被拒
 
 ---
 
