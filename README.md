@@ -31,8 +31,15 @@ Chrome 138+ 内置的**设备端** Translator API：免费、离线、**模型�
 
 | 服务商 | 凭据 | 音色特点 |
 | --- | --- | --- |
-| [豆包](src/tts/providers/doubao.ts)（火山引擎） | API Key，或 App ID + Access Key | 30+ 音色，**按语言区分**（中文音色读英文会怪） |
+| [豆包](src/tts/providers/doubao.ts)（火山引擎） | **API Key + App ID** | 30+ 音色，**按语言区分**（中文音色读英文会怪） |
+| [OpenRouter](src/tts/providers/openrouter.ts) | API Key | 一个 Key 用多家模型，含豆包的 `seed-audio-1-0` |
 | [OpenAI](src/tts/providers/openai.ts) | API Key | 音色**语言无关**，中英文共用一个音色 |
+
+> ⚠️ **豆包的 App ID 必须填。** 它和 API Key 是**一起发**的（`X-Api-App-Id`
+> 是应用配置，不是认证因子）。只填 API Key 会得到
+> `requested resource not granted` —— 一个看起来像"服务没开通"、
+> 实际是"没告诉我你是哪个应用"的错误。App ID 和 API Key 都在控制台的
+> 「语音技术 → 应用管理」页面。
 
 **加一家新的服务商 = 写一个 spec 文件 + 在 [registry](src/tts/providers/index.ts) 里加一行。**
 设置项、background 的分发、设置面板的输入框、域名权限申请全都从注册表读，
@@ -223,7 +230,7 @@ npm run mock
 npm run dev        # 开发模式（热更新）
 npm run build      # 构建
 npm run zip        # 打包
-npm run test       # 单元测试（133 个）
+npm run test       # 单元测试（156 个）
 npm run compile    # 类型检查
 npm run mock       # 启动本地 mock 时间线
 ```
@@ -404,7 +411,7 @@ Built with **WXT + TypeScript + React + Tailwind CSS v4**, using the browser's b
 npm install
 npm run mock     # offline playground at http://localhost:5174 — no X login needed
 npm run dev      # dev build with HMR, then open https://x.com/home
-npm run test     # 133 unit tests
+npm run test     # 156 unit tests
 npm run build    # → .output/chrome-mv3
 ```
 
