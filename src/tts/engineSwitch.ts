@@ -20,15 +20,27 @@ export class TtsEngineSwitch implements TtsProvider {
 
   private degraded = false;
   private lastEngine: TtsEngine | null = null;
+  /**
+   * 子引擎最近一次上报的具体错误。
+   *
+   * 必须有这个：子引擎先报「API Key 无效」，如果降级时再用一句通用的
+   * 「云语音不可用」盖掉，用户就只能自己去猜是凭据、授权还是余额的问题 ——
+   * 那正是我们要避免的。
+   */
+  private lastChildError: { message: string; hint?: string } | null = null;
 
   constructor(
     private readonly system: TtsProvider,
     private readonly cloud: TtsProvider,
     private readonly getEngine: () => TtsEngine,
   ) {
-    const forward = (message: string, hint?: string) => this.onError?.(message, hint);
-    // 子引擎的错误都往上抛，UI 只需要订阅这一个
-    (this.cloud as { onError?: typeof forward }).onError = forward;
+    // 子引擎的错误先记下来，等降级时把具体原因一起带上
+    (this.cloud as { onError?: (message: string, hint?: string) => void }).onError = (
+      message,
+      hint,
+    ) => {
+      this.lastChildError = { message, hint };
+    };
   }
 
   /** 当前是不是已经因为失败降级到系统引擎 */
@@ -84,10 +96,17 @@ export class TtsEngineSwitch implements TtsProvider {
       !opts.signal?.aborted
     ) {
       this.degraded = true;
+
+      // 把子引擎报的具体原因带出来，而不是用一句通用文案盖掉它
+      const detail = this.lastChildError;
+      this.lastChildError = null;
       this.onError?.(
-        '云语音不可用，已临时切回系统语音',
-        '到选项页检查 API Key、域名授权和余额',
+        detail
+          ? `${detail.message}（已临时切回系统语音）`
+          : '云语音不可用，已临时切回系统语音',
+        detail?.hint ?? '到选项页检查凭据、域名授权和余额',
       );
+
       return this.system.speak(text, opts);
     }
 

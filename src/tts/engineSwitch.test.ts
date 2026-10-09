@@ -92,7 +92,26 @@ describe('TtsEngineSwitch', () => {
     expect(system.speakCalls).toEqual(['一', '二', '三']);
   });
 
-  it('降级时把原因报给上层', async () => {
+  it('降级时把子引擎报的具体原因带出来，而不是用通用文案盖掉', async () => {
+    const { switcher, cloud } = makeSwitch('cloud');
+    cloud.outcome = 'error';
+    // 子引擎先报了具体原因（真实场景里是「API Key 无效」这类）
+    (cloud as unknown as { onError?: (m: string, h?: string) => void }).onError?.(
+      '豆包语音 还没有配置凭据',
+      '到扩展的选项页填写',
+    );
+    const onError = vi.fn();
+    switcher.onError = onError;
+
+    await switcher.speak('一', OPTS);
+
+    expect(onError).toHaveBeenCalledWith(
+      expect.stringContaining('还没有配置凭据'),
+      '到扩展的选项页填写',
+    );
+  });
+
+  it('子引擎没报原因时才退回通用文案', async () => {
     const { switcher, cloud } = makeSwitch('cloud');
     cloud.outcome = 'error';
     const onError = vi.fn();
@@ -101,8 +120,8 @@ describe('TtsEngineSwitch', () => {
     await switcher.speak('一', OPTS);
 
     expect(onError).toHaveBeenCalledWith(
-      expect.stringContaining('云语音'),
-      expect.stringContaining('API Key'),
+      expect.stringContaining('云语音不可用'),
+      expect.any(String),
     );
   });
 
