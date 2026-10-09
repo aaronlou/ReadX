@@ -27,6 +27,8 @@ export interface ReadXSettings {
    *   与帖子的语言相同时不翻译，直接读原文。
    */
   readingLang: string;
+  /** 是否已经看过首次使用引导（看过之后不再显示） */
+  hasSeenIntro: boolean;
 }
 
 export const DEFAULT_SETTINGS: ReadXSettings = {
@@ -40,6 +42,7 @@ export const DEFAULT_SETTINGS: ReadXSettings = {
   skipMediaOnly: true,
   voiceOverrides: {},
   readingLang: 'auto',
+  hasSeenIntro: false,
 };
 
 export const settingsItem = storage.defineItem<ReadXSettings>('sync:settings', {

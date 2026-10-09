@@ -59,10 +59,18 @@ export function Overlay({
     };
   }, [reader]);
 
-  // 高亮框跟随当前帖子的位置。用 rAF 轮询而不是监听 scroll，
-  // 因为 X 会频繁改动布局，scroll 事件不足以覆盖所有变化。
+  /**
+   * 高亮框跟随当前帖子的位置。
+   *
+   * 用 rAF 轮询而不是监听 scroll —— X 会频繁改动布局，scroll 事件覆盖不全。
+   *
+   * ⚠️ 但**只在有当前帖子时**才转这个循环。早先的写法是无条件常驻 rAF，
+   * 意味着用户在任何一个 x.com 页面（哪怕从没点过播放）都会每 16ms 醒一次，
+   * 浏览器永远进不了空闲状态 —— 长开的标签页上是实打实的耗电。
+   */
   useEffect(() => {
     let raf = 0;
+
     const tick = () => {
       const el = reader.currentPost;
       const rect = el && el.isConnected ? el.getBoundingClientRect() : null;
@@ -71,16 +79,30 @@ export function Overlay({
         : '';
       if (key !== lastBoxKey.current) {
         lastBoxKey.current = key;
-        setBox(
-          rect
-            ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height }
-            : null,
-        );
+        setBox(rect ? { top: rect.top, left: rect.left, width: rect.width, height: rect.height } : null);
       }
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+
+    const start = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(tick);
+    };
+    const stop = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      lastBoxKey.current = '';
+      setBox(null);
+    };
+
+    // 朗读器用 onFocusPost 通知"当前在读哪一条"，据此起停
+    reader.onFocusPost = (post) => (post ? start() : stop());
+    if (reader.currentPost) start();
+
+    return () => {
+      stop();
+      if (reader.onFocusPost) reader.onFocusPost = null;
+    };
   }, [reader]);
 
   useEffect(
@@ -97,6 +119,16 @@ export function Overlay({
     void patchSettings(patch);
   };
 
+  // 用户一旦真的开始朗读，就认为引导已经达成目的了 —— 不必再让他手动关掉
+  useEffect(() => {
+    if (snap.state === 'speaking' && !settings.hasSeenIntro) {
+      update({ hasSeenIntro: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snap.state]);
+
+  const showIntro = !settings.hasSeenIntro;
+
   const active = snap.state === 'speaking' || snap.state === 'paused';
   const progress =
     snap.sentenceCount > 0 ? `${snap.sentenceIndex + 1}/${snap.sentenceCount}` : '';
@@ -110,8 +142,10 @@ export function Overlay({
         />
       )}
 
-      <div className="pointer-events-auto absolute bottom-5 left-1/2 -translate-x-1/2">
-        <div className="w-[min(680px,calc(100vw-2rem))] rounded-2xl border border-white/10 bg-slate-900/95 px-4 py-3 text-slate-100 shadow-2xl backdrop-blur">
+      <div className="pointer-events-auto absolute bottom-5 left-1/2 flex w-[min(680px,calc(100vw-2rem))] -translate-x-1/2 flex-col gap-2">
+        {showIntro && <IntroCard onDismiss={() => update({ hasSeenIntro: true })} />}
+
+        <div className="rounded-2xl border border-white/10 bg-slate-900/95 px-4 py-3 text-slate-100 shadow-2xl backdrop-blur">
           {/* 第一行：状态 + 控制按钮 */}
           <div className="flex items-center gap-3">
             <span className={`size-2.5 shrink-0 rounded-full ${STATE_DOT[snap.state]}`} />
@@ -302,6 +336,7 @@ function IconButton({
     <button
       type="button"
       title={title}
+      aria-label={title}
       onClick={onClick}
       className={[
         'grid size-7 cursor-pointer place-items-center rounded-lg text-xs transition-colors',
@@ -312,5 +347,38 @@ function IconButton({
     >
       {children}
     </button>
+  );
+}
+
+/**
+ * 首次使用引导。
+ *
+ * 不做独立的欢迎页 —— 用户装上扩展之后本来就会去 x.com，
+ * 在真正需要它的地方出现一次最自然。点 ▶ 或点「知道了」都会永久关闭。
+ */
+function IntroCard({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <div className="rounded-2xl border border-emerald-400/30 bg-slate-900/95 px-4 py-3 text-slate-100 shadow-2xl backdrop-blur">
+      <div className="flex items-start gap-3">
+        <span className="text-base leading-none">👋</span>
+        <div className="min-w-0 flex-1 text-xs leading-relaxed text-slate-300">
+          <p className="font-semibold text-slate-100">ReadX 已就绪</p>
+          <p className="mt-1">
+            点 <span className="font-semibold text-emerald-400">▶</span> 开始朗读，
+            它会自动滚到下一条帖子。你自己滚动时它会立刻让位。
+          </p>
+          <p className="mt-1">
+            想听中文？把下面的「朗读语言」设成中文，外语帖子会先翻译再朗读。
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="shrink-0 cursor-pointer rounded-lg bg-white/10 px-2.5 py-1 text-[11px] text-slate-300 transition-colors hover:bg-white/20"
+        >
+          知道了
+        </button>
+      </div>
+    </div>
   );
 }

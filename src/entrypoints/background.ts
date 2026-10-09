@@ -76,11 +76,7 @@ async function probeAllTabs(): Promise<TabProbeResult[]> {
         } satisfies RuntimeMessage)) as ProbePageContextsResponse | undefined;
 
         if (response?.isolated) {
-          results.push({
-            tabId: tab.id,
-            isolated: response.isolated,
-            mainWorld: response.mainWorld ?? null,
-          });
+          results.push({ tabId: tab.id, isolated: response.isolated });
         }
       } catch {
         // 这个标签页没有内容脚本（不是 x.com / mock 页面），跳过

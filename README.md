@@ -137,13 +137,17 @@ npm run mock
 | 首次下载 en→zh 语言包 | **12.2 秒**，136 次 `downloadprogress` 事件（约 11 次/秒，进度条很顺） |
 | 翻译质量 | 可用（"获得创业想法的最好方法是不要考虑创业的想法。它是寻找问题，最好是你自己遇到的问题。"） |
 
-**三种 JS 上下文的可见性**（扩展「能力检测」页实测）：
+**各个 JS 上下文的可见性**（扩展「能力检测」页实测）：
 
 | 上下文 | `Translator` | 结论 |
 | --- | --- | --- |
 | 扩展页面（选项页） | `function` | 也能在设置页预下载语言包 |
-| **内容脚本 isolated world** | **`function`** | ✅ **翻译直接写在 content script 里，不需要 MAIN world 桥接** |
-| 页面 MAIN world | `function` | 作为退路存在（`main-world-probe.content.ts`） |
+| **内容脚本 isolated world** | **`function`** | ✅ **翻译直接写在 content script 里** |
+
+当时还测了页面的 MAIN world（同样是 `function`），作为「万一 isolated world 拿不到」的退路。
+既然这个退路用不上，**MAIN world 脚本和事件桥已经从生产包里删掉了** ——
+往 x.com 注入 MAIN world 脚本是没必要的信任面，而且是纯粹的死代码。
+需要复查这段历史时：`git show be2d8eb:src/entrypoints/main-world-probe.content.ts`。
 
 ⚠️ 同一份数据里 **`LanguageDetector.availability() = unavailable`** —— 这个 API 要么模型已就绪要么直接不可用，
 **没有 `downloadable` 中间态**（另一台 profile 上它曾显示 `available`）。
@@ -169,22 +173,24 @@ npm run mock
 
 点插件图标 → 「能力检测」，或 `chrome://extensions` → ReadX → 扩展选项。
 
-回答的问题：**API 在内容脚本的 isolated world 里到底可不可见。**
-这决定翻译功能放在哪一层 —— 内置 AI API 挂在 `window` 上，而内容脚本跑在另一个 JS realm，两者并不共享。它会同时报告：
+回答的问题：**内置 AI 在内容脚本的 realm 里到底可不可见。**
+内置 AI API 挂在 `window` 上，而内容脚本跑在 isolated world —— 那是另一个 JS realm，两者并不共享。
+它会同时报告：
 
 | 上下文 | 意义 |
 | --- | --- |
 | 扩展页面（选项页） | 能否在设置页里预下载语言包 |
 | **内容脚本 isolated world** | **我们的代码真正运行的地方，最关键** |
-| 页面 MAIN world | 万一 isolated world 不可用，这是退路 |
 
-结论怎么用：
+> 早先这里还报告页面的 MAIN world（作为 isolated world 不可用时的退路）。
+> 实测证明 isolated world 直接可用，所以那条路径连同 MAIN world 脚本一起删除了。
 
-- **isolated world 可用** → 翻译直接写在 content script 里，架构最简单
-- **只有 MAIN world 可用** → 把翻译放进 `main-world-probe.content.ts` 那一层，用 DOM 事件桥回内容脚本（代价：拿不到 `chrome.*`）
-- **两边都不可用** → 本机不支持，走云翻译或降级读原文
+它给出的结论只有两种：
 
-`chrome://on-device-internals` 可以看到 Chrome 自己关于模型下载和硬件判定的详情。
+- **可用** → 翻译直接用设备端模型，免费离线
+- **不可用**（Chrome < 138 / 硬件不达标） → 自动降级为只朗读原文，并说明原因
+
+`chrome://on-device-translation-internals` 可以看到 Chrome 自己关于语言包下载和硬件判定的详情。
 
 ---
 
@@ -210,13 +216,11 @@ src/
 │   ├── content/
 │   │   ├── index.tsx          # 内容脚本入口：装配 + 生命周期
 │   │   └── Overlay.tsx        # 悬浮控制条 + 高亮框（Shadow DOM 隔离）
-│   ├── main-world-probe.content.ts  # ⭐ 跑在页面 MAIN world，探测内置 AI 可见性
-│   ├── options/               # 完整设置 + 能力检测页
+│   ├── options/               # 完整设置 + 翻译能力检测页
 │   └── popup/                 # 快捷控制面板
-├── diagnostics/               # Chrome 内置 AI 能力探测（翻译方案的前置调研）
+├── diagnostics/               # Chrome 内置 AI 能力探测
 │   ├── probe.ts               # 探测 Translator / LanguageDetector 在当前 realm 的可见性
-│   ├── pageProbe.ts           # isolated world + MAIN world 双 realm 探测
-│   └── events.ts              # 跨 world 的 DOM 事件名
+│   └── pageProbe.ts           # 在内容脚本 realm 里探测一次
 ├── translate/                 # 翻译层
 │   ├── provider.ts            # 引擎接口（为了以后接 LLM / 云 MT）
 │   ├── chromeTranslator.ts    # Chrome 设备端翻译实现
@@ -327,14 +331,28 @@ X 是 React 管理的，往里插节点随时会被重渲染冲掉。
 
 ---
 
+## 发布到 Chrome Web Store
+
+**代码层已经审计并清理完毕**：零远程代码、权限最小、无 MAIN world 注入、空闲不耗电、82 个测试。
+
+**但还不能提交**，主要差两件事：
+
+1. ⛔ **图标还是 WXT 的默认图标**（绿色拼图块），必须换成自己的设计
+2. ⛔ **从没在真实的 x.com 上验证过** —— 开发期间所有测试都跑在 mock 页面上
+
+完整的检查清单、商店表单要填什么、隐私声明要点、权限用途说明，
+见 **[PUBLISHING.md](PUBLISHING.md)**。
+
+---
+
 ## 下一步（P2+）
 
 - [x] **机器可用性已验证**：设备端翻译可用，且内容脚本的 isolated world 里 `Translator` 可见
 - [x] `translationProvider` 接口 + `readingLang` 设置 + 语言包下载进度 UI
 - [x] **翻译预取**：朗读第 N 条时就把后面 2 条翻好，否则每条之间都会卡一次翻译延迟
 - [x] 翻译结果缓存：按原文去重，转推和重复帖不会重翻
+- [ ] **在真实 x.com 上验证**（见 [PUBLISHING.md](PUBLISHING.md)）—— 上线前唯一可能推翻一切的风险
 - [ ] `LlmTranslateProvider`：自备 Key，社媒文本（俚语 / 反讽 / 梗）的译文质量明显更好
-- [ ] 预取队列显式化（当前是逐条推进，靠 X 自身加载速度）
 - [ ] 逐词高亮（`onboundary` 已在回传，需要渲染到浮层上）
 - [ ] 跳过规则细化：转推 / 回复 / 指定关键词 / 指定用户
 - [ ] 云 TTS 引擎（Azure / OpenAI / ElevenLabs）——`TtsProvider` 接口已经留好

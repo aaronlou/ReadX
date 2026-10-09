@@ -4,22 +4,16 @@ import { probeBuiltInAi } from '@/diagnostics/probe';
 import type { AiProbeReport, TabProbeResult } from '@/types';
 
 /**
- * 能力检测页。
+ * 使用说明 + 翻译能力检测。
  *
- * 存在的唯一理由：Chrome 内置 AI（Translator / LanguageDetector）挂在 `window` 上，
- * 而扩展的内容脚本跑在 isolated world —— 那是另一个 JS realm，API 是否可见没有保证。
- * 翻译功能放在哪一层，完全由这个页面的结论决定。
- *
- * 三种上下文都测：
- *   1. 扩展页面（本页）      —— 能不能在设置页里预下载语言包
- *   2. isolated world        —— 我们的内容脚本真正运行的地方（**最关键**）
- *   3. MAIN world            —— 万一 (2) 不行，这是退路
+ * 为什么两件事放在一起：这是个扩展，用户很少主动打开一个"设置页"，
+ * 通常是因为**遇到了问题**（比如"我选了中文怎么还在读英文"）才会来。
+ * 所以第一屏应该先讲怎么用，往下才是排查工具。
  */
 
 const CONTEXT_LABEL: Record<AiProbeReport['context'], string> = {
   'extension-page': '扩展页面（本页）',
-  'isolated-world': '内容脚本 isolated world',
-  'main-world': '页面 MAIN world',
+  'isolated-world': '内容脚本',
 };
 
 export default function App() {
@@ -47,36 +41,48 @@ export default function App() {
     }
   }, []);
 
-  const isolated = tabs?.[0]?.isolated ?? null;
-  const mainWorld = tabs?.[0]?.mainWorld ?? null;
-
   const copyReport = useCallback(async () => {
-    const payload = {
-      extensionPage: selfReport,
-      tabs: tabs ?? '未检测',
-    };
-    await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+    await navigator.clipboard.writeText(
+      JSON.stringify({ extensionPage: selfReport, tabs: tabs ?? '未检测' }, null, 2),
+    );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [selfReport, tabs]);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-      <h1 className="text-xl font-bold">ReadX 能力检测</h1>
+      <h1 className="text-xl font-bold">ReadX</h1>
       <p className="mt-1 text-sm text-slate-400">
-        用来确认 Chrome 内置的设备端翻译 API（Translator）在这三种 JS 上下文里到底能不能用。
-        结论直接决定翻译功能放在哪一层。
+        用耳朵刷 X：自动滚动定位到下一条帖子，按它的语言朗读，需要时先翻译。
       </p>
 
-      <Verdict selfReport={selfReport} isolated={isolated} tabs={tabs} />
-
-      <Section title="1. 扩展页面（本页）" hint="自动检测，用于判断能否在设置页里预下载语言包">
-        {selfReport ? <ReportTable reports={[selfReport]} /> : <Loading />}
+      <Section title="怎么用" hint="">
+        <ol className="list-decimal space-y-2 pl-5 text-sm text-slate-300">
+          <li>
+            打开 <Code>x.com</Code>，页面右下角会出现一条控制条。
+          </li>
+          <li>
+            点 <Code>▶</Code> 开始朗读（快捷键 <Code>Alt+Shift+P</Code>）。
+            它会自己滚动到下一条帖子 —— 你一旦自己滚动，它就让位并跟着你的位置继续。
+          </li>
+          <li>
+            想听中文？在控制条或插件弹窗里把「<b className="text-slate-200">朗读语言</b>」设成中文。
+            外语帖子会先翻译再朗读；<b className="text-slate-200">帖子本来就是中文时直接读原文</b>，不做无谓翻译。
+          </li>
+          <li>
+            首次选择某个语言时，需要下载一次语言包（十几秒，只需一次）。
+            控制条上会出现下载按钮和进度条 —— Chrome 要求这一步必须由你亲手点击触发。
+          </li>
+          <li>
+            没有声音？先确认系统装了对应语种的语音包
+            （macOS：系统设置 → 辅助功能 → 朗读内容 → 系统声音）。
+          </li>
+        </ol>
       </Section>
 
       <Section
-        title="2. 页面上下文（isolated world / MAIN world）"
-        hint="需要先在浏览器里打开 x.com 或 npm run mock 的页面，否则收不到报告"
+        title="翻译能力检测"
+        hint="翻译走的是 Chrome 内置的设备端模型 —— 免费、离线、内容不出本机。这里可以确认它在你机器上能不能用。"
       >
         <div className="mb-3 flex items-center gap-3">
           <button
@@ -85,24 +91,24 @@ export default function App() {
             disabled={probing}
             className="cursor-pointer rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
           >
-            {probing ? '检测中…' : '检测已打开的页面'}
+            {probing ? '检测中…' : '检测'}
           </button>
           <button
             type="button"
             onClick={() => void copyReport()}
             className="cursor-pointer rounded-lg bg-white/10 px-3 py-2 text-sm text-slate-200 transition-colors hover:bg-white/20"
           >
-            {copied ? '已复制 ✓' : '复制完整报告'}
+            {copied ? '已复制 ✓' : '复制报告'}
           </button>
         </div>
 
         {tabs === null ? (
-          <p className="text-sm text-slate-500">还没检测。点上面的按钮。</p>
+          <p className="text-sm text-slate-500">
+            点「检测」会同时检查扩展页面和已打开的页面。
+          </p>
         ) : tabs.length === 0 ? (
           <p className="text-sm text-amber-400">
-            没有找到装了内容脚本的标签页。请先打开 <code className="text-slate-300">x.com</code>{' '}
-            或者运行 <code className="text-slate-300">npm run mock</code> 后打开{' '}
-            <code className="text-slate-300">http://localhost:5174</code>，再回来点检测。
+            没找到装了内容脚本的标签页。请先打开 <Code>x.com</Code> 再回来点检测。
           </p>
         ) : (
           tabs.map((tab) => (
@@ -111,65 +117,125 @@ export default function App() {
                 标签页 #{tab.tabId} · {tab.isolated?.url ?? '(未知地址)'}
               </p>
               <ReportTable
-                reports={[tab.isolated, tab.mainWorld].filter(Boolean) as AiProbeReport[]}
+                reports={[selfReport, tab.isolated].filter(Boolean) as AiProbeReport[]}
               />
             </div>
           ))
         )}
+
+        {tabs !== null && tabs.length > 0 && <Verdict isolated={tabs[0]?.isolated ?? null} />}
       </Section>
 
-      <Section title="3. 怎么解读" hint="">
+      <Section title="结果怎么解读" hint="">
         <ul className="list-disc space-y-1.5 pl-5 text-sm text-slate-400">
           <li>
-            <b className="text-slate-200">isolated world 里是 function</b> → 最理想。翻译直接写在
-            content script 里，不需要任何桥接。
+            <Code>Translator</Code> 是 <Code>function</Code> → 你的浏览器支持设备端翻译。
           </li>
           <li>
-            <b className="text-slate-200">isolated world 是 undefined，但 MAIN world 是 function</b>{' '}
-            → 退路明确：把翻译放进 MAIN world 脚本，用 DOM 事件桥回内容脚本
-            （`main-world-probe.content.ts` 已经是这个桥的雏形）。代价是 MAIN world 拿不到{' '}
-            <code className="text-slate-300">chrome.*</code>。
+            <Code>availability</Code> 是 <Code>available</Code> → 语言包已就绪；
+            是 <Code>downloadable</Code> → 还没下载，在页面上点一次「下载」即可。
           </li>
           <li>
-            <b className="text-slate-200">两边都是 undefined</b> → 本机 Chrome 不暴露这个 API（版本
-            &lt; 138 或非桌面版）。只能走云翻译，或降级为读原文。
-          </li>
-          <li>
-            <code className="text-slate-300">availability</code> 返回{' '}
-            <code className="text-slate-300">unavailable</code> → API 在但硬件不达标（官方门槛：
-            16GB 内存 / 22GB 空闲磁盘 / 4 核以上）。
+            是 <Code>unavailable</Code> 或 <Code>Translator</Code> 为 <Code>undefined</Code> →
+            本机用不了设备端翻译，ReadX 会<b className="text-slate-200">自动降级为只朗读不翻译</b>。
           </li>
         </ul>
       </Section>
 
-      <Section
-        title="4. 如果「准备语言包」一直卡在下载中"
-        hint="内置翻译模型和 Gemini Nano 是两套东西，需要单独确认"
-      >
+      <Section title="如果「下载语言包」一直卡住" hint="">
         <ol className="list-decimal space-y-2.5 pl-5 text-sm text-slate-400">
           <li>
-            确认实验性翻译 API 已启用：新标签页打开 <ChromeUrl value="chrome://flags/#translation-api" />
-            ，把「Experimental translation API」设为 <b className="text-slate-200">Enabled</b> 后重启
-            Chrome。若找不到这个条目，说明该特性已转正，跳过即可。
-          </li>
-          <li>
-            直接看语言包装没装：新标签页打开{' '}
-            <ChromeUrl value="chrome://on-device-translation-internals" />
-            ，这个页面会列出所有语言包、支持手动下载，并显示下载失败的原因。
-            翻译需要源语言和目标语言<b className="text-slate-200">两个包都装</b>（例如 en 和 zh）。
+            新标签页打开 <ChromeUrl value="chrome://on-device-translation-internals" />
+            ，这里会列出所有语言包、支持手动下载，并显示下载失败的原因。
+            翻译需要源语言和目标语言<b className="text-slate-200">两个包都装</b>。
             <br />
             <span className="text-slate-500">
               如果这个页面打不开或没有内容，说明这台机器/这个版本根本不支持内置翻译。
             </span>
           </li>
           <li>
-            顺带看一眼组件状态：<ChromeUrl value="chrome://components" />
+            打开 <ChromeUrl value="chrome://components" />
             ，找与 Translation / Optimization Guide 相关的条目点「检查是否有更新」。
-            版本停在 <code className="text-slate-300">0.0.0.0</code> 就是组件压根没下发。
+            版本停在 <Code>0.0.0.0</Code> 就是组件压根没下发。
+          </li>
+          <li>
+            确认 Chrome 是 138+ 的桌面版。低于这个版本没有内置翻译，
+            ReadX 会退化为只朗读原文。
           </li>
         </ol>
       </Section>
+
+      <p className="mt-10 text-xs text-slate-600">
+        ReadX 不是 X Corp 的官方产品，与 X Corp 无关联。朗读与翻译都在你的设备上完成，
+        不会上传任何内容。
+      </p>
     </div>
+  );
+}
+
+function Verdict({ isolated }: { isolated: AiProbeReport | null }) {
+  if (!isolated) return null;
+
+  const supported = isolated.globals.Translator === 'function';
+  const usable = ['available', 'downloadable', 'downloading'].includes(
+    isolated.translatorAvailability,
+  );
+
+  if (supported && usable) {
+    return (
+      <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300">
+        <b>可以用设备端翻译。</b>
+        {isolated.translatorAvailability === 'available'
+          ? '语言包已就绪。'
+          : '首次使用时在页面上点一下「下载」即可（只需一次）。'}
+      </div>
+    );
+  }
+
+  if (supported) {
+    return (
+      <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
+        <b>API 在，但本机当前不可用（{isolated.translatorAvailability}）。</b>
+        大概率是硬件没达到官方门槛（16GB 内存 / 22GB 空闲磁盘 / 4 核以上）。
+        ReadX 会自动降级为只朗读原文。
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 rounded-xl border border-slate-500/30 bg-slate-500/10 p-4 text-sm text-slate-300">
+      <b>这个浏览器不提供设备端翻译。</b>
+      {isolated.chromeVersion && Number(isolated.chromeVersion) < 138 && (
+        <> 当前 Chrome {isolated.chromeVersion}，内置翻译需要 138+ 桌面版。</>
+      )}{' '}
+      朗读功能不受影响，只是不会自动翻译。
+    </div>
+  );
+}
+
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mt-8">
+      <h2 className="text-sm font-semibold text-slate-300">{title}</h2>
+      {hint && <p className="mb-2 mt-0.5 text-xs text-slate-500">{hint}</p>}
+      <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/60 p-4">{children}</div>
+    </section>
+  );
+}
+
+function Code({ children }: { children: React.ReactNode }) {
+  return (
+    <code className="rounded bg-slate-950 px-1.5 py-0.5 font-mono text-xs text-slate-300">
+      {children}
+    </code>
   );
 }
 
@@ -197,109 +263,13 @@ function ChromeUrl({ value }: { value: string }) {
   );
 }
 
-function Verdict({
-  selfReport,
-  isolated,
-  tabs,
-}: {
-  selfReport: AiProbeReport | null;
-  isolated: AiProbeReport | null;
-  tabs: TabProbeResult[] | null;
-}) {
-  if (tabs === null) {
-    return (
-      <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-400">
-        点下面的「检测已打开的页面」，我会同时看扩展页面和页面里的两个 JS realm，然后给结论。
-      </div>
-    );
-  }
-  if (tabs.length === 0) {
-    return (
-      <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
-        <b>缺页面上下文。</b> 请先打开 x.com 或本地 mock 页面，再回来点检测 —— 只有页面上才有内容脚本。
-      </div>
-    );
-  }
-
-  const isolatedOk = isolated?.globals.Translator === 'function';
-  const mainOk = tabs[0]?.mainWorld?.globals.Translator === 'function';
-  const isolatedAvail = isolated?.translatorAvailability;
-  const usable = ['available', 'downloadable', 'downloading'];
-
-  if (isolatedOk && usable.includes(isolatedAvail ?? '')) {
-    return (
-      <div className="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300">
-        <b>结论：可以，而且是最省事的架构。</b> 内容脚本的 isolated world 里{' '}
-        <code>Translator</code> 可用，状态 <code>{isolatedAvail}</code>。
-        翻译直接写在 content script 里即可，不需要 MAIN world 桥接。
-        {isolatedAvail !== 'available' && '（首次使用需要用户手势触发语言包下载）'}
-      </div>
-    );
-  }
-
-  if (!isolatedOk && mainOk) {
-    return (
-      <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
-        <b>结论：API 存在，但内容脚本看不到。</b> MAIN world 里有、isolated world 里没有 ——
-        这是个明确的架构信号：翻译要放进 MAIN world 脚本，再用 DOM 事件桥回内容脚本。
-        代价是那个脚本拿不到任何 <code>chrome.*</code> API。
-      </div>
-    );
-  }
-
-  if (isolatedOk && !usable.includes(isolatedAvail ?? '')) {
-    return (
-      <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
-        <b>结论：API 在，但本机不可用。</b> 状态是 <code>{isolatedAvail}</code>。
-        大概率是硬件没到官方门槛。需要接云翻译，或降级为读原文。
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-300">
-      <b>结论：这个浏览器不暴露内置 Translator API。</b>
-      {selfReport?.chromeVersion && (
-        <>
-          {' '}
-          当前 Chrome 版本 <code>{selfReport.chromeVersion}</code>
-          {Number(selfReport.chromeVersion) < 138 && '（内置 AI 需要 138+ 桌面版）'}。
-        </>
-      )}{' '}
-      ReadX 只能走云翻译（自备 Key），或者降级为按原文朗读。
-    </div>
-  );
-}
-
-function Section({
-  title,
-  hint,
-  children,
-}: {
-  title: string;
-  hint: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mt-8">
-      <h2 className="text-sm font-semibold text-slate-300">{title}</h2>
-      {hint && <p className="mb-2 mt-0.5 text-xs text-slate-500">{hint}</p>}
-      <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/60 p-4">{children}</div>
-    </section>
-  );
-}
-
-function Loading() {
-  return <p className="text-sm text-slate-500">检测中…</p>;
-}
-
 function ReportTable({ reports }: { reports: AiProbeReport[] }) {
   const rows: Array<[string, (r: AiProbeReport) => string]> = [
+    ['Chrome 版本', (r) => r.chromeVersion],
     ['Translator', (r) => r.globals.Translator ?? '?'],
+    ['availability', (r) => r.translatorAvailability],
     ['LanguageDetector', (r) => r.globals.LanguageDetector ?? '?'],
-    ['LanguageModel', (r) => r.globals.LanguageModel ?? '?'],
-    ['availability (en→zh)', (r) => r.translatorAvailability],
-    ['LanguageDetector availability', (r) => r.languageDetectorAvailability],
+    ['安全上下文', (r) => String(r.secureContext)],
   ];
 
   return (
@@ -339,8 +309,9 @@ function toneOf(value: string): string {
   if (value === 'undefined' || value.startsWith('抛错') || value === 'API 不存在') {
     return 'text-rose-400';
   }
-  if (value === 'unavailable') return 'text-amber-400';
-  if (['available', 'downloadable', 'downloading'].includes(value)) return 'text-emerald-400';
-  if (value === 'function' || value === 'object') return 'text-emerald-400';
+  if (value === 'unavailable' || value === 'false') return 'text-amber-400';
+  if (['available', 'downloadable', 'downloading', 'function', 'object', 'true'].includes(value)) {
+    return 'text-emerald-400';
+  }
   return 'text-slate-300';
 }

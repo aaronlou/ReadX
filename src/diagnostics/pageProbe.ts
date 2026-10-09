@@ -1,42 +1,20 @@
-import type { AiProbeReport, ProbePageContextsResponse } from '../types';
-import { MAIN_WORLD_REQUEST, MAIN_WORLD_RESPONSE } from './events';
+import type { AiProbeReport } from '../types';
 import { probeBuiltInAi } from './probe';
 
 /**
- * 在页面里探测两个 JS realm：
+ * 在页面里探测内置 AI 的可用性。
  *
- * - `isolated-world`：内容脚本自己的 realm —— 我们的代码真正运行的地方，**这个最关键**
- * - `main-world`：页面自己的 realm —— 如果 isolated world 用不了，这里是备选方案
- *   （代价：MAIN world 拿不到任何 `chrome.*` API，需要再用事件桥回内容脚本）
+ * 这里只需要探测 **内容脚本自己的 realm（isolated world）** —— 那才是我们的
+ * 翻译代码真正运行的地方。
+ *
+ * 曾经还探测过页面的 MAIN world，用来回答「万一 isolated world 拿不到
+ * `Translator` 怎么办」。这个问题已经在真实 Chrome 上验证过：拿得到。
+ * 所以 MAIN world 脚本、事件桥和这个探测分支全都被删掉了 ——
+ * 生产包不该往 x.com 注入 MAIN world 脚本，那是没必要的信任面。
+ *
+ * 如果将来要复查这个结论，可以从 git 历史里取回那段实现：
+ *   git show be2d8eb:src/entrypoints/main-world-probe.content.ts
  */
-export async function probePageContexts(): Promise<ProbePageContextsResponse> {
-  const isolated = await probeBuiltInAi('isolated-world');
-  const mainWorld = await requestMainWorldProbe();
-  return { isolated, mainWorld };
-}
-
-/** 通过 DOM 事件请 MAIN world 脚本帮我们探测一次 */
-function requestMainWorldProbe(timeout = 2000): Promise<AiProbeReport | null> {
-  return new Promise((resolve) => {
-    let settled = false;
-    const finish = (report: AiProbeReport | null) => {
-      if (settled) return;
-      settled = true;
-      window.removeEventListener(MAIN_WORLD_RESPONSE, onResponse);
-      resolve(report);
-    };
-
-    const onResponse = (event: Event) => {
-      try {
-        finish(JSON.parse(String((event as CustomEvent<string>).detail)) as AiProbeReport);
-      } catch {
-        finish(null);
-      }
-    };
-
-    window.addEventListener(MAIN_WORLD_RESPONSE, onResponse);
-    // 页面可能没装 MAIN world 脚本（比如在非 X 域名上），不能无限等
-    setTimeout(() => finish(null), timeout);
-    window.dispatchEvent(new CustomEvent(MAIN_WORLD_REQUEST));
-  });
+export function probePageContext(): Promise<AiProbeReport> {
+  return probeBuiltInAi('isolated-world');
 }

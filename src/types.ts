@@ -61,8 +61,14 @@ export type ReaderCommand = 'toggle' | 'next' | 'prev' | 'stop';
 
 // ---------------------------------------------------------------- 能力探测
 
-/** 探测发生在哪个 JS realm */
-export type ProbeContext = 'main-world' | 'isolated-world' | 'extension-page';
+/**
+ * 探测发生在哪个 JS realm。
+ *
+ * 曾经还有 `'main-world'`（页面的 realm）。它当初用来回答「万一内容脚本的
+ * isolated world 拿不到内置 AI 怎么办」，这个问题已经有答案了，那条探测路径
+ * 连同 MAIN world 脚本一起删掉了。
+ */
+export type ProbeContext = 'isolated-world' | 'extension-page';
 
 export interface AiProbeReport {
   context: ProbeContext;
@@ -76,15 +82,14 @@ export interface AiProbeReport {
   at: string;
 }
 
+/** 内容脚本所在 realm 的探测报告 */
 export interface ProbePageContextsResponse {
   isolated: AiProbeReport;
-  mainWorld: AiProbeReport | null;
 }
 
 export interface TabProbeResult {
   tabId: number;
   isolated: AiProbeReport | null;
-  mainWorld: AiProbeReport | null;
 }
 
 // ---------------------------------------------------------------- 消息协议

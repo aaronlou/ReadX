@@ -35,7 +35,8 @@ export default defineConfig({
 
   manifest: (env) => ({
     name: 'ReadX',
-    description: '自动滚动定位 X 帖子，并按帖子语言自动选择音色朗读。',
+    // Chrome 对 manifest description 有 132 字符上限；商店里的长描述另填
+    description: '用耳朵刷 X：自动滚到下一条帖子并按语言朗读，可指定朗读语言并自动翻译。',
     permissions: ['storage'],
     host_permissions: env.mode === 'development' ? DEV_MATCHES : X_MATCHES,
     commands: {

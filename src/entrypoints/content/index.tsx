@@ -1,7 +1,7 @@
 import ReactDOM from 'react-dom/client';
 import { browser, createShadowRootUi, defineContentScript } from '#imports';
 import { Reader } from '@/core/reader';
-import { probePageContexts } from '@/diagnostics/pageProbe';
+import { probePageContext } from '@/diagnostics/pageProbe';
 import { DEV_MATCHES, X_MATCHES } from '@/matches';
 import { getSettings, watchSettings } from '@/settings';
 import { ChromeTranslatorProvider } from '@/translate/chromeTranslator';
@@ -55,9 +55,9 @@ export default defineContentScript({
           sendResponse({ ok: true });
           return undefined;
         }
-        // 诊断页要求探测 isolated world / MAIN world 里内置 AI 的可见性
+        // 诊断页要求探测内容脚本 realm 里内置 AI 的可见性
         if (message?.type === 'readx:probe-page-contexts') {
-          void probePageContexts().then(sendResponse);
+          void probePageContext().then((isolated) => sendResponse({ isolated }));
           return true; // 异步响应
         }
         return undefined;

@@ -34,9 +34,9 @@ describe('probeBuiltInAi', () => {
       availability: async () => 'available',
     };
 
-    const report = await probeBuiltInAi('main-world');
+    const report = await probeBuiltInAi('extension-page');
 
-    expect(report.context).toBe('main-world');
+    expect(report.context).toBe('extension-page');
     expect(report.globals.Translator).toBe('object');
     expect(report.translatorAvailability).toBe('downloadable');
     expect(report.languageDetectorAvailability).toBe('available');
