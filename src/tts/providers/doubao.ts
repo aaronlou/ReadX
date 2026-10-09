@@ -48,13 +48,13 @@ const VOICES: ProviderVoice[] = [
   { id: 'zh_male_yizhipiannan_uranus_bigtts', name: '译制片男', lang: 'zh' },
   { id: 'zh_female_tvbnv_uranus_bigtts', name: 'TVB 女声', lang: 'zh' },
   // 有声阅读场景，念长文本比「通用」更自然
-  { id: 'zh_male_ruyaqingnian_mars_bigtts', name: '儒雅青年', lang: 'zh', note: t('provider.doubao.voiceNoteAudiobook') },
-  { id: 'zh_female_wenroushunv_mars_bigtts', name: '温柔淑女', lang: 'zh', note: t('provider.doubao.voiceNoteAudiobook') },
-  { id: 'zh_male_qingcang_mars_bigtts', name: '擎苍', lang: 'zh', note: t('provider.doubao.voiceNoteAudiobook') },
-  { id: 'zh_male_changtianyi_mars_bigtts', name: '悬疑解说', lang: 'zh', note: t('provider.doubao.voiceNoteAudiobook') },
-  { id: 'zh_female_shaoergushi_uranus_bigtts', name: '少儿故事', lang: 'zh', note: t('provider.doubao.voiceNoteAudiobook') },
-  { id: 'zh_female_liuchangnv_uranus_bigtts', name: '流畅女声', lang: 'zh', note: t('provider.doubao.voiceNoteVideoNarration') },
-  { id: 'zh_male_ruyayichen_uranus_bigtts', name: '儒雅逸辰', lang: 'zh', note: t('provider.doubao.voiceNoteVideoNarration') },
+  { id: 'zh_male_ruyaqingnian_mars_bigtts', name: '儒雅青年', lang: 'zh', note: t('provider_doubao_voiceNoteAudiobook') },
+  { id: 'zh_female_wenroushunv_mars_bigtts', name: '温柔淑女', lang: 'zh', note: t('provider_doubao_voiceNoteAudiobook') },
+  { id: 'zh_male_qingcang_mars_bigtts', name: '擎苍', lang: 'zh', note: t('provider_doubao_voiceNoteAudiobook') },
+  { id: 'zh_male_changtianyi_mars_bigtts', name: '悬疑解说', lang: 'zh', note: t('provider_doubao_voiceNoteAudiobook') },
+  { id: 'zh_female_shaoergushi_uranus_bigtts', name: '少儿故事', lang: 'zh', note: t('provider_doubao_voiceNoteAudiobook') },
+  { id: 'zh_female_liuchangnv_uranus_bigtts', name: '流畅女声', lang: 'zh', note: t('provider_doubao_voiceNoteVideoNarration') },
+  { id: 'zh_male_ruyayichen_uranus_bigtts', name: '儒雅逸辰', lang: 'zh', note: t('provider_doubao_voiceNoteVideoNarration') },
   // 英文
   { id: 'en_female_dacey_uranus_bigtts', name: 'Dacey', lang: 'en' },
   { id: 'en_male_tim_uranus_bigtts', name: 'Tim', lang: 'en' },
@@ -62,34 +62,34 @@ const VOICES: ProviderVoice[] = [
 
 export const doubaoSpec: CloudTtsSpec = {
   id: 'doubao',
-  name: t('provider.doubao.name'),
-  summary: t('provider.doubao.summary'),
+  name: t('provider_doubao_name'),
+  summary: t('provider_doubao_summary'),
   origins: [ORIGIN],
   credentials: [
     {
       key: 'apiKey',
-      label: t('provider.doubao.credApiKeyLabel'),
+      label: t('provider_doubao_credApiKeyLabel'),
       secret: true,
-      placeholder: t('provider.doubao.credApiKeyPlaceholder'),
-      help: t('provider.doubao.credApiKeyHelp'),
+      placeholder: t('provider_doubao_credApiKeyPlaceholder'),
+      help: t('provider_doubao_credApiKeyHelp'),
     },
     {
       key: 'appId',
-      label: t('provider.doubao.credAppIdLabel'),
-      placeholder: t('provider.doubao.credAppIdPlaceholder'),
-      help: t('provider.doubao.credAppIdHelp'),
+      label: t('provider_doubao_credAppIdLabel'),
+      placeholder: t('provider_doubao_credAppIdPlaceholder'),
+      help: t('provider_doubao_credAppIdHelp'),
     },
     {
       key: 'accessKey',
-      label: t('provider.doubao.credAccessKeyLabel'),
+      label: t('provider_doubao_credAccessKeyLabel'),
       secret: true,
-      placeholder: t('provider.doubao.credAccessKeyPlaceholder'),
-      help: t('provider.doubao.credAccessKeyHelp'),
+      placeholder: t('provider_doubao_credAccessKeyPlaceholder'),
+      help: t('provider_doubao_credAccessKeyHelp'),
     },
   ],
   pickerLangs: [
-    { code: 'zh', label: t('provider.doubao.langZh') },
-    { code: 'en', label: t('provider.doubao.langEn') },
+    { code: 'zh', label: t('provider_doubao_langZh') },
+    { code: 'en', label: t('provider_doubao_langEn') },
   ],
   voices: VOICES,
   defaultVoiceByLang: {
@@ -119,7 +119,7 @@ export const doubaoSpec: CloudTtsSpec = {
 
 async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeResult> {
   const text = request.text.trim();
-  if (!text) throw new CloudTtsError(t('provider.common.errEmptyText'));
+  if (!text) throw new CloudTtsError(t('provider_common_errEmptyText'));
 
   const { apiKey, appId, accessKey } = request.credentials;
   const headers: Record<string, string> = {
@@ -166,8 +166,8 @@ async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeR
       signal: request.signal ?? AbortSignal.timeout(30_000),
     });
   } catch (error) {
-    throw new CloudTtsError(t('provider.doubao.errRequestFailed', (error as Error).message), {
-      hint: t('provider.doubao.errRequestFailedHint'),
+    throw new CloudTtsError(t('provider_doubao_errRequestFailed', (error as Error).message), {
+      hint: t('provider_doubao_errRequestFailedHint'),
     });
   }
 
@@ -181,7 +181,7 @@ async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeR
   };
 
   if (!response.ok || !payload.audio) {
-    const message = payload.message || t('provider.doubao.errSynthesizeFailed', String(response.status));
+    const message = payload.message || t('provider_doubao_errSynthesizeFailed', String(response.status));
     throw new CloudTtsError(message, {
       code: payload.code ?? response.status,
       hint: hintForFailure(message, response.status),
@@ -205,12 +205,12 @@ async function synthesizeDoubao(request: SynthesizeRequest): Promise<SynthesizeR
  */
 function hintForFailure(message: string, status: number): string | undefined {
   if (/not granted|resource_id|service_type/i.test(message)) {
-    return t('provider.doubao.errResourceNotGrantedHint');
+    return t('provider_doubao_errResourceNotGrantedHint');
   }
   if (/not activated|未开通|服务未开通/i.test(message)) {
-    return t('provider.doubao.errServiceNotActivatedHint');
+    return t('provider_doubao_errServiceNotActivatedHint');
   }
-  return describeHttpFailure(status, t('provider.doubao.name'));
+  return describeHttpFailure(status, t('provider_doubao_name'));
 }
 
 function normalizeSentences(sentences?: SubtitleSentence[]): SubtitleSentence[] {

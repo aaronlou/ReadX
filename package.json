@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "mock": "node scripts/serve-mock.mjs",
-    "postinstall": "wxt prepare"
+    "postinstall": "wxt prepare",
+    "shoot": "wxt build -m screenshot && node scripts/shoot.mjs"
   },
   "dependencies": {
     "react": "^19.2.4",

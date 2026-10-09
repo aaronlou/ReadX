@@ -15,8 +15,8 @@ import type { AiProbeReport, ProbeStatus, TabProbeResult } from '@/types';
  */
 
 const CONTEXT_LABEL: Record<AiProbeReport['context'], string> = {
-  'extension-page': t('options.contextExtensionPage'),
-  'isolated-world': t('options.contextContentScript'),
+  'extension-page': t('options_contextExtensionPage'),
+  'isolated-world': t('options_contextContentScript'),
 };
 
 export default function App() {
@@ -53,7 +53,7 @@ export default function App() {
 
   const copyReport = useCallback(async () => {
     await navigator.clipboard.writeText(
-      JSON.stringify({ extensionPage: selfReport, tabs: tabs ?? t('options.notChecked') }, null, 2),
+      JSON.stringify({ extensionPage: selfReport, tabs: tabs ?? t('options_notChecked') }, null, 2),
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -63,44 +63,44 @@ export default function App() {
     <div className="mx-auto max-w-3xl px-6 py-10">
       <h1 className="text-xl font-bold">ReadX</h1>
       <p className="mt-1 text-sm text-slate-400">
-        {t('options.tagline')}
+        {t('options_tagline')}
       </p>
 
-      <Section title={t('options.howToTitle')} hint="">
+      <Section title={t('options_howToTitle')} hint="">
         <ol className="list-decimal space-y-2 pl-5 text-sm text-slate-300">
           <li>
-            {t('options.step1Open')} <Code>x.com</Code>
-            {t('options.step1Rest')}
+            {t('options_step1Open')} <Code>x.com</Code>
+            {t('options_step1Rest')}
           </li>
           <li>
-            {t('options.step2Tap')} <Code>▶</Code> {t('options.step2Start')} <Code>Alt+Shift+P</Code>
-            {t('options.step2Rest')}
+            {t('options_step2Tap')} <Code>▶</Code> {t('options_step2Start')} <Code>Alt+Shift+P</Code>
+            {t('options_step2Rest')}
           </li>
           <li>
-            {t('options.step3Intro')}
-            <b className="text-slate-200">{t('options.step3LangLabel')}</b>
-            {t('options.step3Middle')}{' '}
-            <b className="text-slate-200">{t('options.step3Bold2')}</b>
-            {t('options.step3Outro')}
+            {t('options_step3Intro')}
+            <b className="text-slate-200">{t('options_step3LangLabel')}</b>
+            {t('options_step3Middle')}{' '}
+            <b className="text-slate-200">{t('options_step3Bold2')}</b>
+            {t('options_step3Outro')}
           </li>
           <li>
-            {t('options.step4')}
+            {t('options_step4')}
           </li>
           <li>
-            {t('options.step5')}
+            {t('options_step5')}
           </li>
         </ol>
       </Section>
 
-      <Section title={t('options.voiceTitle')} hint={t('options.voiceHint')}>
+      <Section title={t('options_voiceTitle')} hint={t('options_voiceHint')}>
         {settings ? (
           <TtsSettingsPanel settings={settings} onChange={update} />
         ) : (
-          <p className="text-sm text-slate-500">{t('options.loading')}</p>
+          <p className="text-sm text-slate-500">{t('options_loading')}</p>
         )}
       </Section>
 
-      <Section title={t('options.probeTitle')} hint={t('options.probeHint')}>
+      <Section title={t('options_probeTitle')} hint={t('options_probeHint')}>
         <div className="mb-3 flex items-center gap-3">
           <button
             type="button"
@@ -108,31 +108,31 @@ export default function App() {
             disabled={probing}
             className="cursor-pointer rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-900 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
           >
-            {probing ? t('options.probing') : t('options.probe')}
+            {probing ? t('options_probing') : t('options_probe')}
           </button>
           <button
             type="button"
             onClick={() => void copyReport()}
             className="cursor-pointer rounded-lg bg-white/10 px-3 py-2 text-sm text-slate-200 transition-colors hover:bg-white/20"
           >
-            {copied ? t('options.copied') : t('options.copyReport')}
+            {copied ? t('options_copied') : t('options_copyReport')}
           </button>
         </div>
 
         {tabs === null ? (
           <p className="text-sm text-slate-500">
-            {t('options.probeIdleHint')}
+            {t('options_probeIdleHint')}
           </p>
         ) : tabs.length === 0 ? (
           <p className="text-sm text-amber-400">
-            {t('options.noTabsBefore')} <Code>x.com</Code> {t('options.noTabsAfter')}
+            {t('options_noTabsBefore')} <Code>x.com</Code> {t('options_noTabsAfter')}
           </p>
         ) : (
           tabs.map((tab) => (
             <div key={tab.tabId} className="mb-4 last:mb-0">
               <p className="mb-2 text-xs text-slate-500">
-                {t('options.tabLabel', [String(tab.tabId)])} ·{' '}
-                {tab.isolated?.url ?? t('options.unknownUrl')}
+                {t('options_tabLabel', [String(tab.tabId)])} ·{' '}
+                {tab.isolated?.url ?? t('options_unknownUrl')}
               </p>
               <ReportTable
                 reports={[selfReport, tab.isolated].filter(Boolean) as AiProbeReport[]}
@@ -144,49 +144,49 @@ export default function App() {
         {tabs !== null && tabs.length > 0 && <Verdict isolated={tabs[0]?.isolated ?? null} />}
       </Section>
 
-      <Section title={t('options.verdictTitle')} hint="">
+      <Section title={t('options_verdictTitle')} hint="">
         <ul className="list-disc space-y-1.5 pl-5 text-sm text-slate-400">
           <li>
-            <Code>Translator</Code> {t('options.verdict1Is')} <Code>function</Code>{' '}
-            {t('options.verdict1Then')}
+            <Code>Translator</Code> {t('options_verdict1Is')} <Code>function</Code>{' '}
+            {t('options_verdict1Then')}
           </li>
           <li>
-            <Code>availability</Code> {t('options.verdict2Is')} <Code>available</Code>{' '}
-            {t('options.verdict2Ready')} {t('options.verdict2Is')} <Code>downloadable</Code>{' '}
-            {t('options.verdict2Download')}
+            <Code>availability</Code> {t('options_verdict2Is')} <Code>available</Code>{' '}
+            {t('options_verdict2Ready')} {t('options_verdict2Is')} <Code>downloadable</Code>{' '}
+            {t('options_verdict2Download')}
           </li>
           <li>
-            <Code>unavailable</Code> {t('options.verdict3Or')} <Code>Translator</Code>{' '}
-            {t('options.verdict3Is')} <Code>undefined</Code> {t('options.verdict3Then')}
-            <b className="text-slate-200">{t('options.verdict3Bold')}</b>
-            {t('options.verdict3End')}
+            <Code>unavailable</Code> {t('options_verdict3Or')} <Code>Translator</Code>{' '}
+            {t('options_verdict3Is')} <Code>undefined</Code> {t('options_verdict3Then')}
+            <b className="text-slate-200">{t('options_verdict3Bold')}</b>
+            {t('options_verdict3End')}
           </li>
         </ul>
       </Section>
 
-      <Section title={t('options.stuckTitle')} hint="">
+      <Section title={t('options_stuckTitle')} hint="">
         <ol className="list-decimal space-y-2.5 pl-5 text-sm text-slate-400">
           <li>
-            {t('options.stuckStep1Open')} <ChromeUrl value="chrome://on-device-translation-internals" />{' '}
-            {t('options.stuckStep1After')}
-            <b className="text-slate-200">{t('options.stuckStep1Bold')}</b>
+            {t('options_stuckStep1Open')} <ChromeUrl value="chrome://on-device-translation-internals" />{' '}
+            {t('options_stuckStep1After')}
+            <b className="text-slate-200">{t('options_stuckStep1Bold')}</b>
             <br />
             <span className="text-slate-500">
-              {t('options.stuckStep1Note')}
+              {t('options_stuckStep1Note')}
             </span>
           </li>
           <li>
-            {t('options.stuckStep2Open')} <ChromeUrl value="chrome://components" />
-            {t('options.stuckStep2After')} <Code>0.0.0.0</Code> {t('options.stuckStep2End')}
+            {t('options_stuckStep2Open')} <ChromeUrl value="chrome://components" />
+            {t('options_stuckStep2After')} <Code>0.0.0.0</Code> {t('options_stuckStep2End')}
           </li>
           <li>
-            {t('options.stuckStep3')}
+            {t('options_stuckStep3')}
           </li>
         </ol>
       </Section>
 
       <p className="mt-10 text-xs text-slate-600">
-        {t('options.footer')}
+        {t('options_footer')}
       </p>
     </div>
   );
@@ -203,10 +203,10 @@ function Verdict({ isolated }: { isolated: AiProbeReport | null }) {
   if (supported && usable) {
     return (
       <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-300">
-        <b>{t('options.verdictUsableTitle')}</b>
+        <b>{t('options_verdictUsableTitle')}</b>
         {isolated.translatorAvailability === 'available'
-          ? t('options.verdictReady')
-          : t('options.verdictDownloadOnFirstUse')}
+          ? t('options_verdictReady')
+          : t('options_verdictDownloadOnFirstUse')}
       </div>
     );
   }
@@ -214,19 +214,19 @@ function Verdict({ isolated }: { isolated: AiProbeReport | null }) {
   if (supported) {
     return (
       <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
-        <b>{t('options.verdictApiUnavailable', [isolated.translatorAvailability])}</b>{' '}
-        {t('options.verdictApiBody')}
+        <b>{t('options_verdictApiUnavailable', [isolated.translatorAvailability])}</b>{' '}
+        {t('options_verdictApiBody')}
       </div>
     );
   }
 
   return (
     <div className="mt-6 rounded-xl border border-slate-500/30 bg-slate-500/10 p-4 text-sm text-slate-300">
-      <b>{t('options.verdictNoApiTitle')}</b>{' '}
+      <b>{t('options_verdictNoApiTitle')}</b>{' '}
       {isolated.chromeVersion && Number(isolated.chromeVersion) < 138 && (
-        <>{t('options.verdictChromeVersion', [isolated.chromeVersion])}</>
+        <>{t('options_verdictChromeVersion', [isolated.chromeVersion])}</>
       )}{' '}
-      {t('options.verdictNoApiBody')}
+      {t('options_verdictNoApiBody')}
     </div>
   );
 }
@@ -275,7 +275,7 @@ function ChromeUrl({ value }: { value: string }) {
         }}
         className="ml-1 cursor-pointer rounded border border-slate-700 px-1.5 py-0.5 text-[11px] text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-200"
       >
-        {copied ? t('options.copiedLink') : t('options.copyLink')}
+        {copied ? t('options_copiedLink') : t('options_copyLink')}
       </button>
     </span>
   );
@@ -284,7 +284,7 @@ function ChromeUrl({ value }: { value: string }) {
 function ReportTable({ reports }: { reports: AiProbeReport[] }) {
   // 第三列是可选的"状态着色"，只有需要区分"缺失/抛错"的行才用它
   const rows: Array<[string, (r: AiProbeReport) => string, (r: AiProbeReport) => string]> = [
-    [t('options.reportChromeVersion'), (r) => r.chromeVersion, (r) => toneOf(r.chromeVersion)],
+    [t('options_reportChromeVersion'), (r) => r.chromeVersion, (r) => toneOf(r.chromeVersion)],
     ['Translator', (r) => r.globals.Translator ?? '?', (r) => toneOf(r.globals.Translator ?? '?')],
     [
       'availability',
@@ -297,7 +297,7 @@ function ReportTable({ reports }: { reports: AiProbeReport[] }) {
       (r) => toneOf(r.globals.LanguageDetector ?? '?'),
     ],
     [
-      t('options.reportSecureContext'),
+      t('options_reportSecureContext'),
       (r) => String(r.secureContext),
       (r) => toneOf(String(r.secureContext)),
     ],
@@ -308,7 +308,7 @@ function ReportTable({ reports }: { reports: AiProbeReport[] }) {
       <table className="w-full border-collapse text-left text-xs">
         <thead>
           <tr className="text-slate-500">
-            <th className="w-1/3 pb-2 font-medium">{t('options.reportItem')}</th>
+            <th className="w-1/3 pb-2 font-medium">{t('options_reportItem')}</th>
             {reports.map((r) => (
               <th key={r.context} className="pb-2 font-medium">
                 {CONTEXT_LABEL[r.context]}

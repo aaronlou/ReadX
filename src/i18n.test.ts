@@ -16,7 +16,13 @@ import { describe, expect, it } from 'vitest';
 const ROOT = join(__dirname, '..');
 const LOCALES = ['en', 'zh_CN'] as const;
 
-type Messages = Record<string, { message: string }>;
+interface MessageEntry {
+  message: string;
+  description?: string;
+  placeholders?: Record<string, { content: string }>;
+}
+
+type Messages = Record<string, MessageEntry>;
 
 function loadLocale(locale: string): Messages {
   const path = join(ROOT, 'public', '_locales', locale, 'messages.json');
@@ -101,6 +107,73 @@ describe('i18n 文案完整性', () => {
       }
     }
     expect(empty).toEqual([]);
+  });
+
+  /**
+   * ⚠️ Chrome 对 i18n 的 key 有**字符集限制**：只允许 [a-zA-Z0-9_]。
+   * 含点号的 key（如 `popup.engine`）不会报编译错、不会让构建失败、
+   * 单元测试也照过（因为测试直接读 messages.json）—— 但**扩展根本无法装载**：
+   *     Name of a key "popup.engine" is invalid.
+   * 这个错误只在真的把扩展装进 Chrome 时才会冒出来。
+   * 所以必须在这里挡住。
+   */
+  it('key 只能包含 [a-zA-Z0-9_]（Chrome 的硬限制）', () => {
+    const illegal: string[] = [];
+    for (const locale of LOCALES) {
+      for (const key of Object.keys(messages[locale])) {
+        if (!/^[a-zA-Z0-9_]+$/.test(key)) illegal.push(`${locale}: "${key}"`);
+      }
+    }
+    expect(illegal).toEqual([]);
+  });
+
+  /**
+   * ⚠️ Chrome **不支持裸的 `$1$` 占位符**，必须用具名形式：
+   *
+   *     "message": "Post $current$ of $total$",
+   *     "placeholders": { "current": { "content": "$1$" }, ... }
+   *
+   * 写成 `$1$` 会在装载扩展时直接报 `Variable $1$ used but not defined.`
+   * —— 构建不报错、tsc 不报错、直接读 messages.json 的测试也不报错，
+   * 只有真的把扩展装进 Chrome 才会暴露。这个坑我们踩过两次。
+   */
+  it('占位符必须具名声明，不能裸用 $1$', () => {
+    const broken: string[] = [];
+    for (const locale of LOCALES) {
+      for (const [key, entry] of Object.entries(messages[locale])) {
+        // 裸的 $1$ 一律非法
+        if (/\$\d+\$/.test(entry.message)) {
+          broken.push(`${locale}: "${key}" 消息里裸用了 $N$`);
+          continue;
+        }
+        // 消息里出现的每个 $name$ 都要有对应的 placeholders 声明
+        for (const match of entry.message.matchAll(/\$([A-Za-z0-9_]+)\$/g)) {
+          const name = match[1]!;
+          if (!entry.placeholders?.[name]) {
+            broken.push(`${locale}: "${key}" 用了 $${name}$ 但没有声明`);
+          }
+        }
+        // 声明也要指向合法的位置参数
+        for (const [name, spec] of Object.entries(entry.placeholders ?? {})) {
+          if (!/^\$\d+\$/.test(spec.content)) {
+            broken.push(`${locale}: "${key}" 的占位符 ${name} content 不合法`);
+          }
+        }
+      }
+    }
+    expect(broken).toEqual([]);
+  });
+
+  it('两种语言的占位符名字集合要一致', () => {
+    const mismatched: string[] = [];
+    for (const key of Object.keys(messages.en)) {
+      const names = (entry: { placeholders?: Record<string, unknown> } | undefined) =>
+        Object.keys(entry?.placeholders ?? {}).sort().join(',');
+      const a = names(messages.en[key]);
+      const b = names(messages.zh_CN[key]);
+      if (a !== b) mismatched.push(`${key}: en=[${a}] zh=[${b}]`);
+    }
+    expect(mismatched).toEqual([]);
   });
 
   it('英文文案里不该混入中文', () => {

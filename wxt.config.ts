@@ -22,6 +22,15 @@ const CHROME_PROFILE = fileURLToPath(new URL('./.chrome-profile', import.meta.ur
 // 在这里建而不是用 predev 脚本，是为了让 `git clone` 后直接能跑，不依赖 shell 差异。
 mkdirSync(CHROME_PROFILE, { recursive: true });
 
+/**
+ * 截图构建（`npm run shoot`）用 `wxt build -m screenshot`。
+ *
+ * 它额外匹配 localhost，为了能在本地 mock 时间线上截图。这个包**不会**
+ * 覆盖正式包：WXT 的 `outDirTemplate` 默认带 `{{modeSuffix}}`，不同 mode
+ * 天然输出到不同目录（`.output/chrome-mv3-screenshot` vs `.output/chrome-mv3`）。
+ */
+const SCREENSHOT_MODE = 'screenshot';
+
 export default defineConfig({
   // 源码集中在 src/，WXT 内置的 `@` 别名正好指向 srcDir，
   // 于是所有内部引用都可以写成 `@/core/reader`。
@@ -42,7 +51,8 @@ export default defineConfig({
     description: '__MSG_extDescription__',
     default_locale: 'en',
     permissions: ['storage'],
-    host_permissions: env.mode === 'development' ? DEV_MATCHES : X_MATCHES,
+    host_permissions:
+      env.mode === 'development' || env.mode === SCREENSHOT_MODE ? DEV_MATCHES : X_MATCHES,
     /**
      * 云语音的域名**只在用户主动启用某家服务商时**申请。
      * 这样默认安装不碰任何第三方域名，商店的权限提示也干净。

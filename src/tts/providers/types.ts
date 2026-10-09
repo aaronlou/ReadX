@@ -134,9 +134,9 @@ export function resolveVoice(
 
 /** 把常见 HTTP 失败翻译成"下一步该干什么" */
 export function describeHttpFailure(status: number, serviceName: string): string | undefined {
-  if (status === 401 || status === 403) return t('provider.common.errAuth', serviceName);
-  if (status === 404) return t('provider.common.errNotFound');
-  if (status === 429) return t('provider.common.errRateLimited');
-  if (status >= 500) return t('provider.common.errServer', serviceName);
+  if (status === 401 || status === 403) return t('provider_common_errAuth', serviceName);
+  if (status === 404) return t('provider_common_errNotFound');
+  if (status === 429) return t('provider_common_errRateLimited');
+  if (status >= 500) return t('provider_common_errServer', serviceName);
   return undefined;
 }

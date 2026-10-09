@@ -132,9 +132,9 @@ export class TtsEngineSwitch implements TtsProvider {
     this.lastChildError = null;
     this.onError?.(
       detail
-        ? t('engineSwitch.degradedWithDetail', [detail.message])
-        : t('engineSwitch.degraded'),
-      detail?.hint ?? t('engineSwitch.degradedHint'),
+        ? t('engineSwitch_degradedWithDetail', [detail.message])
+        : t('engineSwitch_degraded'),
+      detail?.hint ?? t('engineSwitch_degradedHint'),
     );
 
     return this.system.speak(text, opts);

@@ -23,20 +23,20 @@ interface Box {
 }
 
 const STATE_LABEL: Record<ReaderSnapshot['state'], string> = {
-  idle: t('overlay.stateIdle'),
-  loading: t('overlay.stateLocating'),
-  speaking: t('overlay.stateSpeaking'),
-  paused: t('overlay.statePaused'),
-  error: t('overlay.stateError'),
-  'need-language-pack': t('overlay.stateNeedLanguagePack'),
+  idle: t('overlay_stateIdle'),
+  loading: t('overlay_stateLocating'),
+  speaking: t('overlay_stateSpeaking'),
+  paused: t('overlay_statePaused'),
+  error: t('overlay_stateError'),
+  'need-language-pack': t('overlay_stateNeedLanguagePack'),
 };
 
 /** 语言检测来源，跟在语言代码后面的那个小字 */
 const LANG_SOURCE_LABEL: Record<ReaderSnapshot['langSource'], string> = {
-  dom: t('overlay.langSourcePageText'),
-  script: t('overlay.langSourcePageScript'),
-  cld: t('overlay.langSourceDetected'),
-  fallback: t('overlay.langSourceAssumed'),
+  dom: t('overlay_langSourcePageText'),
+  script: t('overlay_langSourcePageScript'),
+  cld: t('overlay_langSourceDetected'),
+  fallback: t('overlay_langSourceAssumed'),
 };
 
 const STATE_DOT: Record<ReaderSnapshot['state'], string> = {
@@ -141,7 +141,7 @@ export function Overlay({
   const active = snap.state === 'speaking' || snap.state === 'paused';
   const progress =
     snap.sentenceCount > 0
-      ? t('overlay.progress', [String(snap.sentenceIndex + 1), String(snap.sentenceCount)])
+      ? t('overlay_progress', [String(snap.sentenceIndex + 1), String(snap.sentenceCount)])
       : '';
 
   return (
@@ -159,7 +159,7 @@ export function Overlay({
         {/* 语音引擎降级告警：必须一直看得见，否则用户只会觉得"声音怎么变回去了" */}
         {snap.engineWarning && (
           <div className="rounded-2xl border border-amber-400/40 bg-amber-950/90 px-4 py-2.5 text-xs leading-relaxed text-amber-100 shadow-2xl backdrop-blur">
-            <span className="font-semibold">⚠️ {t('overlay.speechEngine')}</span> {snap.engineWarning}
+            <span className="font-semibold">⚠️ {t('overlay_speechEngine')}</span> {snap.engineWarning}
           </div>
         )}
 
@@ -184,17 +184,17 @@ export function Overlay({
             {snap.translatedFrom ? (
               <span
                 className="shrink-0 rounded-md bg-sky-400/20 px-1.5 py-0.5 text-[11px] font-semibold text-sky-300"
-                title={t('overlay.translatedTitle', [snap.translatedFrom])}
+                title={t('overlay_translatedTitle', [snap.translatedFrom])}
               >
-                {t('overlay.translatedBadge', [snap.translatedFrom])}
+                {t('overlay_translatedBadge', [snap.translatedFrom])}
               </span>
             ) : (
               wantsTranslation(settings.readingLang, snap.lang) && (
                 <span
                   className="shrink-0 rounded-md bg-amber-400/20 px-1.5 py-0.5 text-[11px] font-semibold text-amber-300"
-                  title={t('overlay.notTranslatedTitle')}
+                  title={t('overlay_notTranslatedTitle')}
                 >
-                  {t('overlay.notTranslatedBadge')}
+                  {t('overlay_notTranslatedBadge')}
                 </span>
               )
             )}
@@ -207,29 +207,29 @@ export function Overlay({
 
             <div className="flex shrink-0 items-center gap-1">
               <IconButton
-                title={t('overlay.prevButton', ['Alt+Shift+B'])}
+                title={t('overlay_prevButton', ['Alt+Shift+B'])}
                 onClick={() => void reader.prev()}
               >
                 ⏮
               </IconButton>
               <IconButton
-                title={t('overlay.playPauseButton', ['Alt+Shift+P'])}
+                title={t('overlay_playPauseButton', ['Alt+Shift+P'])}
                 primary
                 onClick={() => void reader.toggle()}
               >
                 {snap.state === 'speaking' ? '⏸' : '▶'}
               </IconButton>
               <IconButton
-                title={t('overlay.nextButton', ['Alt+Shift+N'])}
+                title={t('overlay_nextButton', ['Alt+Shift+N'])}
                 onClick={() => void reader.next()}
               >
                 ⏭
               </IconButton>
-              <IconButton title={t('overlay.stopButton')} onClick={() => reader.stop()}>
+              <IconButton title={t('overlay_stopButton')} onClick={() => reader.stop()}>
                 ⏹
               </IconButton>
               <IconButton
-                title={collapsed ? t('overlay.expandButton') : t('overlay.collapseButton')}
+                title={collapsed ? t('overlay_expandButton') : t('overlay_collapseButton')}
                 onClick={() => setCollapsed((c) => !c)}
               >
                 {collapsed ? '⌃' : '⌄'}
@@ -243,8 +243,8 @@ export function Overlay({
               <div className="flex items-center gap-2">
                 <span className="text-xs text-amber-200">
                   {snap.state === 'loading'
-                    ? t('overlay.packDownloading', [snap.pendingPack.from, snap.pendingPack.to])
-                    : t('overlay.packNeeded', [snap.pendingPack.from, snap.pendingPack.to])}
+                    ? t('overlay_packDownloading', [snap.pendingPack.from, snap.pendingPack.to])
+                    : t('overlay_packNeeded', [snap.pendingPack.from, snap.pendingPack.to])}
                 </span>
                 <button
                   type="button"
@@ -252,7 +252,7 @@ export function Overlay({
                   onClick={() => void reader.prepareLanguagePack()}
                   className="ml-auto shrink-0 cursor-pointer rounded-lg bg-amber-400 px-2.5 py-1 text-[11px] font-semibold text-amber-950 transition-colors hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-slate-600 disabled:text-slate-400"
                 >
-                  {snap.state === 'loading' ? t('overlay.packDownloadingButton') : t('overlay.packDownloadButton')}
+                  {snap.state === 'loading' ? t('overlay_packDownloadingButton') : t('overlay_packDownloadButton')}
                 </button>
               </div>
               {snap.packProgress !== null && (
@@ -277,13 +277,13 @@ export function Overlay({
 
               <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/10 pt-2.5 text-[11px] text-slate-400">
                 <label className="flex items-center gap-1.5">
-                  {t('overlay.readingLanguage')}
+                  {t('overlay_readingLanguage')}
                   <select
                     value={settings.readingLang}
                     onChange={(event) => update({ readingLang: event.target.value })}
                     className="cursor-pointer rounded border border-white/15 bg-slate-900 px-1.5 py-0.5 text-[11px] text-slate-200"
                   >
-                    <option value="auto">{t('overlay.followPostLanguage')}</option>
+                    <option value="auto">{t('overlay_followPostLanguage')}</option>
                     {LANGUAGE_CHOICES.map((code) => (
                       <option key={code} value={code}>
                         {languageLabel(code)}
@@ -293,7 +293,7 @@ export function Overlay({
                 </label>
 
                 <label className="flex items-center gap-2">
-                  {t('overlay.speed')}
+                  {t('overlay_speed')}
                   <input
                     type="range"
                     min={0.5}
@@ -313,7 +313,7 @@ export function Overlay({
                     onChange={(e) => update({ autoAdvance: e.target.checked })}
                     className="size-3.5 cursor-pointer accent-emerald-400"
                   />
-                  {t('overlay.autoScroll')}
+                  {t('overlay_autoScroll')}
                 </label>
 
                 <label className="flex cursor-pointer items-center gap-1.5">
@@ -323,7 +323,7 @@ export function Overlay({
                     onChange={(e) => update({ readAuthor: e.target.checked })}
                     className="size-3.5 cursor-pointer accent-emerald-400"
                   />
-                  {t('overlay.readAuthor')}
+                  {t('overlay_readAuthor')}
                 </label>
 
                 <label className="flex cursor-pointer items-center gap-1.5">
@@ -333,7 +333,7 @@ export function Overlay({
                     onChange={(e) => update({ skipAds: e.target.checked })}
                     className="size-3.5 cursor-pointer accent-emerald-400"
                   />
-                  {t('overlay.skipAds')}
+                  {t('overlay_skipAds')}
                 </label>
 
                 {active && (
@@ -391,21 +391,21 @@ function IntroCard({ onDismiss }: { onDismiss: () => void }) {
       <div className="flex items-start gap-3">
         <span className="text-base leading-none">👋</span>
         <div className="min-w-0 flex-1 text-xs leading-relaxed text-slate-300">
-          <p className="font-semibold text-slate-100">{t('overlay.introTitle')}</p>
+          <p className="font-semibold text-slate-100">{t('overlay_introTitle')}</p>
           <p className="mt-1">
-            {t('overlay.introBodyStart')}{' '}
+            {t('overlay_introBodyStart')}{' '}
             <span className="font-semibold text-emerald-400">▶</span>{' '}
-            {t('overlay.introBodyEnd')}
+            {t('overlay_introBodyEnd')}
           </p>
-          <p className="mt-1">{t('overlay.introShortcuts', ['Alt+Shift+P', 'Alt+Shift+N'])}</p>
-          <p className="mt-1">{t('overlay.introTranslate')}</p>
+          <p className="mt-1">{t('overlay_introShortcuts', ['Alt+Shift+P', 'Alt+Shift+N'])}</p>
+          <p className="mt-1">{t('overlay_introTranslate')}</p>
         </div>
         <button
           type="button"
           onClick={onDismiss}
           className="shrink-0 cursor-pointer rounded-lg bg-white/10 px-2.5 py-1 text-[11px] text-slate-300 transition-colors hover:bg-white/20"
         >
-          {t('overlay.introDismiss')}
+          {t('overlay_introDismiss')}
         </button>
       </div>
     </div>

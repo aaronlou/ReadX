@@ -8,7 +8,7 @@ import { base64ToBlob } from '@/tts/cloudTts';
 import { CLOUD_TTS_PROVIDERS, resolveVoice, type CloudTtsSpec } from '@/tts/providers';
 
 /** 试听用的样本 */
-const SAMPLE_TEXT = t('tts.sampleText');
+const SAMPLE_TEXT = t('tts_sampleText');
 
 /**
  * 语音引擎设置面板（选项页和 popup 共用）。
@@ -62,11 +62,11 @@ export function TtsSettingsPanel({
         const ok = await browser.permissions.request({ origins: spec.origins });
         setGranted((prev) => ({ ...prev, [spec.id]: ok }));
         if (!ok) {
-          setStatus(t('tts.permissionDenied', [spec.origins.join(', '), spec.name]));
+          setStatus(t('tts_permissionDenied', [spec.origins.join(', '), spec.name]));
           return;
         }
         onChange({ cloudProvider: spec.id, ttsEngine: 'cloud' });
-        setStatus(t('tts.enabled', [spec.name]));
+        setStatus(t('tts_enabled', [spec.name]));
       } finally {
         setBusy(false);
       }
@@ -79,7 +79,7 @@ export function TtsSettingsPanel({
     const next = await getProviderCredentials(selected.id);
     setSaved(next);
     setDraft(next);
-    setStatus(t('tts.credentialsSaved'));
+    setStatus(t('tts_credentialsSaved'));
   }, [draft, selected.id]);
 
   const test = useCallback(async () => {
@@ -90,7 +90,7 @@ export function TtsSettingsPanel({
       const bound = settings.cloudVoices[selected.id] ?? {};
       const voice = resolveVoice(selected, lang, bound);
       if (!voice) {
-        setStatus(t('tts.noVoiceForLang', [selected.name, lang]));
+        setStatus(t('tts_noVoiceForLang', [selected.name, lang]));
         return;
       }
 
@@ -103,8 +103,8 @@ export function TtsSettingsPanel({
 
       if (!response?.ok || !response.audio) {
         setStatus(
-          `${t('tts.previewFailed', [response?.error ?? t('tts.noAudioReturned')])}${
-            response?.hint ? t('tts.previewHint', [response.hint]) : ''
+          `${t('tts_previewFailed', [response?.error ?? t('tts_noAudioReturned')])}${
+            response?.hint ? t('tts_previewHint', [response.hint]) : ''
           }`,
         );
         return;
@@ -117,12 +117,12 @@ export function TtsSettingsPanel({
       audio.onended = () => URL.revokeObjectURL(url);
       audio.onerror = () => {
         URL.revokeObjectURL(url);
-        setStatus(t('tts.audioPlaybackFailed'));
+        setStatus(t('tts_audioPlaybackFailed'));
       };
       await audio.play();
-      setStatus(t('tts.previewOk'));
+      setStatus(t('tts_previewOk'));
     } catch (error) {
-      setStatus(t('tts.previewFailed', [(error as Error).message]));
+      setStatus(t('tts_previewFailed', [(error as Error).message]));
     } finally {
       setBusy(false);
     }
@@ -137,8 +137,8 @@ export function TtsSettingsPanel({
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <EngineCard
           active={settings.ttsEngine === 'system'}
-          title={t('tts.systemVoice')}
-          subtitle={t('tts.systemVoiceHint')}
+          title={t('tts_systemVoice')}
+          subtitle={t('tts_systemVoiceHint')}
           onClick={() => onChange({ ttsEngine: 'system' })}
         />
         {CLOUD_TTS_PROVIDERS.map((spec) => (
@@ -154,22 +154,22 @@ export function TtsSettingsPanel({
 
       {settings.ttsEngine === 'cloud' && (
         <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200/90">
-          <b>{t('tts.privacyNotice')}</b>
-          {t('tts.privacyBody', [selected.name])}
+          <b>{t('tts_privacyNotice')}</b>
+          {t('tts_privacyBody', [selected.name])}
         </p>
       )}
 
       {settings.ttsEngine === 'cloud' && !granted[selected.id] && (
         <p className="rounded-lg bg-amber-500/15 px-3 py-2 text-xs text-amber-300">
-          {t('tts.grantIntro')} <Code>{selected.origins.join(', ')}</Code>
-          {t('tts.grantReason', [selected.name])}
+          {t('tts_grantIntro')} <Code>{selected.origins.join(', ')}</Code>
+          {t('tts_grantReason', [selected.name])}
           <button
             type="button"
             disabled={busy}
             onClick={() => void enable(selected)}
             className="ml-2 cursor-pointer rounded bg-amber-400 px-2 py-0.5 text-[11px] font-semibold text-amber-950 disabled:opacity-50"
           >
-            {t('tts.grantAccess')}
+            {t('tts_grantAccess')}
           </button>
         </p>
       )}
@@ -177,12 +177,12 @@ export function TtsSettingsPanel({
       {/* ---- 凭据：完全按 spec 渲染 ---- */}
       <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
         <p className="text-xs font-medium text-slate-300">
-          {t('tts.credentialsTitle', [selected.name])}
+          {t('tts_credentialsTitle', [selected.name])}
         </p>
         <p className="mt-0.5 text-[11px] text-slate-500">
-          {t('tts.storageBefore')}
+          {t('tts_storageBefore')}
           <Code>storage.local</Code>
-          {t('tts.storageAfter')}
+          {t('tts_storageAfter')}
         </p>
 
         <div className="mt-2 space-y-2">
@@ -201,7 +201,7 @@ export function TtsSettingsPanel({
               />
               {saved[field.key] && field.secret && (
                 <span className="mt-0.5 block text-[10px] text-slate-600">
-                  {t('tts.currentValue', [maskSecret(saved[field.key]!)])}
+                  {t('tts_currentValue', [maskSecret(saved[field.key]!)])}
                 </span>
               )}
             </label>
@@ -215,7 +215,7 @@ export function TtsSettingsPanel({
             onClick={() => void saveCredentials()}
             className="cursor-pointer rounded-lg bg-white/10 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/20 disabled:opacity-50"
           >
-            {t('tts.save')}
+            {t('tts_save')}
           </button>
           <button
             type="button"
@@ -223,7 +223,7 @@ export function TtsSettingsPanel({
             onClick={() => void test()}
             className="cursor-pointer rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-slate-900 hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-500"
           >
-            {busy ? t('tts.previewing') : t('tts.preview')}
+            {busy ? t('tts_previewing') : t('tts_preview')}
           </button>
           {isActive && (
             <button
@@ -231,11 +231,11 @@ export function TtsSettingsPanel({
               onClick={() => onChange({ ttsEngine: 'system' })}
               className="cursor-pointer rounded-lg bg-white/5 px-3 py-1.5 text-xs text-slate-400 hover:bg-white/10"
             >
-              {t('tts.switchToSystem')}
+              {t('tts_switchToSystem')}
             </button>
           )}
           <span className="text-[11px] text-slate-500">
-            {t('tts.maxChars', [String(selected.maxChars)])}
+            {t('tts_maxChars', [String(selected.maxChars)])}
           </span>
         </div>
       </div>
@@ -243,9 +243,9 @@ export function TtsSettingsPanel({
       {/* ---- 音色：只展示该服务商声明支持的语言 ---- */}
       {settings.ttsEngine === 'cloud' && (
         <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-          <p className="text-xs font-medium text-slate-300">{t('tts.voicesTitle')}</p>
+          <p className="text-xs font-medium text-slate-300">{t('tts_voicesTitle')}</p>
           <p className="mt-0.5 text-[11px] text-slate-500">
-            {t('tts.voicesHint')}
+            {t('tts_voicesHint')}
           </p>
 
           <div className="mt-2 space-y-2">
@@ -271,8 +271,8 @@ export function TtsSettingsPanel({
                     className="min-w-0 flex-1 cursor-pointer rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-slate-200"
                   >
                     <option value="">
-                      {t('tts.defaultVoice')}
-                      {fallback ? t('tts.defaultVoiceName', [voiceName(selected, fallback)]) : ''}
+                      {t('tts_defaultVoice')}
+                      {fallback ? t('tts_defaultVoiceName', [voiceName(selected, fallback)]) : ''}
                     </option>
                     {usable.map((voice) => (
                       <option key={voice.id} value={voice.id}>

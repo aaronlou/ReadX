@@ -217,7 +217,7 @@ describe('CloudTtsProvider 失败处理', () => {
       const outcome = await provider.speak('你好', SPEAK_OPTS);
       expect(outcome).toBe('error');
       expect(onError).toHaveBeenCalledWith(
-        en('cloudTts.playbackRejected', 'NotAllowedError'),
+        en('cloudTts_playbackRejected', 'NotAllowedError'),
         expect.any(String),
       );
     } finally {

@@ -29,27 +29,27 @@ const DEFAULT_MODEL = 'openai/gpt-4o-mini-tts-2025-12-15';
 
 export const openrouterSpec: CloudTtsSpec = {
   id: 'openrouter',
-  name: t('provider.openrouter.name'),
-  summary: t('provider.openrouter.summary'),
+  name: t('provider_openrouter_name'),
+  summary: t('provider_openrouter_summary'),
   origins: [ORIGIN],
   credentials: [
     {
       key: 'apiKey',
-      label: t('provider.openrouter.credApiKeyLabel'),
+      label: t('provider_openrouter_credApiKeyLabel'),
       secret: true,
-      placeholder: t('provider.openrouter.credApiKeyPlaceholder'),
-      help: t('provider.openrouter.credApiKeyHelp'),
+      placeholder: t('provider_openrouter_credApiKeyPlaceholder'),
+      help: t('provider_openrouter_credApiKeyHelp'),
     },
     {
       key: 'model',
-      label: t('provider.openrouter.credModelLabel'),
+      label: t('provider_openrouter_credModelLabel'),
       placeholder: DEFAULT_MODEL,
-      help: t('provider.openrouter.credModelHelp', [DEFAULT_MODEL, 'bytedance-seed/seed-audio-1-0']),
+      help: t('provider_openrouter_credModelHelp', [DEFAULT_MODEL, 'bytedance-seed/seed-audio-1-0']),
     },
   ],
   pickerLangs: [
-    { code: 'zh', label: t('provider.openrouter.langZh') },
-    { code: 'en', label: t('provider.openrouter.langEn') },
+    { code: 'zh', label: t('provider_openrouter_langZh') },
+    { code: 'en', label: t('provider_openrouter_langEn') },
   ],
   // 默认模型是 OpenAI 的，所以用它那套音色
   voices: OPENAI_COMPATIBLE_VOICES,
@@ -64,7 +64,7 @@ export const openrouterSpec: CloudTtsSpec = {
 
 async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<SynthesizeResult> {
   const text = request.text.trim();
-  if (!text) throw new CloudTtsError(t('provider.common.errEmptyText'));
+  if (!text) throw new CloudTtsError(t('provider_common_errEmptyText'));
 
   const model = request.credentials.model?.trim() || DEFAULT_MODEL;
 
@@ -87,8 +87,8 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
       signal: request.signal ?? AbortSignal.timeout(30_000),
     });
   } catch (error) {
-    throw new CloudTtsError(t('provider.openrouter.errRequestFailed', (error as Error).message), {
-      hint: t('provider.openrouter.errRequestFailedHint'),
+    throw new CloudTtsError(t('provider_openrouter_errRequestFailed', (error as Error).message), {
+      hint: t('provider_openrouter_errRequestFailedHint'),
     });
   }
 
@@ -101,7 +101,7 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
     const message =
       (typeof detail.error === 'object' ? detail.error?.message : detail.error) ||
       detail.message ||
-      t('provider.openrouter.errSynthesizeFailed', String(response.status));
+      t('provider_openrouter_errSynthesizeFailed', String(response.status));
 
     throw new CloudTtsError(message, {
       code: response.status,
@@ -111,7 +111,7 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
 
   const buffer = await response.arrayBuffer();
   if (buffer.byteLength === 0) {
-    throw new CloudTtsError(t('provider.openrouter.errEmptyAudio'));
+    throw new CloudTtsError(t('provider_openrouter_errEmptyAudio'));
   }
 
   return {
@@ -123,10 +123,10 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
 function hintForFailure(message: string, status: number): string | undefined {
   // 模型名写错在 OpenRouter 上很常见，而且报错不太直观
   if (/model/i.test(message) && /(not found|invalid|unsupported|no endpoints)/i.test(message)) {
-    return t('provider.openrouter.errModelNotFoundHint');
+    return t('provider_openrouter_errModelNotFoundHint');
   }
-  if (status === 402) return t('provider.openrouter.errInsufficientCreditsHint');
-  return describeHttpFailure(status, t('provider.openrouter.name'));
+  if (status === 402) return t('provider_openrouter_errInsufficientCreditsHint');
+  return describeHttpFailure(status, t('provider_openrouter_name'));
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {

@@ -1,44 +1,80 @@
 {
-  "bg.notConfigured": {
-    "message": "$1$ 还没有配置凭据"
+  "bg_notConfigured": {
+    "message": "$p1$ 还没有配置凭据",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "bg.notConfiguredHint": {
+  "bg_notConfiguredHint": {
     "message": "到扩展的选项页填写"
   },
-  "bg.synthesizeFailed": {
+  "bg_synthesizeFailed": {
     "message": "合成失败"
   },
-  "bg.textTooLong": {
-    "message": "这段文本超过了 $1$ 单次 $2$ 字符的上限"
+  "bg_textTooLong": {
+    "message": "这段文本超过了 $p1$ 单次 $p2$ 字符的上限",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "bg.textTooLongHint": {
+  "bg_textTooLongHint": {
     "message": "调小每条的朗读长度，或换一个服务商"
   },
-  "bg.unknownProvider": {
-    "message": "未知的语音服务商：$1$"
+  "bg_unknownProvider": {
+    "message": "未知的语音服务商：$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "cloudTts.noVoiceForLang": {
-    "message": "$1$ 还没有可用于 $2$ 的音色"
+  "cloudTts_noVoiceForLang": {
+    "message": "$p1$ 还没有可用于 $p2$ 的音色",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "cloudTts.noVoiceForLangHint": {
+  "cloudTts_noVoiceForLangHint": {
     "message": "到选项页为这个语言选一个音色"
   },
-  "cloudTts.playbackFailed": {
+  "cloudTts_playbackFailed": {
     "message": "音频播放失败"
   },
-  "cloudTts.playbackRejected": {
-    "message": "音频播放被拒绝：$1$"
+  "cloudTts_playbackRejected": {
+    "message": "音频播放被拒绝：$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "cloudTts.playbackRejectedHint": {
+  "cloudTts_playbackRejectedHint": {
     "message": "点一下页面再试"
   },
-  "cloudTts.synthesisFailed": {
+  "cloudTts_synthesisFailed": {
     "message": "语音合成失败"
   },
-  "cloudTts.unknownProvider": {
-    "message": "未知的语音服务商：$1$"
+  "cloudTts_unknownProvider": {
+    "message": "未知的语音服务商：$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "cloudTts.unknownProviderHint": {
+  "cloudTts_unknownProviderHint": {
     "message": "到选项页重新选一个"
   },
   "cmdNextPost": {
@@ -50,20 +86,25 @@
   "cmdToggleReading": {
     "message": "开始 / 暂停朗读"
   },
-  "content.noWebSpeech": {
+  "content_noWebSpeech": {
     "message": "当前浏览器没有 Web Speech API，系统语音不可用。"
   },
-  "content.speechEngine": {
+  "content_speechEngine": {
     "message": "语音引擎"
   },
-  "engineSwitch.degraded": {
+  "engineSwitch_degraded": {
     "message": "云语音不可用，已临时切回系统语音"
   },
-  "engineSwitch.degradedHint": {
+  "engineSwitch_degradedHint": {
     "message": "到选项页检查凭据、域名授权和余额"
   },
-  "engineSwitch.degradedWithDetail": {
-    "message": "$1$（已临时切回系统语音）"
+  "engineSwitch_degradedWithDetail": {
+    "message": "$p1$（已临时切回系统语音）",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
   "extDescription": {
     "message": "把 X 时间线变成音频：自动滚到下一条帖子并按语言朗读，可选设备端翻译。",
@@ -73,919 +114,1192 @@
     "message": "ReadX — 用耳朵刷 X",
     "description": "显示在 Chrome 应用商店和工具栏里的扩展名称"
   },
-  "options.contextContentScript": {
+  "options_contextContentScript": {
     "message": "内容脚本"
   },
-  "options.contextExtensionPage": {
+  "options_contextExtensionPage": {
     "message": "扩展页面（本页）"
   },
-  "options.copied": {
+  "options_copied": {
     "message": "已复制 ✓"
   },
-  "options.copiedLink": {
+  "options_copiedLink": {
     "message": "已复制"
   },
-  "options.copyLink": {
+  "options_copyLink": {
     "message": "复制"
   },
-  "options.copyReport": {
+  "options_copyReport": {
     "message": "复制报告"
   },
-  "options.footer": {
+  "options_footer": {
     "message": "ReadX 不是 X Corp 的官方产品，与 X Corp 无关联。朗读与翻译都在你的设备上完成，不会上传任何内容。"
   },
-  "options.howToTitle": {
+  "options_howToTitle": {
     "message": "怎么用"
   },
-  "options.loading": {
+  "options_loading": {
     "message": "加载中…"
   },
-  "options.noTabsAfter": {
+  "options_noTabsAfter": {
     "message": "再回来点检测。"
   },
-  "options.noTabsBefore": {
+  "options_noTabsBefore": {
     "message": "没找到装了内容脚本的标签页。请先打开"
   },
-  "options.notChecked": {
+  "options_notChecked": {
     "message": "未检测"
   },
-  "options.probe": {
+  "options_probe": {
     "message": "检测"
   },
-  "options.probeHint": {
+  "options_probeHint": {
     "message": "翻译走的是 Chrome 内置的设备端模型 —— 免费、离线、内容不出本机。这里可以确认它在你机器上能不能用。"
   },
-  "options.probeIdleHint": {
+  "options_probeIdleHint": {
     "message": "点「检测」会同时检查扩展页面和已打开的页面。"
   },
-  "options.probeTitle": {
+  "options_probeTitle": {
     "message": "翻译能力检测"
   },
-  "options.probing": {
+  "options_probing": {
     "message": "检测中…"
   },
-  "options.reportChromeVersion": {
+  "options_reportChromeVersion": {
     "message": "Chrome 版本"
   },
-  "options.reportItem": {
+  "options_reportItem": {
     "message": "项目"
   },
-  "options.reportSecureContext": {
+  "options_reportSecureContext": {
     "message": "安全上下文"
   },
-  "options.step1Open": {
+  "options_step1Open": {
     "message": "打开"
   },
-  "options.step1Rest": {
+  "options_step1Rest": {
     "message": "，页面右下角会出现一条控制条。"
   },
-  "options.step2Rest": {
+  "options_step2Rest": {
     "message": "）。它会自己滚动到下一条帖子 —— 你一旦自己滚动，它就让位并跟着你的位置继续。"
   },
-  "options.step2Start": {
+  "options_step2Start": {
     "message": "开始朗读（快捷键"
   },
-  "options.step2Tap": {
+  "options_step2Tap": {
     "message": "点"
   },
-  "options.step3Bold2": {
+  "options_step3Bold2": {
     "message": "帖子本来就是中文时直接读原文"
   },
-  "options.step3Intro": {
+  "options_step3Intro": {
     "message": "想听中文？在控制条或插件弹窗里把「"
   },
-  "options.step3LangLabel": {
+  "options_step3LangLabel": {
     "message": "朗读语言"
   },
-  "options.step3Middle": {
+  "options_step3Middle": {
     "message": "」设成中文。外语帖子会先翻译再朗读；"
   },
-  "options.step3Outro": {
+  "options_step3Outro": {
     "message": "，不做无谓翻译。"
   },
-  "options.step4": {
+  "options_step4": {
     "message": "首次选择某个语言时，需要下载一次语言包（十几秒，只需一次）。控制条上会出现下载按钮和进度条 —— Chrome 要求这一步必须由你亲手点击触发。"
   },
-  "options.step5": {
+  "options_step5": {
     "message": "没有声音？先确认系统装了对应语种的语音包（macOS：系统设置 → 辅助功能 → 朗读内容 → 系统声音）。"
   },
-  "options.stuckStep1After": {
+  "options_stuckStep1After": {
     "message": "，这里会列出所有语言包、支持手动下载，并显示下载失败的原因。翻译需要源语言和目标语言"
   },
-  "options.stuckStep1Bold": {
+  "options_stuckStep1Bold": {
     "message": "两个包都装。"
   },
-  "options.stuckStep1Note": {
+  "options_stuckStep1Note": {
     "message": "如果这个页面打不开或没有内容，说明这台机器/这个版本根本不支持内置翻译。"
   },
-  "options.stuckStep1Open": {
+  "options_stuckStep1Open": {
     "message": "新标签页打开"
   },
-  "options.stuckStep2After": {
+  "options_stuckStep2After": {
     "message": "，找与 Translation / Optimization Guide 相关的条目点「检查是否有更新」。版本停在"
   },
-  "options.stuckStep2End": {
+  "options_stuckStep2End": {
     "message": "就是组件压根没下发。"
   },
-  "options.stuckStep2Open": {
+  "options_stuckStep2Open": {
     "message": "打开"
   },
-  "options.stuckStep3": {
+  "options_stuckStep3": {
     "message": "确认 Chrome 是 138+ 的桌面版。低于这个版本没有内置翻译，ReadX 会退化为只朗读原文。"
   },
-  "options.stuckTitle": {
+  "options_stuckTitle": {
     "message": "如果「下载语言包」一直卡住"
   },
-  "options.tabLabel": {
-    "message": "标签页 #$1$"
+  "options_tabLabel": {
+    "message": "标签页 #$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "options.tagline": {
+  "options_tagline": {
     "message": "用耳朵刷 X：自动滚动定位到下一条帖子，按它的语言朗读，需要时先翻译。"
   },
-  "options.unknownUrl": {
+  "options_unknownUrl": {
     "message": "(未知地址)"
   },
-  "options.verdict1Is": {
+  "options_verdict1Is": {
     "message": "是"
   },
-  "options.verdict1Then": {
+  "options_verdict1Then": {
     "message": "→ 你的浏览器支持设备端翻译。"
   },
-  "options.verdict2Download": {
+  "options_verdict2Download": {
     "message": "→ 还没下载，在页面上点一次「下载」即可。"
   },
-  "options.verdict2Is": {
+  "options_verdict2Is": {
     "message": "是"
   },
-  "options.verdict2Ready": {
+  "options_verdict2Ready": {
     "message": "→ 语言包已就绪；"
   },
-  "options.verdict3Bold": {
+  "options_verdict3Bold": {
     "message": "自动降级为只朗读不翻译"
   },
-  "options.verdict3End": {
+  "options_verdict3End": {
     "message": "。"
   },
-  "options.verdict3Is": {
+  "options_verdict3Is": {
     "message": "为"
   },
-  "options.verdict3Or": {
+  "options_verdict3Or": {
     "message": "或"
   },
-  "options.verdict3Then": {
+  "options_verdict3Then": {
     "message": "→ 本机用不了设备端翻译，ReadX 会"
   },
-  "options.verdictApiBody": {
+  "options_verdictApiBody": {
     "message": "大概率是硬件没达到官方门槛（16GB 内存 / 22GB 空闲磁盘 / 4 核以上）。ReadX 会自动降级为只朗读原文。"
   },
-  "options.verdictApiUnavailable": {
-    "message": "API 在，但本机当前不可用（$1$）。"
+  "options_verdictApiUnavailable": {
+    "message": "API 在，但本机当前不可用（$p1$）。",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "options.verdictChromeVersion": {
-    "message": "当前 Chrome $1$，内置翻译需要 138+ 桌面版。"
+  "options_verdictChromeVersion": {
+    "message": "当前 Chrome $p1$，内置翻译需要 138+ 桌面版。",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "options.verdictDownloadOnFirstUse": {
+  "options_verdictDownloadOnFirstUse": {
     "message": "首次使用时在页面上点一下「下载」即可（只需一次）。"
   },
-  "options.verdictNoApiBody": {
+  "options_verdictNoApiBody": {
     "message": "朗读功能不受影响，只是不会自动翻译。"
   },
-  "options.verdictNoApiTitle": {
+  "options_verdictNoApiTitle": {
     "message": "这个浏览器不提供设备端翻译。"
   },
-  "options.verdictReady": {
+  "options_verdictReady": {
     "message": "语言包已就绪。"
   },
-  "options.verdictTitle": {
+  "options_verdictTitle": {
     "message": "结果怎么解读"
   },
-  "options.verdictUsableTitle": {
+  "options_verdictUsableTitle": {
     "message": "可以用设备端翻译。"
   },
-  "options.voiceHint": {
+  "options_voiceHint": {
     "message": "系统语音零配置但偏机械；豆包语音自然得多，需要自备 API Key、并且只在你主动启用时才申请域名权限。"
   },
-  "options.voiceTitle": {
+  "options_voiceTitle": {
     "message": "语音"
   },
-  "overlay.autoScroll": {
+  "overlay_autoScroll": {
     "message": "自动滚到下一条"
   },
-  "overlay.collapseButton": {
+  "overlay_collapseButton": {
     "message": "收起"
   },
-  "overlay.expandButton": {
+  "overlay_expandButton": {
     "message": "展开"
   },
-  "overlay.followPostLanguage": {
+  "overlay_followPostLanguage": {
     "message": "跟随原文"
   },
-  "overlay.introBodyEnd": {
+  "overlay_introBodyEnd": {
     "message": "开始朗读你正在看的这条帖子。它会自动滚到下一条，你自己滚动时它会立刻让位。"
   },
-  "overlay.introBodyStart": {
+  "overlay_introBodyStart": {
     "message": "点"
   },
-  "overlay.introDismiss": {
+  "overlay_introDismiss": {
     "message": "知道了"
   },
-  "overlay.introShortcuts": {
-    "message": "快捷键：$1$ 播放 / 暂停，$2$ 下一条。想改的话去设置里换。"
+  "overlay_introShortcuts": {
+    "message": "快捷键：$p1$ 播放 / 暂停，$p2$ 下一条。想改的话去设置里换。",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "overlay.introTitle": {
+  "overlay_introTitle": {
     "message": "ReadX 已就绪"
   },
-  "overlay.introTranslate": {
+  "overlay_introTranslate": {
     "message": "在下面选一个朗读语言，外语帖子会先翻译再朗读。"
   },
-  "overlay.langSourceAssumed": {
+  "overlay_langSourceAssumed": {
     "message": "推测"
   },
-  "overlay.langSourceDetected": {
+  "overlay_langSourceDetected": {
     "message": "自动检测"
   },
-  "overlay.langSourcePageScript": {
+  "overlay_langSourcePageScript": {
     "message": "页面脚本"
   },
-  "overlay.langSourcePageText": {
+  "overlay_langSourcePageText": {
     "message": "页面文字"
   },
-  "overlay.nextButton": {
-    "message": "下一条 ($1$)"
+  "overlay_nextButton": {
+    "message": "下一条 ($p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "overlay.notTranslatedBadge": {
+  "overlay_notTranslatedBadge": {
     "message": "未译"
   },
-  "overlay.notTranslatedTitle": {
+  "overlay_notTranslatedTitle": {
     "message": "没能翻译，正在读原文"
   },
-  "overlay.packDownloadButton": {
+  "overlay_packDownloadButton": {
     "message": "下载"
   },
-  "overlay.packDownloading": {
-    "message": "正在下载 $1$ → $2$ 语言包…"
+  "overlay_packDownloading": {
+    "message": "正在下载 $p1$ → $p2$ 语言包…",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "overlay.packDownloadingButton": {
+  "overlay_packDownloadingButton": {
     "message": "下载中…"
   },
-  "overlay.packNeeded": {
-    "message": "$1$ → $2$ 语言包还没下载（只需一次）"
+  "overlay_packNeeded": {
+    "message": "$p1$ → $p2$ 语言包还没下载（只需一次）",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "overlay.playPauseButton": {
-    "message": "播放 / 暂停 ($1$)"
+  "overlay_playPauseButton": {
+    "message": "播放 / 暂停 ($p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "overlay.prevButton": {
-    "message": "上一条 ($1$)"
+  "overlay_prevButton": {
+    "message": "上一条 ($p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "overlay.progress": {
-    "message": "第 $1$ / $2$ 句"
+  "overlay_progress": {
+    "message": "第 $p1$ / $p2$ 句",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "overlay.readAuthor": {
+  "overlay_readAuthor": {
     "message": "先读作者名"
   },
-  "overlay.readingLanguage": {
+  "overlay_readingLanguage": {
     "message": "朗读语言"
   },
-  "overlay.skipAds": {
+  "overlay_skipAds": {
     "message": "跳过推广帖"
   },
-  "overlay.speechEngine": {
+  "overlay_speechEngine": {
     "message": "语音引擎"
   },
-  "overlay.speed": {
+  "overlay_speed": {
     "message": "语速"
   },
-  "overlay.stateError": {
+  "overlay_stateError": {
     "message": "出错了"
   },
-  "overlay.stateIdle": {
+  "overlay_stateIdle": {
     "message": "待机"
   },
-  "overlay.stateLocating": {
+  "overlay_stateLocating": {
     "message": "定位中"
   },
-  "overlay.stateNeedLanguagePack": {
+  "overlay_stateNeedLanguagePack": {
     "message": "等待语言包"
   },
-  "overlay.statePaused": {
+  "overlay_statePaused": {
     "message": "已暂停"
   },
-  "overlay.stateSpeaking": {
+  "overlay_stateSpeaking": {
     "message": "朗读中"
   },
-  "overlay.stopButton": {
+  "overlay_stopButton": {
     "message": "停止"
   },
-  "overlay.translatedBadge": {
-    "message": "译·$1$"
+  "overlay_translatedBadge": {
+    "message": "译·$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "overlay.translatedTitle": {
-    "message": "已从 $1$ 翻译"
+  "overlay_translatedTitle": {
+    "message": "已从 $p1$ 翻译",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.authorizing": {
+  "popup_authorizing": {
     "message": "授权中…"
   },
-  "popup.autoAdvance": {
+  "popup_autoAdvance": {
     "message": "读完自动滚到下一条"
   },
-  "popup.cannotConnect": {
+  "popup_cannotConnect": {
     "message": "无法连接页面"
   },
-  "popup.cloudEnabled": {
-    "message": "已启用 $1$。凭据和音色到「设置」里填"
+  "popup_cloudEnabled": {
+    "message": "已启用 $p1$。凭据和音色到「设置」里填",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.cloudFallback": {
+  "popup_cloudFallback": {
     "message": "云语音"
   },
-  "popup.engine": {
+  "popup_engine": {
     "message": "朗读引擎"
   },
-  "popup.followOriginal": {
+  "popup_followOriginal": {
     "message": "跟随原文（各读各的）"
   },
-  "popup.nextPost": {
+  "popup_nextPost": {
     "message": "⏭ 下一条"
   },
-  "popup.noActiveTab": {
+  "popup_noActiveTab": {
     "message": "没有找到活动标签页"
   },
-  "popup.noPageResponse": {
+  "popup_noPageResponse": {
     "message": "页面没有响应"
   },
-  "popup.noVoiceForLang": {
+  "popup_noVoiceForLang": {
     "message": "系统里没有这个语种的音色，会用默认音色朗读，可能读得不准。"
   },
-  "popup.notConfigured": {
-    "message": "$1$ 还没有配置凭据"
+  "popup_notConfigured": {
+    "message": "$p1$ 还没有配置凭据",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.notConfiguredHint": {
+  "popup_notConfiguredHint": {
     "message": "点这里去设置里填 API Key 和选音色 →"
   },
-  "popup.notConnected": {
+  "popup_notConnected": {
     "message": "未连接"
   },
-  "popup.openSettings": {
+  "popup_openSettings": {
     "message": "打开设置"
   },
-  "popup.openSettingsHint": {
+  "popup_openSettingsHint": {
     "message": "语音引擎凭据、音色、翻译能力检测 →"
   },
-  "popup.openXFirst": {
+  "popup_openXFirst": {
     "message": "请先打开 x.com（或开发用的 mock 页面）再使用"
   },
-  "popup.packDownloading": {
-    "message": "正在下载 $1$ → $2$ 语言包… $3$%"
+  "popup_packDownloading": {
+    "message": "正在下载 $p1$ → $p2$ 语言包… $p3$%",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      },
+      "p3": {
+        "content": "$3$"
+      }
+    }
   },
-  "popup.packNeeded": {
-    "message": "$1$ → $2$ 语言包未下载，请在页面右下角的面板上点「下载」"
+  "popup_packNeeded": {
+    "message": "$p1$ → $p2$ 语言包未下载，请在页面右下角的面板上点「下载」",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "popup.pause": {
+  "popup_pause": {
     "message": "⏸ 暂停"
   },
-  "popup.permissionDenied": {
-    "message": "没有授权访问 $1$，无法启用"
+  "popup_permissionDenied": {
+    "message": "没有授权访问 $p1$，无法启用",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.permissionFailed": {
-    "message": "授权失败：$1$"
+  "popup_permissionFailed": {
+    "message": "授权失败：$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.play": {
+  "popup_play": {
     "message": "▶ 播放"
   },
-  "popup.prevPost": {
+  "popup_prevPost": {
     "message": "⏮ 上一条"
   },
-  "popup.rate": {
+  "popup_rate": {
     "message": "语速"
   },
-  "popup.readAuthor": {
+  "popup_readAuthor": {
     "message": "朗读前先念作者名"
   },
-  "popup.readingLang": {
+  "popup_readingLang": {
     "message": "朗读语言"
   },
-  "popup.sentenceProgress": {
-    "message": "句子 $1$"
+  "popup_sentenceProgress": {
+    "message": "句子 $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.shortcuts": {
+  "popup_shortcuts": {
     "message": "快捷键：Alt+Shift+P 播放/暂停 · Alt+Shift+N 下一条 · Alt+Shift+B 上一条"
   },
-  "popup.skipAds": {
+  "popup_skipAds": {
     "message": "跳过推广帖"
   },
-  "popup.skipMediaOnly": {
+  "popup_skipMediaOnly": {
     "message": "跳过没有文字的帖子"
   },
-  "popup.source": {
-    "message": "来源：$1$"
+  "popup_source": {
+    "message": "来源：$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.stateError": {
+  "popup_stateError": {
     "message": "出错了"
   },
-  "popup.stateIdle": {
+  "popup_stateIdle": {
     "message": "待机"
   },
-  "popup.stateLoading": {
+  "popup_stateLoading": {
     "message": "定位中"
   },
-  "popup.stateNeedLanguagePack": {
+  "popup_stateNeedLanguagePack": {
     "message": "等待语言包"
   },
-  "popup.statePaused": {
+  "popup_statePaused": {
     "message": "已暂停"
   },
-  "popup.stateSpeaking": {
+  "popup_stateSpeaking": {
     "message": "朗读中"
   },
-  "popup.stop": {
+  "popup_stop": {
     "message": "⏹ 停止"
   },
-  "popup.systemVoice": {
+  "popup_systemVoice": {
     "message": "系统语音"
   },
-  "popup.tagline": {
+  "popup_tagline": {
     "message": "读 X，不用盯屏幕"
   },
-  "popup.translateHint": {
+  "popup_translateHint": {
     "message": "其它语言的帖子会先翻译再朗读；帖子本来就是该语言时直接读原文。"
   },
-  "popup.unsupported": {
+  "popup_unsupported": {
     "message": "当前环境不支持 Web Speech API，朗读不可用。"
   },
-  "popup.voiceAuto": {
+  "popup_voiceAuto": {
     "message": "自动匹配"
   },
-  "popup.voiceLocal": {
+  "popup_voiceLocal": {
     "message": "本地"
   },
-  "popup.voiceOnline": {
+  "popup_voiceOnline": {
     "message": "在线"
   },
-  "popup.voiceOption": {
-    "message": "$1$（$2$ · $3$）"
+  "popup_voiceOption": {
+    "message": "$p1$（$p2$ · $p3$）",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      },
+      "p3": {
+        "content": "$3$"
+      }
+    }
   },
-  "popup.voicePickerLabel": {
-    "message": "音色（$1$ 个可用于 $2$）"
+  "popup_voicePickerLabel": {
+    "message": "音色（$p1$ 个可用于 $p2$）",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "popup.volume": {
+  "popup_volume": {
     "message": "音量"
   },
-  "popup.waitingLang": {
+  "popup_waitingLang": {
     "message": "等待识别语种"
   },
-  "probe.apiMissing": {
+  "probe_apiMissing": {
     "message": "API 不存在"
   },
-  "probe.notDetected": {
+  "probe_notDetected": {
     "message": "未检测"
   },
-  "probe.threw": {
-    "message": "抛错：$1$: $2$"
+  "probe_threw": {
+    "message": "抛错：$p1$: $p2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "provider.common.errAuth": {
-    "message": "API Key 可能无效，或没有开通 $1 服务"
+  "provider_common_errAuth": {
+    "message": "API Key 可能无效，或没有开通 $p1$ 服务",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.common.errEmptyText": {
+  "provider_common_errEmptyText": {
     "message": "待合成的文本为空"
   },
-  "provider.common.errNotFound": {
+  "provider_common_errNotFound": {
     "message": "接口地址或模型名不对"
   },
-  "provider.common.errRateLimited": {
+  "provider_common_errRateLimited": {
     "message": "触发限流或额度用尽，稍后再试"
   },
-  "provider.common.errServer": {
-    "message": "$1 服务端异常，稍后重试"
+  "provider_common_errServer": {
+    "message": "$p1$ 服务端异常，稍后重试",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.doubao.credAccessKeyHelp": {
+  "provider_doubao_credAccessKeyHelp": {
     "message": "没有 API Key 时可以改用它 + App ID 来鉴权"
   },
-  "provider.doubao.credAccessKeyLabel": {
+  "provider_doubao_credAccessKeyLabel": {
     "message": "Access Key（旧版才需要）"
   },
-  "provider.doubao.credAccessKeyPlaceholder": {
+  "provider_doubao_credAccessKeyPlaceholder": {
     "message": "只有用旧版鉴权时才填"
   },
-  "provider.doubao.credApiKeyHelp": {
+  "provider_doubao_credApiKeyHelp": {
     "message": "在「语音技术 → 应用管理」获取"
   },
-  "provider.doubao.credApiKeyLabel": {
+  "provider_doubao_credApiKeyLabel": {
     "message": "API Key"
   },
-  "provider.doubao.credApiKeyPlaceholder": {
+  "provider_doubao_credApiKeyPlaceholder": {
     "message": "粘贴 API Key"
   },
-  "provider.doubao.credAppIdHelp": {
+  "provider_doubao_credAppIdHelp": {
     "message": "接口靠它判定请求属于哪个应用。「资源未授权 / requested resource not granted」这类报错通常就是缺了它"
   },
-  "provider.doubao.credAppIdLabel": {
+  "provider_doubao_credAppIdLabel": {
     "message": "App ID（强烈建议填）"
   },
-  "provider.doubao.credAppIdPlaceholder": {
+  "provider_doubao_credAppIdPlaceholder": {
     "message": "同上的「应用管理」页面"
   },
-  "provider.doubao.errRequestFailed": {
-    "message": "调用豆包语音失败：$1"
+  "provider_doubao_errRequestFailed": {
+    "message": "调用豆包语音失败：$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.doubao.errRequestFailedHint": {
+  "provider_doubao_errRequestFailedHint": {
     "message": "检查网络，或确认已授予 openspeech.bytedance.com 的访问权限"
   },
-  "provider.doubao.errResourceNotGrantedHint": {
+  "provider_doubao_errResourceNotGrantedHint": {
     "message": "到火山引擎控制台「语音技术 → 应用管理」确认两件事：①「音频生成」服务已开通 ②把该页面的 App ID 也填上（接口靠它判定请求属于哪个应用）"
   },
-  "provider.doubao.errServiceNotActivatedHint": {
+  "provider_doubao_errServiceNotActivatedHint": {
     "message": "到火山引擎控制台开通对应服务"
   },
-  "provider.doubao.errSynthesizeFailed": {
-    "message": "豆包语音合成失败（HTTP $1）"
+  "provider_doubao_errSynthesizeFailed": {
+    "message": "豆包语音合成失败（HTTP $p1$）",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.doubao.langEn": {
+  "provider_doubao_langEn": {
     "message": "英文"
   },
-  "provider.doubao.langZh": {
+  "provider_doubao_langZh": {
     "message": "中文"
   },
-  "provider.doubao.name": {
+  "provider_doubao_name": {
     "message": "豆包语音"
   },
-  "provider.doubao.summary": {
+  "provider_doubao_summary": {
     "message": "火山引擎，中文音色自然，30+ 音色可选"
   },
-  "provider.doubao.voiceNoteAudiobook": {
+  "provider_doubao_voiceNoteAudiobook": {
     "message": "有声阅读"
   },
-  "provider.doubao.voiceNoteVideoNarration": {
+  "provider_doubao_voiceNoteVideoNarration": {
     "message": "视频配音"
   },
-  "provider.openai.credApiKeyHelp": {
+  "provider_openai_credApiKeyHelp": {
     "message": "在 platform.openai.com 的 API keys 页面创建"
   },
-  "provider.openai.credApiKeyLabel": {
+  "provider_openai_credApiKeyLabel": {
     "message": "API Key"
   },
-  "provider.openai.credApiKeyPlaceholder": {
+  "provider_openai_credApiKeyPlaceholder": {
     "message": "sk-..."
   },
-  "provider.openai.errEmptyAudio": {
+  "provider_openai_errEmptyAudio": {
     "message": "OpenAI 返回了空音频"
   },
-  "provider.openai.errRequestFailed": {
-    "message": "调用 OpenAI 语音失败：$1"
+  "provider_openai_errRequestFailed": {
+    "message": "调用 OpenAI 语音失败：$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.openai.errRequestFailedHint": {
+  "provider_openai_errRequestFailedHint": {
     "message": "检查网络，或确认已授予 api.openai.com 的访问权限"
   },
-  "provider.openai.errSynthesizeFailed": {
-    "message": "OpenAI 语音合成失败（HTTP $1）"
+  "provider_openai_errSynthesizeFailed": {
+    "message": "OpenAI 语音合成失败（HTTP $p1$）",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.openai.langEn": {
+  "provider_openai_langEn": {
     "message": "英文"
   },
-  "provider.openai.langZh": {
+  "provider_openai_langZh": {
     "message": "中文"
   },
-  "provider.openai.name": {
+  "provider_openai_name": {
     "message": "OpenAI 语音"
   },
-  "provider.openai.summary": {
+  "provider_openai_summary": {
     "message": "音色语言无关，中英文都能读，配置最简单"
   },
-  "provider.openai.voiceNoteBright": {
+  "provider_openai_voiceNoteBright": {
     "message": "明亮"
   },
-  "provider.openai.voiceNoteBritish": {
+  "provider_openai_voiceNoteBritish": {
     "message": "英式"
   },
-  "provider.openai.voiceNoteDeepMale": {
+  "provider_openai_voiceNoteDeepMale": {
     "message": "低沉男声"
   },
-  "provider.openai.voiceNoteExpressive": {
+  "provider_openai_voiceNoteExpressive": {
     "message": "表现力强"
   },
-  "provider.openai.voiceNoteFemaleGeneral": {
+  "provider_openai_voiceNoteFemaleGeneral": {
     "message": "女声 · 通用"
   },
-  "provider.openai.voiceNoteGentle": {
+  "provider_openai_voiceNoteGentle": {
     "message": "温和"
   },
-  "provider.openai.voiceNoteMale": {
+  "provider_openai_voiceNoteMale": {
     "message": "男声"
   },
-  "provider.openai.voiceNoteNarrative": {
+  "provider_openai_voiceNoteNarrative": {
     "message": "叙事"
   },
-  "provider.openai.voiceNoteNeutral": {
+  "provider_openai_voiceNoteNeutral": {
     "message": "中性"
   },
-  "provider.openai.voiceNoteSoftFemale": {
+  "provider_openai_voiceNoteSoftFemale": {
     "message": "柔和女声"
   },
-  "provider.openai.voiceNoteSteady": {
+  "provider_openai_voiceNoteSteady": {
     "message": "沉稳"
   },
-  "provider.openrouter.credApiKeyHelp": {
+  "provider_openrouter_credApiKeyHelp": {
     "message": "在 openrouter.ai/keys 创建"
   },
-  "provider.openrouter.credApiKeyLabel": {
+  "provider_openrouter_credApiKeyLabel": {
     "message": "API Key"
   },
-  "provider.openrouter.credApiKeyPlaceholder": {
+  "provider_openrouter_credApiKeyPlaceholder": {
     "message": "sk-or-v1-..."
   },
-  "provider.openrouter.credModelHelp": {
-    "message": "留空用 $1。想用豆包的音色可以填 $2"
+  "provider_openrouter_credModelHelp": {
+    "message": "留空用 $p1$。想用豆包的音色可以填 $p2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "provider.openrouter.credModelLabel": {
+  "provider_openrouter_credModelLabel": {
     "message": "模型（可选）"
   },
-  "provider.openrouter.errEmptyAudio": {
+  "provider_openrouter_errEmptyAudio": {
     "message": "OpenRouter 返回了空音频"
   },
-  "provider.openrouter.errInsufficientCreditsHint": {
+  "provider_openrouter_errInsufficientCreditsHint": {
     "message": "OpenRouter 余额不足，去账户里充值或换一个免费模型"
   },
-  "provider.openrouter.errModelNotFoundHint": {
+  "provider_openrouter_errModelNotFoundHint": {
     "message": "模型名不对。到 openrouter.ai/models 用 output modality = speech 筛一下可用的 TTS 模型"
   },
-  "provider.openrouter.errRequestFailed": {
-    "message": "调用 OpenRouter 失败：$1"
+  "provider_openrouter_errRequestFailed": {
+    "message": "调用 OpenRouter 失败：$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.openrouter.errRequestFailedHint": {
+  "provider_openrouter_errRequestFailedHint": {
     "message": "检查网络，或确认已授予 openrouter.ai 的访问权限"
   },
-  "provider.openrouter.errSynthesizeFailed": {
-    "message": "OpenRouter 语音合成失败（HTTP $1）"
+  "provider_openrouter_errSynthesizeFailed": {
+    "message": "OpenRouter 语音合成失败（HTTP $p1$）",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.openrouter.langEn": {
+  "provider_openrouter_langEn": {
     "message": "英文"
   },
-  "provider.openrouter.langZh": {
+  "provider_openrouter_langZh": {
     "message": "中文"
   },
-  "provider.openrouter.name": {
+  "provider_openrouter_name": {
     "message": "OpenRouter"
   },
-  "provider.openrouter.summary": {
+  "provider_openrouter_summary": {
     "message": "一个 Key 用多家的模型，含 OpenAI 与豆包 Seed Audio"
   },
-  "reader.doneNoAutoAdvance": {
+  "reader_doneNoAutoAdvance": {
     "message": "已读完这一条（自动推进已关闭）"
   },
-  "reader.endOfTimeline": {
+  "reader_endOfTimeline": {
     "message": "已经读到时间线末尾了。"
   },
-  "reader.followingScroll": {
+  "reader_followingScroll": {
     "message": "已跟随你的滚动位置"
   },
-  "reader.loadingMore": {
+  "reader_loadingMore": {
     "message": "正在加载更多帖子…"
   },
-  "reader.locating": {
+  "reader_locating": {
     "message": "正在定位下一条…"
   },
-  "reader.noPosts": {
+  "reader_noPosts": {
     "message": "当前页面没找到帖子。请打开 X 的时间线、列表或帖子详情页再试。"
   },
-  "reader.packDownloadFailed": {
+  "reader_packDownloadFailed": {
     "message": "语言包下载失败。可到 chrome://on-device-translation-internals 手动安装"
   },
-  "reader.packDownloading": {
+  "reader_packDownloading": {
     "message": "正在下载语言包…"
   },
-  "reader.packNeeded": {
-    "message": "需要先下载 $1$ → $2$ 语言包（约十几秒，只需一次）"
+  "reader_packNeeded": {
+    "message": "需要先下载 $p1$ → $p2$ 语言包（约十几秒，只需一次）",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "reader.packReady": {
+  "reader_packReady": {
     "message": "语言包已就绪"
   },
-  "reader.packUnsupported": {
+  "reader_packUnsupported": {
     "message": "这一对语言不受支持"
   },
-  "reader.pairUnsupported": {
-    "message": "$1$ → $2$ 暂不支持，读原文"
+  "reader_pairUnsupported": {
+    "message": "$p1$ → $p2$ 暂不支持，读原文",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "reader.paused": {
+  "reader_paused": {
     "message": "已暂停"
   },
-  "reader.skipAd": {
+  "reader_skipAd": {
     "message": "跳过：推广帖"
   },
-  "reader.skipEmpty": {
+  "reader_skipEmpty": {
     "message": "跳过：这条帖子没有可读文字"
   },
-  "reader.translationFailed": {
+  "reader_translationFailed": {
     "message": "翻译失败，读原文"
   },
-  "reader.translationUnavailable": {
+  "reader_translationUnavailable": {
     "message": "设备端翻译当前不可用，读原文"
   },
-  "reader.translationUnsupported": {
+  "reader_translationUnsupported": {
     "message": "本机不支持设备端翻译，读原文"
   },
-  "translate.langAr": {
+  "translate_langAr": {
     "message": "阿拉伯语"
   },
-  "translate.langBg": {
+  "translate_langBg": {
     "message": "保加利亚语"
   },
-  "translate.langBn": {
+  "translate_langBn": {
     "message": "孟加拉语"
   },
-  "translate.langCs": {
+  "translate_langCs": {
     "message": "捷克语"
   },
-  "translate.langDa": {
+  "translate_langDa": {
     "message": "丹麦语"
   },
-  "translate.langDe": {
+  "translate_langDe": {
     "message": "德语"
   },
-  "translate.langEl": {
+  "translate_langEl": {
     "message": "希腊语"
   },
-  "translate.langEn": {
+  "translate_langEn": {
     "message": "英语"
   },
-  "translate.langEs": {
+  "translate_langEs": {
     "message": "西班牙语"
   },
-  "translate.langFi": {
+  "translate_langFi": {
     "message": "芬兰语"
   },
-  "translate.langFr": {
+  "translate_langFr": {
     "message": "法语"
   },
-  "translate.langHe": {
+  "translate_langHe": {
     "message": "希伯来语"
   },
-  "translate.langHi": {
+  "translate_langHi": {
     "message": "印地语"
   },
-  "translate.langHr": {
+  "translate_langHr": {
     "message": "克罗地亚语"
   },
-  "translate.langHu": {
+  "translate_langHu": {
     "message": "匈牙利语"
   },
-  "translate.langId": {
+  "translate_langId": {
     "message": "印尼语"
   },
-  "translate.langIt": {
+  "translate_langIt": {
     "message": "意大利语"
   },
-  "translate.langJa": {
+  "translate_langJa": {
     "message": "日语"
   },
-  "translate.langKn": {
+  "translate_langKn": {
     "message": "卡纳达语"
   },
-  "translate.langKo": {
+  "translate_langKo": {
     "message": "韩语"
   },
-  "translate.langLt": {
+  "translate_langLt": {
     "message": "立陶宛语"
   },
-  "translate.langMr": {
+  "translate_langMr": {
     "message": "马拉地语"
   },
-  "translate.langNl": {
+  "translate_langNl": {
     "message": "荷兰语"
   },
-  "translate.langNo": {
+  "translate_langNo": {
     "message": "挪威语"
   },
-  "translate.langPl": {
+  "translate_langPl": {
     "message": "波兰语"
   },
-  "translate.langPt": {
+  "translate_langPt": {
     "message": "葡萄牙语"
   },
-  "translate.langRo": {
+  "translate_langRo": {
     "message": "罗马尼亚语"
   },
-  "translate.langRu": {
+  "translate_langRu": {
     "message": "俄语"
   },
-  "translate.langSk": {
+  "translate_langSk": {
     "message": "斯洛伐克语"
   },
-  "translate.langSl": {
+  "translate_langSl": {
     "message": "斯洛文尼亚语"
   },
-  "translate.langSv": {
+  "translate_langSv": {
     "message": "瑞典语"
   },
-  "translate.langTa": {
+  "translate_langTa": {
     "message": "泰米尔语"
   },
-  "translate.langTe": {
+  "translate_langTe": {
     "message": "泰卢固语"
   },
-  "translate.langTh": {
+  "translate_langTh": {
     "message": "泰语"
   },
-  "translate.langTr": {
+  "translate_langTr": {
     "message": "土耳其语"
   },
-  "translate.langUk": {
+  "translate_langUk": {
     "message": "乌克兰语"
   },
-  "translate.langVi": {
+  "translate_langVi": {
     "message": "越南语"
   },
-  "translate.langZhHans": {
+  "translate_langZhHans": {
     "message": "中文（简体）"
   },
-  "translate.langZhHant": {
+  "translate_langZhHant": {
     "message": "中文（繁體）"
   },
-  "tts.audioPlaybackFailed": {
+  "tts_audioPlaybackFailed": {
     "message": "音频播放失败"
   },
-  "tts.credentialsSaved": {
+  "tts_credentialsSaved": {
     "message": "凭据已保存（存在本机，不会同步到云端）"
   },
-  "tts.credentialsTitle": {
-    "message": "$1$ 凭据"
+  "tts_credentialsTitle": {
+    "message": "$p1$ 凭据",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.currentValue": {
-    "message": "当前：$1$"
+  "tts_currentValue": {
+    "message": "当前：$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.defaultVoice": {
+  "tts_defaultVoice": {
     "message": "默认"
   },
-  "tts.defaultVoiceName": {
-    "message": "（$1$）"
+  "tts_defaultVoiceName": {
+    "message": "（$p1$）",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.enabled": {
-    "message": "已启用 $1$"
+  "tts_enabled": {
+    "message": "已启用 $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.grantAccess": {
+  "tts_grantAccess": {
     "message": "去授权"
   },
-  "tts.grantIntro": {
+  "tts_grantIntro": {
     "message": "还需要授权访问"
   },
-  "tts.grantReason": {
-    "message": "，$1$ 才能发请求。"
+  "tts_grantReason": {
+    "message": "，$p1$ 才能发请求。",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.maxChars": {
-    "message": "单次上限 $1$ 字符"
+  "tts_maxChars": {
+    "message": "单次上限 $p1$ 字符",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.noAudioReturned": {
+  "tts_noAudioReturned": {
     "message": "没有返回音频"
   },
-  "tts.noVoiceForLang": {
-    "message": "$1$ 没有可用于 $2$ 的音色"
+  "tts_noVoiceForLang": {
+    "message": "$p1$ 没有可用于 $p2$ 的音色",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "tts.permissionDenied": {
-    "message": "没有授权访问 $1$，$2$ 无法工作"
+  "tts_permissionDenied": {
+    "message": "没有授权访问 $p1$，$p2$ 无法工作",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "tts.preview": {
+  "tts_preview": {
     "message": "试听"
   },
-  "tts.previewFailed": {
-    "message": "试听失败：$1$"
+  "tts_previewFailed": {
+    "message": "试听失败：$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.previewHint": {
-    "message": "（$1$）"
+  "tts_previewHint": {
+    "message": "（$p1$）",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.previewOk": {
+  "tts_previewOk": {
     "message": "✓ 试听成功"
   },
-  "tts.previewing": {
+  "tts_previewing": {
     "message": "试听中…"
   },
-  "tts.privacyBody": {
-    "message": "：启用云语音后，被朗读的文本会发送到 $1$ 的服务端 —— 这是唯一会离开你设备的内容。翻译仍然在本地完成。不想发送就保持「系统语音」，那样完全离线。"
+  "tts_privacyBody": {
+    "message": "：启用云语音后，被朗读的文本会发送到 $p1$ 的服务端 —— 这是唯一会离开你设备的内容。翻译仍然在本地完成。不想发送就保持「系统语音」，那样完全离线。",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.privacyNotice": {
+  "tts_privacyNotice": {
     "message": "注意"
   },
-  "tts.sampleText": {
+  "tts_sampleText": {
     "message": "这条帖子在讲一个挺有意思的观点，读起来应该足够自然。"
   },
-  "tts.save": {
+  "tts_save": {
     "message": "保存"
   },
-  "tts.storageAfter": {
+  "tts_storageAfter": {
     "message": "），不会同步到云端、也不会进入页面的 JS 环境。"
   },
-  "tts.storageBefore": {
+  "tts_storageBefore": {
     "message": "只保存在本机（"
   },
-  "tts.switchToSystem": {
+  "tts_switchToSystem": {
     "message": "切回系统语音"
   },
-  "tts.systemVoice": {
+  "tts_systemVoice": {
     "message": "系统语音"
   },
-  "tts.systemVoiceHint": {
+  "tts_systemVoiceHint": {
     "message": "零配置、离线，音色偏机械"
   },
-  "tts.voicesHint": {
+  "tts_voicesHint": {
     "message": "按语言分别选择。有的服务商音色是语言无关的（同一音色中英文都能读），有的则是一个音色只会一门语言 —— 后者用错会得到很怪的发音。"
   },
-  "tts.voicesTitle": {
+  "tts_voicesTitle": {
     "message": "音色"
   }
 }

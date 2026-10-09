@@ -187,7 +187,7 @@ export class Reader {
     this.followUser = false;
     const first = this.pickStartPost();
     if (!first) {
-      this.halt('error', t('reader.noPosts'));
+      this.halt('error', t('reader_noPosts'));
       return;
     }
     await this.run(first);
@@ -225,13 +225,13 @@ export class Reader {
     if (!target) {
       // 已渲染的帖子里没有下一条 → 往下滚一屏触发 X 的无限加载。
       // 这一步要等网络，先给用户一个可见的反馈，避免"点了没动静"。
-      this.patch({ message: t('reader.loadingMore') });
+      this.patch({ message: t('reader_loadingMore') });
       target = await this.loadMoreThenPick(from);
     }
     if (!target) target = this.pickStartPost();
 
     if (!target || keyOf(target) === keyOf(from)) {
-      this.halt('idle', t('reader.endOfTimeline'));
+      this.halt('idle', t('reader_endOfTimeline'));
       return;
     }
     await scrollToPost(target, this.settings.anchorRatio);
@@ -255,7 +255,7 @@ export class Reader {
   pause(): void {
     if (this.state !== 'speaking') return;
     this.tts.pause();
-    this.patch({ state: 'paused', message: t('reader.paused') });
+    this.patch({ state: 'paused', message: t('reader_paused') });
   }
 
   resume(): void {
@@ -291,7 +291,7 @@ export class Reader {
   notifyUserScroll(): void {
     if (!this.isActive) return;
     this.followUser = true;
-    this.patch({ message: t('reader.followingScroll') });
+    this.patch({ message: t('reader_followingScroll') });
   }
 
   // ---------------------------------------------------------------- 主循环
@@ -313,12 +313,12 @@ export class Reader {
       const data = extractPost(post);
 
       if (data.isAd && this.settings.skipAds) {
-        this.patch({ message: t('reader.skipAd') });
+        this.patch({ message: t('reader_skipAd') });
         post = await this.advance(post, myEpoch, signal);
         continue;
       }
       if (data.isEmpty && this.settings.skipMediaOnly) {
-        this.patch({ message: t('reader.skipEmpty') });
+        this.patch({ message: t('reader_skipEmpty') });
         post = await this.advance(post, myEpoch, signal);
         continue;
       }
@@ -357,17 +357,17 @@ export class Reader {
       if (!finished) return;
 
       if (!this.settings.autoAdvance) {
-        this.patch({ state: 'idle', message: t('reader.doneNoAutoAdvance') });
+        this.patch({ state: 'idle', message: t('reader_doneNoAutoAdvance') });
         return;
       }
 
-      this.patch({ message: t('reader.locating') });
+      this.patch({ message: t('reader_locating') });
       post = await this.advance(post, myEpoch, signal);
     }
 
     if (!this.stale(myEpoch, signal)) {
       this.setFocus(null);
-      this.patch({ state: 'idle', message: t('reader.endOfTimeline') });
+      this.patch({ state: 'idle', message: t('reader_endOfTimeline') });
     }
   }
 
@@ -552,11 +552,11 @@ export class Reader {
 
     const pair = translationPair(detectedLang, target);
     if (!pair) {
-      return { ...original, note: t('reader.pairUnsupported', [detectedLang, target]) };
+      return { ...original, note: t('reader_pairUnsupported', [detectedLang, target]) };
     }
 
     if (!this.translation.isSupported()) {
-      return { ...original, note: t('reader.translationUnsupported') };
+      return { ...original, note: t('reader_translationUnsupported') };
     }
 
     const readiness = await this.translation.readiness(detectedLang, target);
@@ -569,13 +569,13 @@ export class Reader {
         state: 'need-language-pack',
         pendingPack: { from: pair.from, to: pair.to },
         packProgress: null,
-        message: t('reader.packNeeded', [pair.from, pair.to]),
+        message: t('reader_packNeeded', [pair.from, pair.to]),
       });
       return null;
     }
 
     if (readiness !== 'ready') {
-      return { ...original, note: t('reader.translationUnavailable') };
+      return { ...original, note: t('reader_translationUnavailable') };
     }
 
     try {
@@ -596,7 +596,7 @@ export class Reader {
       };
     } catch (error) {
       console.warn('[ReadX] 翻译失败，改读原文', error);
-      return { ...original, note: t('reader.translationFailed') };
+      return { ...original, note: t('reader_translationFailed') };
     }
   }
 
@@ -765,7 +765,7 @@ export class Reader {
     const pending = this.pendingPack;
     if (!pending) return;
 
-    this.patch({ state: 'loading', message: t('reader.packDownloading'), packProgress: 0 });
+    this.patch({ state: 'loading', message: t('reader_packDownloading'), packProgress: 0 });
 
     const result = await this.translation.prepare(pending.from, pending.to, (ratio) => {
       this.patch({ packProgress: ratio });
@@ -773,7 +773,7 @@ export class Reader {
 
     if (result === 'ready') {
       this.pendingPack = null;
-      this.patch({ pendingPack: null, packProgress: null, message: t('reader.packReady') });
+      this.patch({ pendingPack: null, packProgress: null, message: t('reader_packReady') });
       const post = pending.post;
       if (post.isConnected) {
         await this.run(post);
@@ -788,8 +788,8 @@ export class Reader {
       packProgress: null,
       message:
         result === 'unsupported'
-          ? t('reader.packUnsupported')
-          : t('reader.packDownloadFailed'),
+          ? t('reader_packUnsupported')
+          : t('reader_packDownloadFailed'),
     });
   }
 

@@ -124,8 +124,8 @@ export class CloudTtsProvider implements TtsProvider {
     const spec = this.spec;
     if (!spec) {
       this.onError?.(
-        t('cloudTts.unknownProvider', [this.getConfig().cloudProvider]),
-        t('cloudTts.unknownProviderHint'),
+        t('cloudTts_unknownProvider', [this.getConfig().cloudProvider]),
+        t('cloudTts_unknownProviderHint'),
       );
       return 'error';
     }
@@ -133,8 +133,8 @@ export class CloudTtsProvider implements TtsProvider {
     const voice = opts.voiceURI ?? this.voiceFor(opts.lang);
     if (!voice) {
       this.onError?.(
-        t('cloudTts.noVoiceForLang', [spec.name, opts.lang]),
-        t('cloudTts.noVoiceForLangHint'),
+        t('cloudTts_noVoiceForLang', [spec.name, opts.lang]),
+        t('cloudTts_noVoiceForLangHint'),
       );
       return 'error';
     }
@@ -298,8 +298,8 @@ export class CloudTtsProvider implements TtsProvider {
     const spec = this.spec;
     if (!spec) {
       this.onError?.(
-        t('cloudTts.unknownProvider', [this.getConfig().cloudProvider]),
-        t('cloudTts.unknownProviderHint'),
+        t('cloudTts_unknownProvider', [this.getConfig().cloudProvider]),
+        t('cloudTts_unknownProviderHint'),
       );
       return 'error';
     }
@@ -307,8 +307,8 @@ export class CloudTtsProvider implements TtsProvider {
     const voice = opts.voiceURI ?? this.voiceFor(opts.lang);
     if (!voice) {
       this.onError?.(
-        t('cloudTts.noVoiceForLang', [spec.name, opts.lang]),
-        t('cloudTts.noVoiceForLangHint'),
+        t('cloudTts_noVoiceForLang', [spec.name, opts.lang]),
+        t('cloudTts_noVoiceForLangHint'),
       );
       return 'error';
     }
@@ -408,7 +408,7 @@ export class CloudTtsProvider implements TtsProvider {
       audio.onended = () => done('ended');
       audio.onerror = () => {
         if (!audio.currentSrc) return;
-        this.onError?.(t('cloudTts.playbackFailed'));
+        this.onError?.(t('cloudTts_playbackFailed'));
         done('error');
       };
 
@@ -431,8 +431,8 @@ export class CloudTtsProvider implements TtsProvider {
       audio.play().catch((error: unknown) => {
         if ((error as Error)?.name === 'AbortError') return;
         this.onError?.(
-          t('cloudTts.playbackRejected', [(error as Error).message]),
-          t('cloudTts.playbackRejectedHint'),
+          t('cloudTts_playbackRejected', [(error as Error).message]),
+          t('cloudTts_playbackRejectedHint'),
         );
         done('error');
       });
@@ -450,7 +450,7 @@ export class CloudTtsProvider implements TtsProvider {
     })) as CloudTtsSynthesizeResponse | undefined;
 
     if (!response?.ok || !response.audio) {
-      const error = new Error(response?.error || t('cloudTts.synthesisFailed')) as Error & { hint?: string };
+      const error = new Error(response?.error || t('cloudTts_synthesisFailed')) as Error & { hint?: string };
       error.hint = response?.hint;
       throw error;
     }
@@ -496,7 +496,7 @@ export class CloudTtsProvider implements TtsProvider {
       audio.onerror = () => {
         // 主动清空 src（比如 stop()）会触发一个没有 currentSrc 的 error，忽略掉
         if (!audio.currentSrc) return;
-        this.onError?.(t('cloudTts.playbackFailed'));
+        this.onError?.(t('cloudTts_playbackFailed'));
         done('error');
       };
 
@@ -515,8 +515,8 @@ export class CloudTtsProvider implements TtsProvider {
       audio.play().catch((error: unknown) => {
         if ((error as Error)?.name === 'AbortError') return;
         this.onError?.(
-          t('cloudTts.playbackRejected', [(error as Error).message]),
-          t('cloudTts.playbackRejectedHint'),
+          t('cloudTts_playbackRejected', [(error as Error).message]),
+          t('cloudTts_playbackRejectedHint'),
         );
         done('error');
       });

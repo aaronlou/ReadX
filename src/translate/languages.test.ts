@@ -96,8 +96,8 @@ describe('translationPair', () => {
 
 describe('languageLabel', () => {
   it('有收录的给可读名称，没收录的直接显示代码', () => {
-    expect(languageLabel('zh')).toBe(en('translate.langZhHans'));
-    expect(languageLabel('ja')).toBe(en('translate.langJa'));
+    expect(languageLabel('zh')).toBe(en('translate_langZhHans'));
+    expect(languageLabel('ja')).toBe(en('translate_langJa'));
     expect(languageLabel('xx')).toBe('xx');
   });
 });

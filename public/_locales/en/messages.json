@@ -1,44 +1,80 @@
 {
-  "bg.notConfigured": {
-    "message": "$1$ credentials aren't configured yet"
+  "bg_notConfigured": {
+    "message": "$p1$ credentials aren't configured yet",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "bg.notConfiguredHint": {
+  "bg_notConfiguredHint": {
     "message": "Add them on the extension's settings page"
   },
-  "bg.synthesizeFailed": {
+  "bg_synthesizeFailed": {
     "message": "Synthesis failed"
   },
-  "bg.textTooLong": {
-    "message": "This text is longer than $1$'s $2$-character single-request limit"
+  "bg_textTooLong": {
+    "message": "This text is longer than $p1$'s $p2$-character single-request limit",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "bg.textTooLongHint": {
+  "bg_textTooLongHint": {
     "message": "Lower the reading length per post, or switch to another provider"
   },
-  "bg.unknownProvider": {
-    "message": "Unknown voice provider: $1$"
+  "bg_unknownProvider": {
+    "message": "Unknown voice provider: $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "cloudTts.noVoiceForLang": {
-    "message": "$1$ has no voice for $2$"
+  "cloudTts_noVoiceForLang": {
+    "message": "$p1$ has no voice for $p2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "cloudTts.noVoiceForLangHint": {
+  "cloudTts_noVoiceForLangHint": {
     "message": "Pick a voice for this language in settings"
   },
-  "cloudTts.playbackFailed": {
+  "cloudTts_playbackFailed": {
     "message": "Audio playback failed"
   },
-  "cloudTts.playbackRejected": {
-    "message": "Playback was blocked: $1$"
+  "cloudTts_playbackRejected": {
+    "message": "Playback was blocked: $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "cloudTts.playbackRejectedHint": {
+  "cloudTts_playbackRejectedHint": {
     "message": "Click the page and try again"
   },
-  "cloudTts.synthesisFailed": {
+  "cloudTts_synthesisFailed": {
     "message": "Speech synthesis failed"
   },
-  "cloudTts.unknownProvider": {
-    "message": "Unknown voice provider: $1$"
+  "cloudTts_unknownProvider": {
+    "message": "Unknown voice provider: $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "cloudTts.unknownProviderHint": {
+  "cloudTts_unknownProviderHint": {
     "message": "Choose a different one in settings"
   },
   "cmdNextPost": {
@@ -50,20 +86,25 @@
   "cmdToggleReading": {
     "message": "Start / pause reading"
   },
-  "content.noWebSpeech": {
+  "content_noWebSpeech": {
     "message": "This browser has no Web Speech API — system voices are unavailable."
   },
-  "content.speechEngine": {
+  "content_speechEngine": {
     "message": "Speech engine"
   },
-  "engineSwitch.degraded": {
+  "engineSwitch_degraded": {
     "message": "Cloud voice unavailable — temporarily using system voice"
   },
-  "engineSwitch.degradedHint": {
+  "engineSwitch_degradedHint": {
     "message": "Check your credentials, domain permission, and balance in settings"
   },
-  "engineSwitch.degradedWithDetail": {
-    "message": "$1$ — temporarily using system voice"
+  "engineSwitch_degradedWithDetail": {
+    "message": "$p1$ — temporarily using system voice",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
   "extDescription": {
     "message": "Turn your X timeline into audio: auto-scrolls to the next post and reads it aloud in the right language, with optional translation.",
@@ -73,919 +114,1192 @@
     "message": "ReadX — Listen to X",
     "description": "Extension name shown in the Chrome Web Store and toolbar"
   },
-  "options.contextContentScript": {
+  "options_contextContentScript": {
     "message": "Content script"
   },
-  "options.contextExtensionPage": {
+  "options_contextExtensionPage": {
     "message": "Extension page (this one)"
   },
-  "options.copied": {
+  "options_copied": {
     "message": "Copied ✓"
   },
-  "options.copiedLink": {
+  "options_copiedLink": {
     "message": "Copied"
   },
-  "options.copyLink": {
+  "options_copyLink": {
     "message": "Copy"
   },
-  "options.copyReport": {
+  "options_copyReport": {
     "message": "Copy report"
   },
-  "options.footer": {
+  "options_footer": {
     "message": "ReadX isn't an official X Corp product and isn't affiliated with X Corp. Reading and translation both happen on your device — nothing is uploaded."
   },
-  "options.howToTitle": {
+  "options_howToTitle": {
     "message": "How to use"
   },
-  "options.loading": {
+  "options_loading": {
     "message": "Loading…"
   },
-  "options.noTabsAfter": {
+  "options_noTabsAfter": {
     "message": "and come back to run the check."
   },
-  "options.noTabsBefore": {
+  "options_noTabsBefore": {
     "message": "No tab with the content script was found. Open"
   },
-  "options.notChecked": {
+  "options_notChecked": {
     "message": "not checked"
   },
-  "options.probe": {
+  "options_probe": {
     "message": "Check"
   },
-  "options.probeHint": {
+  "options_probeHint": {
     "message": "Translation runs on Chrome's built-in on-device model — free, offline, and nothing leaves your machine. Use this section to check whether it works on yours."
   },
-  "options.probeIdleHint": {
+  "options_probeIdleHint": {
     "message": "Click Check to test both this extension page and your open tabs."
   },
-  "options.probeTitle": {
+  "options_probeTitle": {
     "message": "Translation compatibility"
   },
-  "options.probing": {
+  "options_probing": {
     "message": "Checking…"
   },
-  "options.reportChromeVersion": {
+  "options_reportChromeVersion": {
     "message": "Chrome version"
   },
-  "options.reportItem": {
+  "options_reportItem": {
     "message": "Item"
   },
-  "options.reportSecureContext": {
+  "options_reportSecureContext": {
     "message": "Secure context"
   },
-  "options.step1Open": {
+  "options_step1Open": {
     "message": "Open"
   },
-  "options.step1Rest": {
+  "options_step1Rest": {
     "message": ", and a control bar appears in the bottom-right corner of the page."
   },
-  "options.step2Rest": {
+  "options_step2Rest": {
     "message": "). It scrolls to the next post on its own — and if you scroll yourself, it steps aside and picks up from where you are."
   },
-  "options.step2Start": {
+  "options_step2Start": {
     "message": "to start reading (shortcut"
   },
-  "options.step2Tap": {
+  "options_step2Tap": {
     "message": "Tap"
   },
-  "options.step3Bold2": {
+  "options_step3Bold2": {
     "message": "posts already in that language are read as-is"
   },
-  "options.step3Intro": {
+  "options_step3Intro": {
     "message": "Want posts read in another language? In the control bar or the popup, set \""
   },
-  "options.step3LangLabel": {
+  "options_step3LangLabel": {
     "message": "Reading language"
   },
-  "options.step3Middle": {
+  "options_step3Middle": {
     "message": "\" to the language you want. Posts in other languages are translated first;"
   },
-  "options.step3Outro": {
+  "options_step3Outro": {
     "message": ", with no pointless translation."
   },
-  "options.step4": {
+  "options_step4": {
     "message": "The first time you pick a language, its pack is downloaded once (about ten seconds, one time only). A download button and progress bar appear in the control bar — Chrome requires that you start this yourself with a click."
   },
-  "options.step5": {
+  "options_step5": {
     "message": "No sound? First check that your system has a voice for that language (macOS: System Settings → Accessibility → Spoken Content → System Voice)."
   },
-  "options.stuckStep1After": {
+  "options_stuckStep1After": {
     "message": "in a new tab, which lists every language pack, supports manual downloads, and shows why a download failed. Translation needs the source and target packs—"
   },
-  "options.stuckStep1Bold": {
+  "options_stuckStep1Bold": {
     "message": "both have to be installed."
   },
-  "options.stuckStep1Note": {
+  "options_stuckStep1Note": {
     "message": "If that page won't open or is empty, this machine or this Chrome version doesn't support built-in translation at all."
   },
-  "options.stuckStep1Open": {
+  "options_stuckStep1Open": {
     "message": "Open"
   },
-  "options.stuckStep2After": {
+  "options_stuckStep2After": {
     "message": ", find the entry for Translation / Optimization Guide, and click \"Check for update\". If the version stays at"
   },
-  "options.stuckStep2End": {
+  "options_stuckStep2End": {
     "message": "the component was never delivered."
   },
-  "options.stuckStep2Open": {
+  "options_stuckStep2Open": {
     "message": "Open"
   },
-  "options.stuckStep3": {
+  "options_stuckStep3": {
     "message": "Check that you're on the desktop version of Chrome 138+. Older versions have no built-in translation, and ReadX falls back to reading the original text."
   },
-  "options.stuckTitle": {
+  "options_stuckTitle": {
     "message": "If \"Download language pack\" keeps hanging"
   },
-  "options.tabLabel": {
-    "message": "Tab #$1$"
+  "options_tabLabel": {
+    "message": "Tab #$p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "options.tagline": {
+  "options_tagline": {
     "message": "Listen to X: it auto-scrolls to the next post, reads it in its own language, and translates first when needed."
   },
-  "options.unknownUrl": {
+  "options_unknownUrl": {
     "message": "(unknown URL)"
   },
-  "options.verdict1Is": {
+  "options_verdict1Is": {
     "message": "is a"
   },
-  "options.verdict1Then": {
+  "options_verdict1Then": {
     "message": "→ your browser supports on-device translation."
   },
-  "options.verdict2Download": {
+  "options_verdict2Download": {
     "message": "→ it isn't downloaded yet — click Download on the page once."
   },
-  "options.verdict2Is": {
+  "options_verdict2Is": {
     "message": "is"
   },
-  "options.verdict2Ready": {
+  "options_verdict2Ready": {
     "message": "→ the language pack is ready;"
   },
-  "options.verdict3Bold": {
+  "options_verdict3Bold": {
     "message": "reading without translating"
   },
-  "options.verdict3End": {
+  "options_verdict3End": {
     "message": "\"."
   },
-  "options.verdict3Is": {
+  "options_verdict3Is": {
     "message": "is"
   },
-  "options.verdict3Or": {
+  "options_verdict3Or": {
     "message": "or"
   },
-  "options.verdict3Then": {
+  "options_verdict3Then": {
     "message": "→ on-device translation isn't available on this computer, so ReadX falls back to \""
   },
-  "options.verdictApiBody": {
+  "options_verdictApiBody": {
     "message": "This usually means the hardware doesn't meet Google's requirements (16 GB RAM / 22 GB free disk / 4+ cores). ReadX falls back to reading the original text."
   },
-  "options.verdictApiUnavailable": {
-    "message": "The API is there, but it isn't usable on this machine right now ($1$)."
+  "options_verdictApiUnavailable": {
+    "message": "The API is there, but it isn't usable on this machine right now ($p1$).",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "options.verdictChromeVersion": {
-    "message": "You're on Chrome $1$; built-in translation requires the 138+ desktop version."
+  "options_verdictChromeVersion": {
+    "message": "You're on Chrome $p1$; built-in translation requires the 138+ desktop version.",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "options.verdictDownloadOnFirstUse": {
+  "options_verdictDownloadOnFirstUse": {
     "message": "On first use, click Download on the page once."
   },
-  "options.verdictNoApiBody": {
+  "options_verdictNoApiBody": {
     "message": "Reading still works — it just won't translate automatically."
   },
-  "options.verdictNoApiTitle": {
+  "options_verdictNoApiTitle": {
     "message": "This browser doesn't offer on-device translation."
   },
-  "options.verdictReady": {
+  "options_verdictReady": {
     "message": "The language pack is ready."
   },
-  "options.verdictTitle": {
+  "options_verdictTitle": {
     "message": "Reading the results"
   },
-  "options.verdictUsableTitle": {
+  "options_verdictUsableTitle": {
     "message": "On-device translation works."
   },
-  "options.voiceHint": {
+  "options_voiceHint": {
     "message": "System voices need no setup but sound robotic. Doubao Voice sounds much more natural, but you bring your own API key — and its domain permission is only requested when you turn it on."
   },
-  "options.voiceTitle": {
+  "options_voiceTitle": {
     "message": "Voice"
   },
-  "overlay.autoScroll": {
+  "overlay_autoScroll": {
     "message": "Auto-scroll to next post"
   },
-  "overlay.collapseButton": {
+  "overlay_collapseButton": {
     "message": "Collapse"
   },
-  "overlay.expandButton": {
+  "overlay_expandButton": {
     "message": "Expand"
   },
-  "overlay.followPostLanguage": {
+  "overlay_followPostLanguage": {
     "message": "Match each post"
   },
-  "overlay.introBodyEnd": {
+  "overlay_introBodyEnd": {
     "message": "to hear the post you're on. It scrolls to the next one for you, and gets out of the way the moment you scroll yourself."
   },
-  "overlay.introBodyStart": {
+  "overlay_introBodyStart": {
     "message": "Tap"
   },
-  "overlay.introDismiss": {
+  "overlay_introDismiss": {
     "message": "Got it"
   },
-  "overlay.introShortcuts": {
-    "message": "Shortcuts: $1$ to play or pause, $2$ for the next post. You can change them in Settings."
+  "overlay_introShortcuts": {
+    "message": "Shortcuts: $p1$ to play or pause, $p2$ for the next post. You can change them in Settings.",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "overlay.introTitle": {
+  "overlay_introTitle": {
     "message": "ReadX is ready"
   },
-  "overlay.introTranslate": {
+  "overlay_introTranslate": {
     "message": "Pick a reading language below and foreign posts get translated before they're read aloud."
   },
-  "overlay.langSourceAssumed": {
+  "overlay_langSourceAssumed": {
     "message": "assumed"
   },
-  "overlay.langSourceDetected": {
+  "overlay_langSourceDetected": {
     "message": "detected"
   },
-  "overlay.langSourcePageScript": {
+  "overlay_langSourcePageScript": {
     "message": "page script"
   },
-  "overlay.langSourcePageText": {
+  "overlay_langSourcePageText": {
     "message": "page text"
   },
-  "overlay.nextButton": {
-    "message": "Next post ($1$)"
+  "overlay_nextButton": {
+    "message": "Next post ($p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "overlay.notTranslatedBadge": {
+  "overlay_notTranslatedBadge": {
     "message": "Not translated"
   },
-  "overlay.notTranslatedTitle": {
+  "overlay_notTranslatedTitle": {
     "message": "Can't translate — reading the original"
   },
-  "overlay.packDownloadButton": {
+  "overlay_packDownloadButton": {
     "message": "Download"
   },
-  "overlay.packDownloading": {
-    "message": "Downloading the $1$ → $2$ language pack…"
+  "overlay_packDownloading": {
+    "message": "Downloading the $p1$ → $p2$ language pack…",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "overlay.packDownloadingButton": {
+  "overlay_packDownloadingButton": {
     "message": "Downloading…"
   },
-  "overlay.packNeeded": {
-    "message": "The $1$ → $2$ language pack isn't downloaded yet (one-time download)"
+  "overlay_packNeeded": {
+    "message": "The $p1$ → $p2$ language pack isn't downloaded yet (one-time download)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "overlay.playPauseButton": {
-    "message": "Play / Pause ($1$)"
+  "overlay_playPauseButton": {
+    "message": "Play / Pause ($p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "overlay.prevButton": {
-    "message": "Previous post ($1$)"
+  "overlay_prevButton": {
+    "message": "Previous post ($p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "overlay.progress": {
-    "message": "Post $1$ of $2$"
+  "overlay_progress": {
+    "message": "Post $p1$ of $p2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "overlay.readAuthor": {
+  "overlay_readAuthor": {
     "message": "Read author name first"
   },
-  "overlay.readingLanguage": {
+  "overlay_readingLanguage": {
     "message": "Reading language"
   },
-  "overlay.skipAds": {
+  "overlay_skipAds": {
     "message": "Skip promoted posts"
   },
-  "overlay.speechEngine": {
+  "overlay_speechEngine": {
     "message": "Speech engine"
   },
-  "overlay.speed": {
+  "overlay_speed": {
     "message": "Speed"
   },
-  "overlay.stateError": {
+  "overlay_stateError": {
     "message": "Error"
   },
-  "overlay.stateIdle": {
+  "overlay_stateIdle": {
     "message": "Idle"
   },
-  "overlay.stateLocating": {
+  "overlay_stateLocating": {
     "message": "Finding"
   },
-  "overlay.stateNeedLanguagePack": {
+  "overlay_stateNeedLanguagePack": {
     "message": "Language pack needed"
   },
-  "overlay.statePaused": {
+  "overlay_statePaused": {
     "message": "Paused"
   },
-  "overlay.stateSpeaking": {
+  "overlay_stateSpeaking": {
     "message": "Reading"
   },
-  "overlay.stopButton": {
+  "overlay_stopButton": {
     "message": "Stop"
   },
-  "overlay.translatedBadge": {
-    "message": "Translated · $1$"
+  "overlay_translatedBadge": {
+    "message": "Translated · $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "overlay.translatedTitle": {
-    "message": "Translated from $1$"
+  "overlay_translatedTitle": {
+    "message": "Translated from $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.authorizing": {
+  "popup_authorizing": {
     "message": "Authorizing…"
   },
-  "popup.autoAdvance": {
+  "popup_autoAdvance": {
     "message": "Auto-advance to next post"
   },
-  "popup.cannotConnect": {
+  "popup_cannotConnect": {
     "message": "Can't reach the page"
   },
-  "popup.cloudEnabled": {
-    "message": "$1$ is on. Add your credentials and pick a voice in Settings"
+  "popup_cloudEnabled": {
+    "message": "$p1$ is on. Add your credentials and pick a voice in Settings",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.cloudFallback": {
+  "popup_cloudFallback": {
     "message": "Cloud voice"
   },
-  "popup.engine": {
+  "popup_engine": {
     "message": "Voice engine"
   },
-  "popup.followOriginal": {
+  "popup_followOriginal": {
     "message": "Match each post's language"
   },
-  "popup.nextPost": {
+  "popup_nextPost": {
     "message": "⏭ Next"
   },
-  "popup.noActiveTab": {
+  "popup_noActiveTab": {
     "message": "No active tab found"
   },
-  "popup.noPageResponse": {
+  "popup_noPageResponse": {
     "message": "The page didn't respond"
   },
-  "popup.noVoiceForLang": {
+  "popup_noVoiceForLang": {
     "message": "No voice for this language is installed. The default voice will be used, and it may mispronounce words."
   },
-  "popup.notConfigured": {
-    "message": "$1$ isn't set up yet"
+  "popup_notConfigured": {
+    "message": "$p1$ isn't set up yet",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.notConfiguredHint": {
+  "popup_notConfiguredHint": {
     "message": "Add your API key and pick a voice in Settings →"
   },
-  "popup.notConnected": {
+  "popup_notConnected": {
     "message": "Not connected"
   },
-  "popup.openSettings": {
+  "popup_openSettings": {
     "message": "Open settings"
   },
-  "popup.openSettingsHint": {
+  "popup_openSettingsHint": {
     "message": "Voice credentials, voices, translation check →"
   },
-  "popup.openXFirst": {
+  "popup_openXFirst": {
     "message": "Open x.com first (or the dev mock page)"
   },
-  "popup.packDownloading": {
-    "message": "Downloading the $1$ → $2$ language pack… $3$%"
+  "popup_packDownloading": {
+    "message": "Downloading the $p1$ → $p2$ language pack… $p3$%",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      },
+      "p3": {
+        "content": "$3$"
+      }
+    }
   },
-  "popup.packNeeded": {
-    "message": "The $1$ → $2$ language pack isn't downloaded. Click Download in the panel at the bottom right of the page"
+  "popup_packNeeded": {
+    "message": "The $p1$ → $p2$ language pack isn't downloaded. Click Download in the panel at the bottom right of the page",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "popup.pause": {
+  "popup_pause": {
     "message": "⏸ Pause"
   },
-  "popup.permissionDenied": {
-    "message": "Access to $1$ wasn't granted, so it can't be turned on"
+  "popup_permissionDenied": {
+    "message": "Access to $p1$ wasn't granted, so it can't be turned on",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.permissionFailed": {
-    "message": "Couldn't request permission: $1$"
+  "popup_permissionFailed": {
+    "message": "Couldn't request permission: $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.play": {
+  "popup_play": {
     "message": "▶ Play"
   },
-  "popup.prevPost": {
+  "popup_prevPost": {
     "message": "⏮ Previous"
   },
-  "popup.rate": {
+  "popup_rate": {
     "message": "Speed"
   },
-  "popup.readAuthor": {
+  "popup_readAuthor": {
     "message": "Say the author's name first"
   },
-  "popup.readingLang": {
+  "popup_readingLang": {
     "message": "Reading language"
   },
-  "popup.sentenceProgress": {
-    "message": "Sentence $1$"
+  "popup_sentenceProgress": {
+    "message": "Sentence $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.shortcuts": {
+  "popup_shortcuts": {
     "message": "Shortcuts: Alt+Shift+P play/pause · Alt+Shift+N next post · Alt+Shift+B previous post"
   },
-  "popup.skipAds": {
+  "popup_skipAds": {
     "message": "Skip promoted posts"
   },
-  "popup.skipMediaOnly": {
+  "popup_skipMediaOnly": {
     "message": "Skip posts with no text"
   },
-  "popup.source": {
-    "message": "Source: $1$"
+  "popup_source": {
+    "message": "Source: $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "popup.stateError": {
+  "popup_stateError": {
     "message": "Error"
   },
-  "popup.stateIdle": {
+  "popup_stateIdle": {
     "message": "Idle"
   },
-  "popup.stateLoading": {
+  "popup_stateLoading": {
     "message": "Locating"
   },
-  "popup.stateNeedLanguagePack": {
+  "popup_stateNeedLanguagePack": {
     "message": "Waiting for language pack"
   },
-  "popup.statePaused": {
+  "popup_statePaused": {
     "message": "Paused"
   },
-  "popup.stateSpeaking": {
+  "popup_stateSpeaking": {
     "message": "Reading"
   },
-  "popup.stop": {
+  "popup_stop": {
     "message": "⏹ Stop"
   },
-  "popup.systemVoice": {
+  "popup_systemVoice": {
     "message": "System voice"
   },
-  "popup.tagline": {
+  "popup_tagline": {
     "message": "Listen to X without looking"
   },
-  "popup.translateHint": {
+  "popup_translateHint": {
     "message": "Posts in other languages are translated before they're read; posts already in that language are read as-is."
   },
-  "popup.unsupported": {
+  "popup_unsupported": {
     "message": "This environment doesn't support the Web Speech API, so reading aloud isn't available."
   },
-  "popup.voiceAuto": {
+  "popup_voiceAuto": {
     "message": "Auto"
   },
-  "popup.voiceLocal": {
+  "popup_voiceLocal": {
     "message": "On-device"
   },
-  "popup.voiceOnline": {
+  "popup_voiceOnline": {
     "message": "Online"
   },
-  "popup.voiceOption": {
-    "message": "$1$ ($2$ · $3$)"
+  "popup_voiceOption": {
+    "message": "$p1$ ($p2$ · $p3$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      },
+      "p3": {
+        "content": "$3$"
+      }
+    }
   },
-  "popup.voicePickerLabel": {
-    "message": "Voice ($1$ available for $2$)"
+  "popup_voicePickerLabel": {
+    "message": "Voice ($p1$ available for $p2$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "popup.volume": {
+  "popup_volume": {
     "message": "Volume"
   },
-  "popup.waitingLang": {
+  "popup_waitingLang": {
     "message": "Detecting language…"
   },
-  "probe.apiMissing": {
+  "probe_apiMissing": {
     "message": "API not available"
   },
-  "probe.notDetected": {
+  "probe_notDetected": {
     "message": "Not checked"
   },
-  "probe.threw": {
-    "message": "Threw: $1$: $2$"
+  "probe_threw": {
+    "message": "Threw: $p1$: $p2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "provider.common.errAuth": {
-    "message": "The API key may be invalid, or the $1 service isn't enabled"
+  "provider_common_errAuth": {
+    "message": "The API key may be invalid, or the $p1$ service isn't enabled",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.common.errEmptyText": {
+  "provider_common_errEmptyText": {
     "message": "Nothing to synthesize"
   },
-  "provider.common.errNotFound": {
+  "provider_common_errNotFound": {
     "message": "Wrong API endpoint or model name"
   },
-  "provider.common.errRateLimited": {
+  "provider_common_errRateLimited": {
     "message": "Rate limited or out of quota — try again in a moment"
   },
-  "provider.common.errServer": {
-    "message": "The $1 service hit a server error — try again later"
+  "provider_common_errServer": {
+    "message": "The $p1$ service hit a server error — try again later",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.doubao.credAccessKeyHelp": {
+  "provider_doubao_credAccessKeyHelp": {
     "message": "If you don't have an API key, authenticate with this plus the App ID instead"
   },
-  "provider.doubao.credAccessKeyLabel": {
+  "provider_doubao_credAccessKeyLabel": {
     "message": "Access Key (legacy console only)"
   },
-  "provider.doubao.credAccessKeyPlaceholder": {
+  "provider_doubao_credAccessKeyPlaceholder": {
     "message": "Only needed for legacy authentication"
   },
-  "provider.doubao.credApiKeyHelp": {
+  "provider_doubao_credApiKeyHelp": {
     "message": "Get it from Speech → App Management in the ByteDance console"
   },
-  "provider.doubao.credApiKeyLabel": {
+  "provider_doubao_credApiKeyLabel": {
     "message": "API Key"
   },
-  "provider.doubao.credApiKeyPlaceholder": {
+  "provider_doubao_credApiKeyPlaceholder": {
     "message": "Paste your API key"
   },
-  "provider.doubao.credAppIdHelp": {
+  "provider_doubao_credAppIdHelp": {
     "message": "The API uses it to identify which app the request belongs to. A \"resource not granted\" error usually means this field is missing."
   },
-  "provider.doubao.credAppIdLabel": {
+  "provider_doubao_credAppIdLabel": {
     "message": "App ID (strongly recommended)"
   },
-  "provider.doubao.credAppIdPlaceholder": {
+  "provider_doubao_credAppIdPlaceholder": {
     "message": "From the same App Management page"
   },
-  "provider.doubao.errRequestFailed": {
-    "message": "Couldn't reach Doubao Voice: $1"
+  "provider_doubao_errRequestFailed": {
+    "message": "Couldn't reach Doubao Voice: $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.doubao.errRequestFailedHint": {
+  "provider_doubao_errRequestFailedHint": {
     "message": "Check your network, or make sure access to openspeech.bytedance.com is granted"
   },
-  "provider.doubao.errResourceNotGrantedHint": {
+  "provider_doubao_errResourceNotGrantedHint": {
     "message": "Enable the Audio Generation service under Speech → App Management in the ByteDance console, and paste the App ID from that same page — the API uses it to identify your app"
   },
-  "provider.doubao.errServiceNotActivatedHint": {
+  "provider_doubao_errServiceNotActivatedHint": {
     "message": "Enable the matching service in the ByteDance console"
   },
-  "provider.doubao.errSynthesizeFailed": {
-    "message": "Doubao Voice synthesis failed (HTTP $1)"
+  "provider_doubao_errSynthesizeFailed": {
+    "message": "Doubao Voice synthesis failed (HTTP $p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.doubao.langEn": {
+  "provider_doubao_langEn": {
     "message": "English"
   },
-  "provider.doubao.langZh": {
+  "provider_doubao_langZh": {
     "message": "Chinese"
   },
-  "provider.doubao.name": {
+  "provider_doubao_name": {
     "message": "Doubao Voice"
   },
-  "provider.doubao.summary": {
+  "provider_doubao_summary": {
     "message": "ByteDance's voice engine — natural Mandarin, 30+ voices"
   },
-  "provider.doubao.voiceNoteAudiobook": {
+  "provider_doubao_voiceNoteAudiobook": {
     "message": "Audiobook"
   },
-  "provider.doubao.voiceNoteVideoNarration": {
+  "provider_doubao_voiceNoteVideoNarration": {
     "message": "Video narration"
   },
-  "provider.openai.credApiKeyHelp": {
+  "provider_openai_credApiKeyHelp": {
     "message": "Create one on the API keys page at platform.openai.com"
   },
-  "provider.openai.credApiKeyLabel": {
+  "provider_openai_credApiKeyLabel": {
     "message": "API Key"
   },
-  "provider.openai.credApiKeyPlaceholder": {
+  "provider_openai_credApiKeyPlaceholder": {
     "message": "sk-..."
   },
-  "provider.openai.errEmptyAudio": {
+  "provider_openai_errEmptyAudio": {
     "message": "OpenAI returned no audio"
   },
-  "provider.openai.errRequestFailed": {
-    "message": "Couldn't reach OpenAI Voice: $1"
+  "provider_openai_errRequestFailed": {
+    "message": "Couldn't reach OpenAI Voice: $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.openai.errRequestFailedHint": {
+  "provider_openai_errRequestFailedHint": {
     "message": "Check your network, or make sure access to api.openai.com is granted"
   },
-  "provider.openai.errSynthesizeFailed": {
-    "message": "OpenAI Voice synthesis failed (HTTP $1)"
+  "provider_openai_errSynthesizeFailed": {
+    "message": "OpenAI Voice synthesis failed (HTTP $p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.openai.langEn": {
+  "provider_openai_langEn": {
     "message": "English"
   },
-  "provider.openai.langZh": {
+  "provider_openai_langZh": {
     "message": "Chinese"
   },
-  "provider.openai.name": {
+  "provider_openai_name": {
     "message": "OpenAI Voice"
   },
-  "provider.openai.summary": {
+  "provider_openai_summary": {
     "message": "Language-agnostic voices that read both English and Chinese — the simplest setup"
   },
-  "provider.openai.voiceNoteBright": {
+  "provider_openai_voiceNoteBright": {
     "message": "Bright"
   },
-  "provider.openai.voiceNoteBritish": {
+  "provider_openai_voiceNoteBritish": {
     "message": "British accent"
   },
-  "provider.openai.voiceNoteDeepMale": {
+  "provider_openai_voiceNoteDeepMale": {
     "message": "Deep male"
   },
-  "provider.openai.voiceNoteExpressive": {
+  "provider_openai_voiceNoteExpressive": {
     "message": "Expressive"
   },
-  "provider.openai.voiceNoteFemaleGeneral": {
+  "provider_openai_voiceNoteFemaleGeneral": {
     "message": "Female · general purpose"
   },
-  "provider.openai.voiceNoteGentle": {
+  "provider_openai_voiceNoteGentle": {
     "message": "Warm"
   },
-  "provider.openai.voiceNoteMale": {
+  "provider_openai_voiceNoteMale": {
     "message": "Male"
   },
-  "provider.openai.voiceNoteNarrative": {
+  "provider_openai_voiceNoteNarrative": {
     "message": "Narrative"
   },
-  "provider.openai.voiceNoteNeutral": {
+  "provider_openai_voiceNoteNeutral": {
     "message": "Neutral"
   },
-  "provider.openai.voiceNoteSoftFemale": {
+  "provider_openai_voiceNoteSoftFemale": {
     "message": "Soft female"
   },
-  "provider.openai.voiceNoteSteady": {
+  "provider_openai_voiceNoteSteady": {
     "message": "Steady"
   },
-  "provider.openrouter.credApiKeyHelp": {
+  "provider_openrouter_credApiKeyHelp": {
     "message": "Create one at openrouter.ai/keys"
   },
-  "provider.openrouter.credApiKeyLabel": {
+  "provider_openrouter_credApiKeyLabel": {
     "message": "API Key"
   },
-  "provider.openrouter.credApiKeyPlaceholder": {
+  "provider_openrouter_credApiKeyPlaceholder": {
     "message": "sk-or-v1-..."
   },
-  "provider.openrouter.credModelHelp": {
-    "message": "Leave blank to use $1. To use ByteDance voices, enter $2"
+  "provider_openrouter_credModelHelp": {
+    "message": "Leave blank to use $p1$. To use ByteDance voices, enter $p2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "provider.openrouter.credModelLabel": {
+  "provider_openrouter_credModelLabel": {
     "message": "Model (optional)"
   },
-  "provider.openrouter.errEmptyAudio": {
+  "provider_openrouter_errEmptyAudio": {
     "message": "OpenRouter returned no audio"
   },
-  "provider.openrouter.errInsufficientCreditsHint": {
+  "provider_openrouter_errInsufficientCreditsHint": {
     "message": "OpenRouter is out of credits — top up your account or switch to a free model"
   },
-  "provider.openrouter.errModelNotFoundHint": {
+  "provider_openrouter_errModelNotFoundHint": {
     "message": "Wrong model name. Filter openrouter.ai/models by output modality = speech to see the available TTS models"
   },
-  "provider.openrouter.errRequestFailed": {
-    "message": "Couldn't reach OpenRouter: $1"
+  "provider_openrouter_errRequestFailed": {
+    "message": "Couldn't reach OpenRouter: $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.openrouter.errRequestFailedHint": {
+  "provider_openrouter_errRequestFailedHint": {
     "message": "Check your network, or make sure access to openrouter.ai is granted"
   },
-  "provider.openrouter.errSynthesizeFailed": {
-    "message": "OpenRouter synthesis failed (HTTP $1)"
+  "provider_openrouter_errSynthesizeFailed": {
+    "message": "OpenRouter synthesis failed (HTTP $p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "provider.openrouter.langEn": {
+  "provider_openrouter_langEn": {
     "message": "English"
   },
-  "provider.openrouter.langZh": {
+  "provider_openrouter_langZh": {
     "message": "Chinese"
   },
-  "provider.openrouter.name": {
+  "provider_openrouter_name": {
     "message": "OpenRouter"
   },
-  "provider.openrouter.summary": {
+  "provider_openrouter_summary": {
     "message": "One key, many models — including OpenAI and ByteDance Seed Audio"
   },
-  "reader.doneNoAutoAdvance": {
+  "reader_doneNoAutoAdvance": {
     "message": "Finished this post (auto-advance is off)"
   },
-  "reader.endOfTimeline": {
+  "reader_endOfTimeline": {
     "message": "You've reached the end of your timeline."
   },
-  "reader.followingScroll": {
+  "reader_followingScroll": {
     "message": "Following your scroll position"
   },
-  "reader.loadingMore": {
+  "reader_loadingMore": {
     "message": "Loading more posts…"
   },
-  "reader.locating": {
+  "reader_locating": {
     "message": "Finding the next post…"
   },
-  "reader.noPosts": {
+  "reader_noPosts": {
     "message": "No posts found on this page. Open an X timeline, list, or post detail page and try again."
   },
-  "reader.packDownloadFailed": {
+  "reader_packDownloadFailed": {
     "message": "Language pack download failed. You can install it manually at chrome://on-device-translation-internals"
   },
-  "reader.packDownloading": {
+  "reader_packDownloading": {
     "message": "Downloading language pack…"
   },
-  "reader.packNeeded": {
-    "message": "Download the $1$ → $2$ language pack first — about ten seconds, one time only"
+  "reader_packNeeded": {
+    "message": "Download the $p1$ → $p2$ language pack first — about ten seconds, one time only",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "reader.packReady": {
+  "reader_packReady": {
     "message": "Language pack ready"
   },
-  "reader.packUnsupported": {
+  "reader_packUnsupported": {
     "message": "This language pair isn't supported"
   },
-  "reader.pairUnsupported": {
-    "message": "$1$ → $2$ isn't supported — reading the original"
+  "reader_pairUnsupported": {
+    "message": "$p1$ → $p2$ isn't supported — reading the original",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "reader.paused": {
+  "reader_paused": {
     "message": "Paused"
   },
-  "reader.skipAd": {
+  "reader_skipAd": {
     "message": "Skipped: promoted post"
   },
-  "reader.skipEmpty": {
+  "reader_skipEmpty": {
     "message": "Skipped: no readable text in this post"
   },
-  "reader.translationFailed": {
+  "reader_translationFailed": {
     "message": "Translation failed — reading the original"
   },
-  "reader.translationUnavailable": {
+  "reader_translationUnavailable": {
     "message": "Translation is unavailable right now — reading the original"
   },
-  "reader.translationUnsupported": {
+  "reader_translationUnsupported": {
     "message": "On-device translation isn't available here — reading the original"
   },
-  "translate.langAr": {
+  "translate_langAr": {
     "message": "Arabic"
   },
-  "translate.langBg": {
+  "translate_langBg": {
     "message": "Bulgarian"
   },
-  "translate.langBn": {
+  "translate_langBn": {
     "message": "Bengali"
   },
-  "translate.langCs": {
+  "translate_langCs": {
     "message": "Czech"
   },
-  "translate.langDa": {
+  "translate_langDa": {
     "message": "Danish"
   },
-  "translate.langDe": {
+  "translate_langDe": {
     "message": "German"
   },
-  "translate.langEl": {
+  "translate_langEl": {
     "message": "Greek"
   },
-  "translate.langEn": {
+  "translate_langEn": {
     "message": "English"
   },
-  "translate.langEs": {
+  "translate_langEs": {
     "message": "Spanish"
   },
-  "translate.langFi": {
+  "translate_langFi": {
     "message": "Finnish"
   },
-  "translate.langFr": {
+  "translate_langFr": {
     "message": "French"
   },
-  "translate.langHe": {
+  "translate_langHe": {
     "message": "Hebrew"
   },
-  "translate.langHi": {
+  "translate_langHi": {
     "message": "Hindi"
   },
-  "translate.langHr": {
+  "translate_langHr": {
     "message": "Croatian"
   },
-  "translate.langHu": {
+  "translate_langHu": {
     "message": "Hungarian"
   },
-  "translate.langId": {
+  "translate_langId": {
     "message": "Indonesian"
   },
-  "translate.langIt": {
+  "translate_langIt": {
     "message": "Italian"
   },
-  "translate.langJa": {
+  "translate_langJa": {
     "message": "Japanese"
   },
-  "translate.langKn": {
+  "translate_langKn": {
     "message": "Kannada"
   },
-  "translate.langKo": {
+  "translate_langKo": {
     "message": "Korean"
   },
-  "translate.langLt": {
+  "translate_langLt": {
     "message": "Lithuanian"
   },
-  "translate.langMr": {
+  "translate_langMr": {
     "message": "Marathi"
   },
-  "translate.langNl": {
+  "translate_langNl": {
     "message": "Dutch"
   },
-  "translate.langNo": {
+  "translate_langNo": {
     "message": "Norwegian"
   },
-  "translate.langPl": {
+  "translate_langPl": {
     "message": "Polish"
   },
-  "translate.langPt": {
+  "translate_langPt": {
     "message": "Portuguese"
   },
-  "translate.langRo": {
+  "translate_langRo": {
     "message": "Romanian"
   },
-  "translate.langRu": {
+  "translate_langRu": {
     "message": "Russian"
   },
-  "translate.langSk": {
+  "translate_langSk": {
     "message": "Slovak"
   },
-  "translate.langSl": {
+  "translate_langSl": {
     "message": "Slovenian"
   },
-  "translate.langSv": {
+  "translate_langSv": {
     "message": "Swedish"
   },
-  "translate.langTa": {
+  "translate_langTa": {
     "message": "Tamil"
   },
-  "translate.langTe": {
+  "translate_langTe": {
     "message": "Telugu"
   },
-  "translate.langTh": {
+  "translate_langTh": {
     "message": "Thai"
   },
-  "translate.langTr": {
+  "translate_langTr": {
     "message": "Turkish"
   },
-  "translate.langUk": {
+  "translate_langUk": {
     "message": "Ukrainian"
   },
-  "translate.langVi": {
+  "translate_langVi": {
     "message": "Vietnamese"
   },
-  "translate.langZhHans": {
+  "translate_langZhHans": {
     "message": "Chinese (Simplified)"
   },
-  "translate.langZhHant": {
+  "translate_langZhHant": {
     "message": "Chinese (Traditional)"
   },
-  "tts.audioPlaybackFailed": {
+  "tts_audioPlaybackFailed": {
     "message": "Couldn't play the audio"
   },
-  "tts.credentialsSaved": {
+  "tts_credentialsSaved": {
     "message": "Credentials saved — stored on this device only, never synced to the cloud"
   },
-  "tts.credentialsTitle": {
-    "message": "$1$ credentials"
+  "tts_credentialsTitle": {
+    "message": "$p1$ credentials",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.currentValue": {
-    "message": "Current: $1$"
+  "tts_currentValue": {
+    "message": "Current: $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.defaultVoice": {
+  "tts_defaultVoice": {
     "message": "Default"
   },
-  "tts.defaultVoiceName": {
-    "message": " ($1$)"
+  "tts_defaultVoiceName": {
+    "message": " ($p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.enabled": {
-    "message": "$1$ enabled"
+  "tts_enabled": {
+    "message": "$p1$ enabled",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.grantAccess": {
+  "tts_grantAccess": {
     "message": "Grant access"
   },
-  "tts.grantIntro": {
+  "tts_grantIntro": {
     "message": "ReadX needs permission to access"
   },
-  "tts.grantReason": {
-    "message": ", otherwise $1$ can't send requests."
+  "tts_grantReason": {
+    "message": ", otherwise $p1$ can't send requests.",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.maxChars": {
-    "message": "Up to $1$ characters per request"
+  "tts_maxChars": {
+    "message": "Up to $p1$ characters per request",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.noAudioReturned": {
+  "tts_noAudioReturned": {
     "message": "no audio returned"
   },
-  "tts.noVoiceForLang": {
-    "message": "$1$ has no voice for $2$"
+  "tts_noVoiceForLang": {
+    "message": "$p1$ has no voice for $p2$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "tts.permissionDenied": {
-    "message": "Access to $1$ wasn't granted, so $2$ can't work"
+  "tts_permissionDenied": {
+    "message": "Access to $p1$ wasn't granted, so $p2$ can't work",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      },
+      "p2": {
+        "content": "$2$"
+      }
+    }
   },
-  "tts.preview": {
+  "tts_preview": {
     "message": "Preview"
   },
-  "tts.previewFailed": {
-    "message": "Preview failed: $1$"
+  "tts_previewFailed": {
+    "message": "Preview failed: $p1$",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.previewHint": {
-    "message": " ($1$)"
+  "tts_previewHint": {
+    "message": " ($p1$)",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.previewOk": {
+  "tts_previewOk": {
     "message": "✓ Preview played"
   },
-  "tts.previewing": {
+  "tts_previewing": {
     "message": "Previewing…"
   },
-  "tts.privacyBody": {
-    "message": ": with cloud voice on, the text being read is sent to $1$'s servers — the only content that leaves your device. Translation still happens on-device. To stay fully offline, keep System voice."
+  "tts_privacyBody": {
+    "message": ": with cloud voice on, the text being read is sent to $p1$'s servers — the only content that leaves your device. Translation still happens on-device. To stay fully offline, keep System voice.",
+    "placeholders": {
+      "p1": {
+        "content": "$1$"
+      }
+    }
   },
-  "tts.privacyNotice": {
+  "tts_privacyNotice": {
     "message": "Note"
   },
-  "tts.sampleText": {
+  "tts_sampleText": {
     "message": "This post makes a good point, and it should sound natural when read aloud."
   },
-  "tts.save": {
+  "tts_save": {
     "message": "Save"
   },
-  "tts.storageAfter": {
+  "tts_storageAfter": {
     "message": "), never synced to the cloud, and never exposed to a page's JS environment."
   },
-  "tts.storageBefore": {
+  "tts_storageBefore": {
     "message": "Stored only on this device ("
   },
-  "tts.switchToSystem": {
+  "tts_switchToSystem": {
     "message": "Switch to System voice"
   },
-  "tts.systemVoice": {
+  "tts_systemVoice": {
     "message": "System voice"
   },
-  "tts.systemVoiceHint": {
+  "tts_systemVoiceHint": {
     "message": "No setup, works offline, sounds robotic"
   },
-  "tts.voicesHint": {
+  "tts_voicesHint": {
     "message": "Pick a voice for each language. Some providers have language-agnostic voices (one voice reads both Chinese and English); others give each voice a single language — the wrong one sounds noticeably off."
   },
-  "tts.voicesTitle": {
+  "tts_voicesTitle": {
     "message": "Voices"
   }
 }

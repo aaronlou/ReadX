@@ -122,7 +122,7 @@ describe('TtsEngineSwitch', () => {
     await switcher.speak('一', OPTS);
 
     expect(onError).toHaveBeenCalledWith(
-      en('engineSwitch.degraded'),
+      en('engineSwitch_degraded'),
       expect.any(String),
     );
   });

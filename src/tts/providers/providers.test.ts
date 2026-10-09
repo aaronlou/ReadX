@@ -136,7 +136,7 @@ describe('豆包 spec', () => {
 
     await expect(
       doubaoSpec.synthesize(request({ credentials: { apiKey: 'bad' } })),
-    ).rejects.toMatchObject({ hint: en('provider.common.errAuth', en('provider.doubao.name')) });
+    ).rejects.toMatchObject({ hint: en('provider_common_errAuth', en('provider_doubao_name')) });
   });
 
   it('429 提示限流', async () => {
@@ -144,7 +144,7 @@ describe('豆包 spec', () => {
 
     await expect(
       doubaoSpec.synthesize(request({ credentials: { apiKey: 'k' } })),
-    ).rejects.toMatchObject({ hint: en('provider.common.errRateLimited') });
+    ).rejects.toMatchObject({ hint: en('provider_common_errRateLimited') });
   });
 
   // 这是用户实际撞到的错误：Key 有效，但账号没开通这个接口对应的服务。
@@ -161,7 +161,7 @@ describe('豆包 spec', () => {
 
     await expect(
       doubaoSpec.synthesize(request({ credentials: { apiKey: 'k' } })),
-    ).rejects.toMatchObject({ hint: en('provider.doubao.errResourceNotGrantedHint') });
+    ).rejects.toMatchObject({ hint: en('provider_doubao_errResourceNotGrantedHint') });
   });
 
   it('200 但没有音频也算失败，不能静默当成成功', async () => {
@@ -177,7 +177,7 @@ describe('豆包 spec', () => {
 
     await expect(
       doubaoSpec.synthesize(request({ credentials: { apiKey: 'k' } })),
-    ).rejects.toMatchObject({ hint: en('provider.doubao.errRequestFailedHint') });
+    ).rejects.toMatchObject({ hint: en('provider_doubao_errRequestFailedHint') });
   });
 
   it('空文本不发请求', async () => {
@@ -185,7 +185,7 @@ describe('豆包 spec', () => {
 
     await expect(
       doubaoSpec.synthesize(request({ text: '   ', credentials: { apiKey: 'k' } })),
-    ).rejects.toThrow(en('provider.common.errEmptyText'));
+    ).rejects.toThrow(en('provider_common_errEmptyText'));
     expect(captured).toBeNull();
   });
 });
@@ -232,7 +232,7 @@ describe('OpenAI spec', () => {
       openaiSpec.synthesize(request({ credentials: { apiKey: 'bad' } })),
     ).rejects.toMatchObject({
       message: 'Incorrect API key provided',
-      hint: en('provider.common.errAuth', en('provider.openai.name')),
+      hint: en('provider_common_errAuth', en('provider_openai_name')),
     });
   });
 
@@ -241,7 +241,7 @@ describe('OpenAI spec', () => {
 
     await expect(
       openaiSpec.synthesize(request({ credentials: { apiKey: 'k' } })),
-    ).rejects.toThrow(en('provider.openai.errEmptyAudio'));
+    ).rejects.toThrow(en('provider_openai_errEmptyAudio'));
   });
 
   it('凭据只需要一个 apiKey', () => {
@@ -302,7 +302,7 @@ describe('OpenRouter spec', () => {
 
     await expect(
       openrouterSpec.synthesize(request({ credentials: { apiKey: 'k' } })),
-    ).rejects.toMatchObject({ hint: en('provider.openrouter.errModelNotFoundHint') });
+    ).rejects.toMatchObject({ hint: en('provider_openrouter_errModelNotFoundHint') });
   });
 
   it('402 提示余额不足（OpenRouter 特有的失败方式）', async () => {
@@ -310,7 +310,7 @@ describe('OpenRouter spec', () => {
 
     await expect(
       openrouterSpec.synthesize(request({ credentials: { apiKey: 'k' } })),
-    ).rejects.toMatchObject({ hint: en('provider.openrouter.errInsufficientCreditsHint') });
+    ).rejects.toMatchObject({ hint: en('provider_openrouter_errInsufficientCreditsHint') });
   });
 
   it('只需要一个 apiKey 就算配置完整（模型有默认值）', () => {

@@ -67,7 +67,7 @@ export default defineBackground(() => {
           .catch((error: unknown) =>
             sendResponse({
               ok: false,
-              error: error instanceof Error ? error.message : t('bg.synthesizeFailed'),
+              error: error instanceof Error ? error.message : t('bg_synthesizeFailed'),
             } satisfies CloudTtsSynthesizeResponse),
           );
         return true;
@@ -83,14 +83,14 @@ async function handleCloudTts(
 ): Promise<CloudTtsSynthesizeResponse> {
   const spec = findCloudProvider(message.providerId);
   if (!spec) {
-    return { ok: false, error: t('bg.unknownProvider', [message.providerId]) };
+    return { ok: false, error: t('bg_unknownProvider', [message.providerId]) };
   }
 
   if (message.text.length > spec.maxChars) {
     return {
       ok: false,
-      error: t('bg.textTooLong', [spec.name, String(spec.maxChars)]),
-      hint: t('bg.textTooLongHint'),
+      error: t('bg_textTooLong', [spec.name, String(spec.maxChars)]),
+      hint: t('bg_textTooLongHint'),
     };
   }
 
@@ -98,8 +98,8 @@ async function handleCloudTts(
   if (!spec.isConfigured(credentials)) {
     return {
       ok: false,
-      error: t('bg.notConfigured', [spec.name]),
-      hint: t('bg.notConfiguredHint'),
+      error: t('bg_notConfigured', [spec.name]),
+      hint: t('bg_notConfiguredHint'),
     };
   }
 

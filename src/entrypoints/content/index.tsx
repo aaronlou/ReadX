@@ -15,7 +15,11 @@ import './style.css';
 
 export default defineContentScript({
   // 开发环境额外匹配本地 mock 时间线页面，方便不登录 X 也能调试
-  matches: import.meta.env.DEV ? DEV_MATCHES : X_MATCHES,
+  // 截图构建（`npm run shoot`）也要能注入本地 mock 页面。
+  // `import.meta.env.DEV` 只在 `wxt dev` 下为真，构建模式拿不到，
+  // 所以额外认一个显式的 mode —— 正式构建的行为完全不受影响。
+  matches:
+    import.meta.env.DEV || import.meta.env.MODE === 'screenshot' ? DEV_MATCHES : X_MATCHES,
   cssInjectionMode: 'ui',
   runAt: 'document_idle',
 
@@ -30,7 +34,7 @@ export default defineContentScript({
     const tts = new TtsEngineSwitch(systemTts, cloudTts, () => settings.ttsEngine);
 
     if (!systemTts.isSupported()) {
-      console.warn(`[ReadX] ${t('content.noWebSpeech')}`);
+      console.warn(`[ReadX] ${t('content_noWebSpeech')}`);
     }
     await systemTts.ensureReady();
 
@@ -38,7 +42,7 @@ export default defineContentScript({
     const reader = new Reader(tts, new ChromeTranslatorProvider(), settings);
 
     tts.onError = (message, hint) => {
-      console.warn('[ReadX]', t('content.speechEngine'), message, hint ?? '');
+      console.warn('[ReadX]', t('content_speechEngine'), message, hint ?? '');
       const text = hint ? `${message} · ${hint}` : message;
       // 既要弹一次提示，也要在面板上留住 —— 否则用户只会觉得"声音怎么变回去了"
       reader.note(text);

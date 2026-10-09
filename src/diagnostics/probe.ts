@@ -39,7 +39,7 @@ async function attempt(
     return await fn();
   } catch (error) {
     const err = error as Error;
-    return { text: t('probe.threw', [err.name, err.message]), status: 'threw' };
+    return { text: t('probe_threw', [err.name, err.message]), status: 'threw' };
   }
 }
 
@@ -68,8 +68,8 @@ export async function probeBuiltInAi(
       LanguageModel: kindOf(g.LanguageModel),
       Summarizer: kindOf(g.Summarizer),
     },
-    translatorAvailability: t('probe.notDetected'),
-    languageDetectorAvailability: t('probe.notDetected'),
+    translatorAvailability: t('probe_notDetected'),
+    languageDetectorAvailability: t('probe_notDetected'),
     translatorStatus: 'missing',
     languageDetectorStatus: 'missing',
     at: new Date().toISOString(),
@@ -83,7 +83,7 @@ export async function probeBuiltInAi(
           ),
           status: 'ok' as const,
         }
-      : { text: t('probe.apiMissing'), status: 'missing' as const },
+      : { text: t('probe_apiMissing'), status: 'missing' as const },
   );
   report.translatorAvailability = translator.text;
   report.translatorStatus = translator.status;
@@ -91,7 +91,7 @@ export async function probeBuiltInAi(
   const detector = await attempt(async () =>
     g.LanguageDetector?.availability
       ? { text: String(await g.LanguageDetector.availability()), status: 'ok' as const }
-      : { text: t('probe.apiMissing'), status: 'missing' as const },
+      : { text: t('probe_apiMissing'), status: 'missing' as const },
   );
   report.languageDetectorAvailability = detector.text;
   report.languageDetectorStatus = detector.status;

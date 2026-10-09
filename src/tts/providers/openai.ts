@@ -30,17 +30,17 @@ const ORIGIN = PROVIDER_ORIGINS.openai;
  * 所以 defaultVoiceByLang 留空，用 fallbackVoice 兜底。
  */
 const VOICES: ProviderVoice[] = [
-  { id: 'alloy', name: 'Alloy', note: t('provider.openai.voiceNoteNeutral') },
-  { id: 'ash', name: 'Ash', note: t('provider.openai.voiceNoteSteady') },
-  { id: 'ballad', name: 'Ballad', note: t('provider.openai.voiceNoteNarrative') },
-  { id: 'coral', name: 'Coral', note: t('provider.openai.voiceNoteBright') },
-  { id: 'echo', name: 'Echo', note: t('provider.openai.voiceNoteMale') },
-  { id: 'fable', name: 'Fable', note: t('provider.openai.voiceNoteBritish') },
-  { id: 'nova', name: 'Nova', note: t('provider.openai.voiceNoteFemaleGeneral') },
-  { id: 'onyx', name: 'Onyx', note: t('provider.openai.voiceNoteDeepMale') },
-  { id: 'sage', name: 'Sage', note: t('provider.openai.voiceNoteGentle') },
-  { id: 'shimmer', name: 'Shimmer', note: t('provider.openai.voiceNoteSoftFemale') },
-  { id: 'verse', name: 'Verse', note: t('provider.openai.voiceNoteExpressive') },
+  { id: 'alloy', name: 'Alloy', note: t('provider_openai_voiceNoteNeutral') },
+  { id: 'ash', name: 'Ash', note: t('provider_openai_voiceNoteSteady') },
+  { id: 'ballad', name: 'Ballad', note: t('provider_openai_voiceNoteNarrative') },
+  { id: 'coral', name: 'Coral', note: t('provider_openai_voiceNoteBright') },
+  { id: 'echo', name: 'Echo', note: t('provider_openai_voiceNoteMale') },
+  { id: 'fable', name: 'Fable', note: t('provider_openai_voiceNoteBritish') },
+  { id: 'nova', name: 'Nova', note: t('provider_openai_voiceNoteFemaleGeneral') },
+  { id: 'onyx', name: 'Onyx', note: t('provider_openai_voiceNoteDeepMale') },
+  { id: 'sage', name: 'Sage', note: t('provider_openai_voiceNoteGentle') },
+  { id: 'shimmer', name: 'Shimmer', note: t('provider_openai_voiceNoteSoftFemale') },
+  { id: 'verse', name: 'Verse', note: t('provider_openai_voiceNoteExpressive') },
 ];
 
 /** OpenRouter 上的 OpenAI 兼容接口用的是同一套音色，所以两个 spec 共用 */
@@ -48,21 +48,21 @@ export const OPENAI_COMPATIBLE_VOICES = VOICES;
 
 export const openaiSpec: CloudTtsSpec = {
   id: 'openai',
-  name: t('provider.openai.name'),
-  summary: t('provider.openai.summary'),
+  name: t('provider_openai_name'),
+  summary: t('provider_openai_summary'),
   origins: [ORIGIN],
   credentials: [
     {
       key: 'apiKey',
-      label: t('provider.openai.credApiKeyLabel'),
+      label: t('provider_openai_credApiKeyLabel'),
       secret: true,
-      placeholder: t('provider.openai.credApiKeyPlaceholder'),
-      help: t('provider.openai.credApiKeyHelp'),
+      placeholder: t('provider_openai_credApiKeyPlaceholder'),
+      help: t('provider_openai_credApiKeyHelp'),
     },
   ],
   pickerLangs: [
-    { code: 'zh', label: t('provider.openai.langZh') },
-    { code: 'en', label: t('provider.openai.langEn') },
+    { code: 'zh', label: t('provider_openai_langZh') },
+    { code: 'en', label: t('provider_openai_langEn') },
   ],
   voices: VOICES,
   // 音色语言无关，所以不给每种语言指定默认值，统一用 fallback
@@ -78,7 +78,7 @@ export const openaiSpec: CloudTtsSpec = {
 
 async function synthesizeOpenAI(request: SynthesizeRequest): Promise<SynthesizeResult> {
   const text = request.text.trim();
-  if (!text) throw new CloudTtsError(t('provider.common.errEmptyText'));
+  if (!text) throw new CloudTtsError(t('provider_common_errEmptyText'));
 
   let response: Response;
   try {
@@ -99,8 +99,8 @@ async function synthesizeOpenAI(request: SynthesizeRequest): Promise<SynthesizeR
       signal: request.signal ?? AbortSignal.timeout(30_000),
     });
   } catch (error) {
-    throw new CloudTtsError(t('provider.openai.errRequestFailed', (error as Error).message), {
-      hint: t('provider.openai.errRequestFailedHint'),
+    throw new CloudTtsError(t('provider_openai_errRequestFailed', (error as Error).message), {
+      hint: t('provider_openai_errRequestFailedHint'),
     });
   }
 
@@ -110,10 +110,10 @@ async function synthesizeOpenAI(request: SynthesizeRequest): Promise<SynthesizeR
       error?: { message?: string };
     };
     throw new CloudTtsError(
-      detail.error?.message || t('provider.openai.errSynthesizeFailed', String(response.status)),
+      detail.error?.message || t('provider_openai_errSynthesizeFailed', String(response.status)),
       {
         code: response.status,
-        hint: describeHttpFailure(response.status, t('provider.openai.name')),
+        hint: describeHttpFailure(response.status, t('provider_openai_name')),
       },
     );
   }
@@ -121,7 +121,7 @@ async function synthesizeOpenAI(request: SynthesizeRequest): Promise<SynthesizeR
   // 和豆包不同：这里拿到的是**二进制音频流**，没有 base64 也没有字幕
   const buffer = await response.arrayBuffer();
   if (buffer.byteLength === 0) {
-    throw new CloudTtsError(t('provider.openai.errEmptyAudio'));
+    throw new CloudTtsError(t('provider_openai_errEmptyAudio'));
   }
 
   return {
