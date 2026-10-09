@@ -153,10 +153,17 @@ export class CloudTtsProvider implements TtsProvider {
     const spec = this.spec;
     if (!spec || !this.isSupported()) return;
     // 队伍已经太长就别再排了，否则会把真正要读的句子堵在后面
-    if (this.prefetchQueue.length >= MAX_QUEUED_PREFETCH) return;
+    if (this.prefetchQueue.length >= MAX_QUEUED_PREFETCH) {
+      console.debug('[ReadX] 预取队伍已满，跳过', preview(text));
+      return;
+    }
 
     const voice = this.voiceFor(lang);
     if (!voice) return;
+    // 已经缓存或在合成中的就不用再发了
+    if (this.clips.has(this.cacheKey(spec, text, voice))) return;
+
+    console.debug('[ReadX] 预取 →', preview(text));
     void this.getClip(spec, text, voice, 'prefetch').catch(() => {
       // 预取失败无所谓，真读到时候会再试一次
     });
@@ -213,7 +220,10 @@ export class CloudTtsProvider implements TtsProvider {
 
     // 先查缓存：命中就不该占用合成槽位，更不该排队
     const cached = this.clips.get(key);
-    if (cached) return Promise.resolve(cached);
+    if (cached) {
+      console.debug('[ReadX] 命中缓存 ·', preview(text));
+      return Promise.resolve(cached);
+    }
 
     // 同一段文本已经在合成/排队 → 共用那一个 promise，绝不重复请求
     const pending = this.inflight.get(key);
@@ -429,8 +439,8 @@ export class CloudTtsProvider implements TtsProvider {
     // 这条日志就是用来一眼看出该走哪条路的。
     const seconds = (performance.now() - startedAt) / 1000;
     console.debug(
-      `[ReadX] 合成 ${seconds.toFixed(2)}s · 音频 ${clip.duration.toFixed(2)}s · ${text.length} 字`,
-      seconds > clip.duration && clip.duration > 0 ? '⚠️ 合成比朗读慢' : '',
+      `[ReadX] 合成 ${seconds.toFixed(2)}s · 音频 ${clip.duration.toFixed(2)}s · ${text.length} 字 · ${preview(text)}`,
+      clip.duration > 0 && seconds > clip.duration ? '⚠️ 合成比朗读慢' : '',
     );
 
     return clip;
@@ -505,6 +515,12 @@ export function base64ToBlob(base64: string, mimeType: string): Blob {
 }
 
 // ---------------------------------------------------------------- 整段朗读的辅助
+
+/** 日志里用的短预览 —— 够认出是哪一段就行，不刷屏 */
+function preview(text: string): string {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  return `"${flat.slice(0, 16)}${flat.length > 16 ? '…' : ''}"`;
+}
 
 /** 按服务商的单次文本上限把句子切成几块 */
 function chunkSegments(
