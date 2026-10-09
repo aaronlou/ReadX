@@ -170,26 +170,95 @@ ReadX 是开源的：https://github.com/aaronlou/ReadX
 
 ---
 
-## 6. Privacy practices tab / 隐私表单
+## 6. Privacy practices tab / 隐私表单（逐字段可粘贴）
 
-Answers to the Web Store "Privacy practices" questionnaire. **These must be
-truthful — a wrong answer here is grounds for removal.**
+Chrome 后台的 **Privacy** 标签页按字段分。下面每块直接复制。
 
-| Question | Answer |
-| --- | --- |
-| Single purpose description | See `PUBLISHING.md` → 单一用途说明 |
-| Does it collect or use user data? | **Yes** — one category: "Website content" |
-| Website content | Read from x.com/twitter.com to read aloud and translate. Transmitted to a third party **only** when the user enables a cloud voice provider. |
-| Data sold to third parties? | **No** |
-| Data used for purposes unrelated to the single purpose? | **No** |
-| Data used to determine creditworthiness / for lending? | **No** |
-| Privacy policy URL | See §7 below |
+> ⚠️ 先看清一个事实：ReadX 的 manifest 里
+> `permissions: ["storage"]`、`host_permissions: ["x.com","twitter.com"]`、
+> 三个云语音域名在 `optional_host_permissions` 里。**所以理由栏会出现
+> storage + 两个站点域名 + 可选的三个域名。**
 
-### Why "Website content" must be declared
+### 6.1 Single purpose description
 
-ReadX reads post text. Even though it stays on the device by default, the
-extension *does* transmit it when the user turns on a cloud voice — so declaring
-"none" would be false. Declaring it accurately is the safe and honest answer.
+```
+ReadX makes the X (Twitter) timeline listenable. On x.com it scrolls to a post,
+detects the post's language, and reads it aloud, then advances to the next post.
+If the user picks a reading language, foreign posts are translated first using
+Chrome's built-in on-device Translator API.
+
+The only network function is optional cloud text-to-speech: if the user turns it
+on and supplies their own API key, the text being read is sent to that provider
+to be converted into audio. Scrolling, text extraction, language detection and
+translation all happen locally on the user's device.
+```
+
+### 6.2 Permission justifications
+
+**`storage`**
+
+```
+Saves the user's reading preferences (speed, volume, voice, reading language,
+and feature toggles) via chrome.storage.sync, and — locally only — the API key
+for any cloud voice provider the user chooses to enable, via
+chrome.storage.local. Credentials are never synced. No browsing history and no
+page content is stored.
+```
+
+**`x.com` / `twitter.com` host permission**
+
+```
+ReadX works only on x.com and twitter.com. It injects a small reading control
+bar into the page, reads the text of the post the user asked to hear, and
+scrolls the timeline to the next post. No other website is requested at install
+time.
+```
+
+**Optional host permissions (openrouter.ai / api.openai.com / openspeech.bytedance.com)**
+
+```
+Requested only when the user deliberately enables a cloud voice provider in
+ReadX settings. At that moment the user chooses the provider and Chrome shows a
+permission prompt for that provider's domain. The text of the post being read is
+then sent to that provider to be synthesized into audio, together with the
+user's own API key for that provider. A fresh install requests none of these
+domains, and the system voice plus on-device translation need no network at all.
+```
+
+### 6.3 Are you using remote code?
+
+**No, I am not using remote code.** — 全部代码都在包里，不从网络拉取或 eval。
+
+### 6.4 Data usage — checkboxes / 数据使用勾选项
+
+| 类别 | 勾不勾 | 为什么 |
+| --- | --- | --- |
+| **Website content** | ✅ **必勾** | 读取 x.com 帖子正文；用户开启云语音时会把这段文本发出去 |
+| **Authentication information** | ✅ **建议勾** | 用户自备的 API Key 会作为 `Authorization` 请求头发给所选服务商 |
+| 其余全部（PII / 健康 / 财务 / 位置 / 网络历史 / 用户活动 / 个人通信） | ❌ | 确实不涉及 |
+
+> **为什么不填"什么都不收集"**：默认情况下帖文确实不出本机，但用户开启云语音后
+> 扩展**确实会**把帖子文本发出去。填"否"就是不实申报 —— 这是审核被拒最常见的原因。
+>
+> **为什么连 Authentication information 也勾**：那个 API Key 是我们**传输到设备之外**的
+> 凭据。Google 对"收集"的定义就是"传出设备"。多申报不违规，少申报才是问题 ——
+> 配合 6.2 里的说明，审核方一看就明白。
+
+### 6.5 Certifications — 三个勾选框
+
+三个都勾（都确实成立）：
+
+- 不出售或转让用户数据给第三方 ✅
+- 不将用户数据用于与单一用途无关的目的 ✅
+- 不将用户数据用于判定信用或放贷 ✅
+
+### 6.6 Privacy policy URL
+
+```
+https://github.com/aaronlou/ReadX/blob/main/PRIVACY.md
+```
+
+仓库是 public，审核方能打开。想更正式可以开 GitHub Pages 换成渲染后的页面。
 
 ---
 
