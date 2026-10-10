@@ -38,8 +38,22 @@ Chrome hard-limits this to **132 characters**. Source:
 Turn your X timeline into something you can listen to.
 
 ReadX scrolls to a post, works out what language it's in, and reads it aloud.
-When it finishes one post it moves to the next, so you can put your phone or
-laptop down and just listen.
+When it finishes one post it moves to the next, so you can listen with your eyes
+off the screen.
+
+It's a Chrome extension for desktop — there's no iOS or Android version.
+
+GETTING STARTED
+
+1. Click "Add to Chrome", then open x.com or twitter.com.
+2. A small control bar appears in the bottom-right corner of the page.
+3. Press ▶ to start listening. ReadX scrolls to the post you're on, reads it, and
+   moves to the next one on its own.
+
+Keyboard shortcuts: Alt+Shift+P to play or pause, Alt+Shift+N for the next post.
+
+Nothing is ever read unless you press play. If you scroll away, ReadX stops and
+picks up from wherever you are.
 
 WHAT IT DOES
 
@@ -104,7 +118,19 @@ ReadX is open source: https://github.com/aaronlou/ReadX
 把 X 时间线变成可以「听」的东西。
 
 ReadX 会滚动定位到一条帖子，判断它是什么语言，然后朗读出来。读完一条自动
-去下一条，你可以把手机或电脑放下，只用耳朵刷。
+去下一条，你可以让眼睛离开屏幕。
+
+这是**桌面版 Chrome 扩展**，没有 iOS / Android 版本。
+
+怎么开始用
+
+1. 点「添加至 Chrome」，然后打开 x.com 或 twitter.com。
+2. 页面右下角会出现一条控制条。
+3. 按 ▶ 开始听。ReadX 会滚动定位到你正在看的帖子，读完自动去下一条。
+
+快捷键：Alt+Shift+P 播放/暂停，Alt+Shift+N 下一条。
+
+**你不按播放，它什么都不读。** 你自己滚动时它会停下，从你所在的位置接着读。
 
 它做什么
 

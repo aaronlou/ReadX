@@ -16,49 +16,58 @@ Attach `store/social/en/02-reading.png` (the reading state).
 ```
 You can listen to X instead of scrolling it.
 
-ReadX scrolls to a post, works out what language it's in, and reads it aloud —
-then moves on to the next one. Foreign posts get translated first, on your
-device, not on a server.
+ReadX is a free Chrome extension: it scrolls to a post, works out its language,
+and reads it aloud — then moves on. Foreign posts get translated first, on your
+device, not a server.
 
-Free, open source, no account.
+Install ↓
+[link]
 ```
-
-Then the link in the same post, or in the first reply to keep the main post
-clean. See "链接放哪" below.
 
 ---
 
 ## Option B — shorter / 更短
 
 ```
-I built a Chrome extension that reads your X timeline aloud.
+I built a free Chrome extension that reads your X timeline aloud.
 
 It scrolls to the next post on its own, detects the language, and reads it.
 Foreign posts get translated first — on your device, not a server.
 
-Free, open source, no account.
+Install ↓
+[link]
 ```
 
 ---
 
 ## Option C — thread / 串推
 
-Use this if you want to explain the interesting parts. Post 1 is what people
-actually see in the timeline, so it does the selling; the rest is for the people
-who click through.
+Post 1 is what people actually see in the timeline, so it does the selling.
+**Post 2 is the one most launches forget** — what to do after installing.
 
 **1/**
 ```
 You can listen to X instead of scrolling it.
 
-ReadX scrolls to a post, works out what language it's in, and reads it aloud —
-then moves on to the next one.
+ReadX is a free Chrome extension. It scrolls to a post, works out what language
+it's in, and reads it aloud — then moves on to the next one.
 
-Free, open source, no account.
+Install ↓
 [link]
 ```
 
 **2/**
+```
+How to use it:
+
+1. Add it to Chrome on your desktop
+2. Open x.com — a control bar shows up in the bottom-right
+3. Hit ▶
+
+That's it. Alt+Shift+P toggles play/pause, Alt+Shift+N skips to the next post.
+```
+
+**3/**
 ```
 It reads each post in its own language, and picks a matching voice.
 
@@ -68,7 +77,7 @@ using Chrome's built-in on-device translator.
 Free, offline, and nothing leaves your machine to be translated.
 ```
 
-**3/**
+**4/**
 ```
 The default voice is your system one: free, offline, a bit robotic.
 
@@ -78,7 +87,7 @@ Doubao. Bring your own API key, stored only on your device.
 Off by default. A fresh install touches no third-party domain.
 ```
 
-**4/**
+**5/**
 ```
 What I cared about:
 
@@ -91,17 +100,18 @@ What I cared about:
 Full policy in the repo.
 ```
 
-**5/**
+**6/**
 ```
-It's open source and free: [repo link]
+Two things to know before you install:
 
-It's a Chrome desktop extension (Translation needs Chrome 138+). Not affiliated
-with X Corp.
+· Translation needs desktop Chrome 138+, and a one-time language pack download
+  the first time you pick a language
+· It stays silent until you hit ▶
 
-If you try it and something's off, tell me — I'd rather hear it than not.
+Open source: [repo link]
+
+Not affiliated with X Corp.
 ```
-
----
 
 ## 链接放哪
 
