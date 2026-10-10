@@ -14,7 +14,8 @@
     "mock": "node scripts/serve-mock.mjs",
     "postinstall": "wxt prepare",
     "shoot": "wxt build -m screenshot && node scripts/shoot.mjs",
-    "smoke": "wxt build -m screenshot && node scripts/smoke.mjs"
+    "smoke": "wxt build -m screenshot && node scripts/smoke.mjs",
+    "shoot:social": "wxt build -m screenshot && node scripts/shoot.mjs --social"
   },
   "dependencies": {
     "react": "^19.2.4",

@@ -2,7 +2,8 @@
 /**
  * 用 CDP 自动截商店要的图。
  *
- *   npm run shoot                  # 中英两套
+ *   npm run shoot                  # 中英两套（商店用，1280×800）
+ *   npm run shoot:social           # 英文一套 16:9（发 X 用，1600×900）
  *   node scripts/shoot.mjs en      # 只出英文那套
  *
  * Chrome Web Store 的 listing 可以**按语言分别上传截图**，所以这里出两套：
@@ -21,17 +22,21 @@ import { attachToPage, launchWithExtension, sleep, waitFor } from './lib/cdp.mjs
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const SHOTS = join(ROOT, 'store', 'screenshots');
+const SOCIAL = join(ROOT, 'store', 'social');
 const BUILD = join(ROOT, '.output', 'chrome-mv3-screenshot');
 const PROFILE = join(ROOT, '.shot-profile');
 const STAGING = join(ROOT, '.shot-extension');
 const PORT = 9334;
 const MOCK = 'http://localhost:5174/mock-timeline.html';
 
-const WIDTH = 1280;
-const HEIGHT = 800;
+// 商店要 16:10；X 的时间线是 16:9，用 16:10 会被裁掉一点，所以社交图单独截
+const SOCIAL_MODE = process.argv.includes('--social');
+const WIDTH = SOCIAL_MODE ? 1600 : 1280;
+const HEIGHT = SOCIAL_MODE ? 900 : 800;
+const OUT_ROOT = SOCIAL_MODE ? SOCIAL : SHOTS;
 
 async function capture({ locale, stripLocales }) {
-  const outDir = join(SHOTS, locale);
+  const outDir = join(OUT_ROOT, locale);
   mkdirSync(outDir, { recursive: true });
 
   rmSync(STAGING, { recursive: true, force: true });
@@ -111,11 +116,14 @@ async function main() {
     process.exit(1);
   }
 
-  const only = process.argv[2];
-  const runs = [
-    { locale: 'zh', stripLocales: [] },
-    { locale: 'en', stripLocales: ['zh_CN'] },
-  ].filter((r) => !only || r.locale === only);
+  const only = process.argv.find((a) => a === 'en' || a === 'zh');
+  const runs = (SOCIAL_MODE
+    ? [{ locale: 'en', stripLocales: ['zh_CN'] }]
+    : [
+        { locale: 'zh', stripLocales: [] },
+        { locale: 'en', stripLocales: ['zh_CN'] },
+      ]
+  ).filter((r) => !only || r.locale === only);
 
   for (const run of runs) {
     console.log(`\n[${run.locale}] 启动 headless Chrome…`);
@@ -123,8 +131,8 @@ async function main() {
   }
 
   rmSync(PROFILE, { recursive: true, force: true });
-  console.log(`\n截图在 store/screenshots/（${WIDTH}×${HEIGHT}）`);
-  console.log('  上传时：英文 listing 用 en/，中文 listing 用 zh/');
+  console.log(`\n截图在 ${SOCIAL_MODE ? 'store/social/' : 'store/screenshots/'}（${WIDTH}×${HEIGHT}）`);
+  if (!SOCIAL_MODE) console.log('  上传时：英文 listing 用 en/，中文 listing 用 zh/');
 }
 
 main().catch((error) => {
