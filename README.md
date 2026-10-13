@@ -121,9 +121,11 @@ npm run mock
 ### 6. 构建正式版本
 
 ```bash
-npm run build     # 产物在 .output/chrome-mv3
-npm run zip       # 打包成可上传的 zip
+npm run build
+npm run zip
 ```
+
+产物在 `.output/chrome-mv3`，压缩包在 `.output/readx-<version>-chrome.zip`。
 
 手动加载：Chrome → `chrome://extensions` → 打开「开发者模式」→「加载已解压的扩展程序」→ 选 `.output/chrome-mv3`。
 
@@ -227,17 +229,31 @@ npm run mock
 ## 命令行
 
 ```bash
-npm run dev        # 开发模式（热更新）
-npm run build      # 构建
-npm run zip        # 打包
-npm run test       # 单元测试（178 个）
-npm run compile    # 类型检查
-npm run mock       # 启动本地 mock 时间线
-
-# 下面两个会真的把扩展装进 headless Chrome 跑一遍
-npm run smoke      # 端到端冒烟测试（中英各一遍，36 项断言）
-npm run shoot      # 自动截商店要的图
+npm run dev
+npm run build
+npm run zip
+npm run test
+npm run compile
+npm run mock
+npm run smoke
+npm run shoot
 ```
+
+| 命令 | 作用 |
+| --- | --- |
+| `npm run dev` | 开发模式（热更新） |
+| `npm run build` | 构建 |
+| `npm run zip` | 打包（先自动清掉 `.output` 里旧的压缩包） |
+| `npm run test` | 单元测试（178 个） |
+| `npm run compile` | 类型检查 |
+| `npm run mock` | 启动本地 mock 时间线 |
+| `npm run smoke` | 端到端冒烟测试（中英各一遍 + 正式包装载验证） |
+| `npm run shoot` | 自动截商店要的图 |
+
+> 后两个会**真的把扩展装进 headless Chrome 跑一遍** —— 这是唯一能发现
+> 「构建通过、测试通过、但 Chrome 装不上」那类问题的办法。
+>
+> 命令块不带行内注释是有意的：注释被一起粘进终端会变成参数。
 
 ### 为什么需要 `npm run smoke`
 
@@ -448,11 +464,18 @@ Built with **WXT + TypeScript + React + Tailwind CSS v4**, using the browser's b
 
 ```bash
 npm install
-npm run mock     # offline playground at http://localhost:5174 — no X login needed
-npm run dev      # dev build with HMR, then open https://x.com/home
-npm run test     # 156 unit tests
-npm run build    # → .output/chrome-mv3
+npm run mock
+npm run dev
+npm run test
+npm run build
 ```
+
+| Command | What it does |
+| --- | --- |
+| `npm run mock` | Offline playground at http://localhost:5174 — no X login needed |
+| `npm run dev` | Dev build with HMR, then open https://x.com/home |
+| `npm run test` | 178 unit tests |
+| `npm run build` | → `.output/chrome-mv3` |
 
 **Language detection is a three-layer strategy:** X's own `lang` attribute on the post text → Unicode script detection (kana before Han, or Japanese gets misread as Chinese) → `chrome.i18n.detectLanguage` (CLD2) for Latin-script languages only.
 

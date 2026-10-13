@@ -121,15 +121,19 @@
 自动化方式（`scripts/shoot.mjs` 里的做法，已跑通）：
 
 ```bash
-npx wxt build -m screenshot      # 输出到 .output/chrome-mv3-screenshot，不污染正式包
+npx wxt build -m screenshot
 ```
+
+产物在 `.output/chrome-mv3-screenshot`，和正式包物理隔离，不会互相覆盖。
 
 然后跑冒烟测试和截图 —— 两个都会真的把扩展装进 headless Chrome：
 
 ```bash
-npm run smoke                    # 端到端：中英各一遍，36 项断言
-npm run shoot                    # 中英两套截图
+npm run smoke
+npm run shoot
 ```
+
+`smoke` 是端到端断言（中英各一遍 + 正式包装载验证），`shoot` 出中英两套截图。
 
 `npm run smoke` 覆盖的正是上面那张表里"测试发现不了"的部分：内容脚本注入、
 点播放后状态推进、高亮框出现、句子在变、设置页和 popup 能渲染、
@@ -220,13 +224,31 @@ npm run shoot                    # 中英两套截图
 
 ### 6.1 打包
 
+按顺序跑这五条：
+
 ```bash
-npm run compile   # 类型检查
-npm run test      # 178 个单元测试
-npm run smoke     # 端到端冒烟（中英各一遍 + 正式包装载验证）
-npm run build     # 生产构建 → .output/chrome-mv3
-npm run zip       # 压缩包 → .output/readx-<version>-chrome.zip
+npm run compile
+npm run test
+npm run smoke
+npm run build
+npm run zip
 ```
+
+| 命令 | 作用 |
+| --- | --- |
+| `npm run compile` | 类型检查 |
+| `npm run test` | 178 个单元测试 |
+| `npm run smoke` | 端到端冒烟（中英各一遍 + 正式包装载验证） |
+| `npm run build` | 生产构建 → `.output/chrome-mv3` |
+| `npm run zip` | 压缩包 → `.output/readx-<version>-chrome.zip` |
+
+> ⚠️ **上面的命令块刻意不带行内注释。**
+> 之前写成 `npm run zip  # → .output/...`，结果注释被一起粘进终端当成了参数，
+> 报了一个和中文字符有关的 `CACError: Unused args`，很难看出真实原因。
+> **凡是给人复制粘贴的命令块，注释一律放在块外。**
+>
+> `npm run zip` 会先自动清掉 `.output` 里旧的压缩包（`prezip` 钩子），
+> 所以上传时目录里只会有一个文件，不会挑错版本。
 
 > `.output` 是隐藏目录。在 Finder 里按 **`Cmd + Shift + .`** 才看得到。
 
