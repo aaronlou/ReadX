@@ -2,7 +2,7 @@
   "name": "readx",
   "description": "ReadX — 在 X (Twitter) 上自动滚动定位帖子，并按帖子语言自动朗读",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "wxt",

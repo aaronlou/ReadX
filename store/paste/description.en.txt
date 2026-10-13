@@ -1,0 +1,76 @@
+Turn your X timeline into something you can listen to.
+
+ReadX scrolls to a post, works out what language it's in, and reads it aloud.
+When it finishes one post it moves to the next, so you can listen with your eyes
+off the screen.
+
+It's a Chrome extension for desktop — there's no iOS or Android version.
+
+GETTING STARTED
+
+1. Click "Add to Chrome", then open x.com or twitter.com.
+2. A small control bar appears in the bottom-right corner of the page.
+3. Press ▶ to start listening. ReadX scrolls to the post you're on, reads it, and
+   moves to the next one on its own.
+
+Keyboard shortcuts: Alt+Shift+P to play or pause, Alt+Shift+N for the next post.
+
+Nothing is ever read unless you press play. If you scroll away, ReadX stops and
+picks up from wherever you are.
+
+Don't want the bar on screen? Click ✕ and it disappears from every x.com page —
+the choice sticks across reloads. Turn it back on any time from the toolbar icon.
+
+WHAT IT DOES
+
+• Reads posts aloud in the post's own language
+• Scrolls to the next post automatically, so the reading never stops
+• Stops the moment you scroll yourself — it never fights you for the page
+• Skips promoted posts and posts with no text
+• Skips the author's name if you'd rather get straight to the content
+• Keyboard shortcuts: Alt+Shift+P to play or pause, Alt+Shift+N for the next post
+
+READ POSTS IN YOUR LANGUAGE
+
+Pick a reading language and ReadX translates foreign posts before reading them,
+using Chrome's built-in on-device translation. That means:
+
+• It's free — no API key, no account, no subscription
+• It works offline once the language pack is downloaded (a one-time ~15 seconds)
+• Your posts are translated on your own machine, not on a server
+
+If translation isn't available on your device, ReadX tells you why and reads the
+original instead. It never silently does nothing.
+
+BETTER VOICES (OPTIONAL)
+
+The system voice is free and works offline, but it sounds robotic. If you want a
+more natural voice, ReadX supports pluggable cloud voice providers — bring your
+own API key:
+
+• OpenRouter — one key, many models
+• OpenAI — a single key, no setup beyond that
+
+Bringing your own key means no middleman: you pay the provider directly at their
+rates, and your key is stored only on your own device.
+
+PRIVACY
+
+ReadX has no servers of its own. No analytics, no tracking, no account.
+
+• Translation runs entirely on your device
+• A fresh install does not touch a single third-party domain
+• Cloud voices are off by default and request their domain permission only when
+  you enable them — and only then is post text sent to the provider you chose
+• Your API keys are stored locally and are never synced anywhere
+
+REQUIREMENTS AND LIMITS
+
+• Works on x.com and twitter.com
+• Automatic translation needs Chrome 138+ on desktop
+• ReadX reads posts by looking at the page, so if X redesigns its layout the
+  extension may need an update. There are no promises it will survive every
+  redesign.
+• ReadX is not affiliated with, endorsed by, or sponsored by X Corp.
+
+ReadX is open source: https://github.com/aaronlou/ReadX
