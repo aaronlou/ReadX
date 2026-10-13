@@ -230,6 +230,66 @@ async function run({ locale, stripLocales }) {
     await cdp.eval(clickInOverlay('/stop|停止/i'));
     await sleep(500);
 
+    // ---------- 关闭控制条 + 持久化 + 能恢复 ----------
+    //
+    // 这是用户实际反馈的问题：装了扩展之后控制条就赖在每个 x.com 页面上，
+    // 折叠按钮只能把它缩成一行，**没有任何办法让它彻底消失**，不卸载就去不掉。
+    // 三件事缺一不可：
+    //   1. ✕ 能让它真的从页面上消失
+    //   2. **刷新之后仍然是关着的** —— 设置没持久化的话这条会挂
+    //   3. 能从 popup 里再打开（否则关掉就成了不可逆操作）
+    console.log('  [hide / persist / restore]');
+
+    /** 控制条是否已经不在页面上 */
+    const overlayGone = `
+      (() => {
+        const root = document.querySelector('readx-overlay')?.shadowRoot;
+        if (!root) return true;
+        return root.querySelectorAll('button').length === 0;
+      })()
+    `;
+
+    const hidden = await cdp.eval(clickInOverlay('/hide|隐藏/i'));
+    check(hidden === 'clicked', '找到并点击了隐藏按钮', hidden);
+    await sleep(700);
+    check(await cdp.eval(overlayGone), '控制条已从页面上消失');
+
+    await cdp.send('Page.reload');
+    await waitFor(cdp, 'document.readyState === "complete"', { label: '重新加载' });
+    await sleep(1800);
+    check(await cdp.eval(overlayGone), '刷新之后仍然是关着的（设置已持久化）');
+
+    // 从 popup 恢复
+    await cdp.send('Page.navigate', { url: `chrome-extension://${extId}/popup.html` });
+    await waitFor(cdp, 'document.readyState === "complete"', { label: 'popup' });
+    await sleep(1000);
+
+    const toggled = await cdp.eval(`
+      (() => {
+        const label = [...document.querySelectorAll('label')].find((l) =>
+          /show the reading bar|显示控制条/i.test(l.textContent || ''));
+        const box = label?.querySelector('input[type="checkbox"]');
+        if (!box) return 'no-toggle';
+        if (!box.checked) box.click();
+        return 'clicked';
+      })()
+    `);
+    check(toggled === 'clicked', '在 popup 里找到了控制条开关', toggled);
+    await sleep(700);
+
+    // 回到时间线，确认它真的回来了
+    await cdp.send('Page.navigate', { url: MOCK });
+    await waitFor(cdp, 'document.readyState === "complete"', { label: '时间线' });
+    const restored = await waitFor(
+      cdp,
+      `(() => {
+        const root = document.querySelector('readx-overlay')?.shadowRoot;
+        return !!root && root.querySelectorAll('button').length > 0;
+      })()`,
+      { timeout: 8000 },
+    );
+    check(restored, '从 popup 打开后控制条恢复了');
+
     // ---------- 2. 选项页 ----------
     await checkPage(cdp, {
       locale,

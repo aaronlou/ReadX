@@ -365,6 +365,21 @@ export default function App() {
           )}
 
           <div className="space-y-2">
+            {/*
+              控制条的开关放在**最前面**。
+              用户想让它从页面上消失时，第一反应是点扩展图标找开关 ——
+              放在一堆朗读偏好中间会让人找不到，然后只能去卸载扩展。
+            */}
+            <Toggle
+              label={t('popup_showOverlay')}
+              checked={settings.overlayEnabled}
+              onChange={(v) => update({ overlayEnabled: v })}
+            />
+            {!settings.overlayEnabled && (
+              <p className="rounded-lg bg-amber-400/10 px-2.5 py-2 text-[11px] leading-relaxed text-amber-200/90">
+                {t('popup_overlayHiddenHint')}
+              </p>
+            )}
             <Toggle
               label={t('popup_autoAdvance')}
               checked={settings.autoAdvance}

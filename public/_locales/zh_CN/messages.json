@@ -280,6 +280,9 @@
   "overlay_followPostLanguage": {
     "message": "跟随原文"
   },
+  "overlay_hideButton": {
+    "message": "隐藏控制条（想恢复就点工具栏上的扩展图标）"
+  },
   "overlay_introBodyEnd": {
     "message": "开始朗读你正在看的这条帖子。它会自动滚到下一条，你自己滚动时它会立刻让位。"
   },
@@ -433,6 +436,9 @@
   "popup_openXFirst": {
     "message": "请先打开 x.com（或开发用的 mock 页面）再使用"
   },
+  "popup_overlayHiddenHint": {
+    "message": "控制条已在所有 x.com 页面上隐藏，打开上面的开关即可恢复。"
+  },
   "popup_packDownloading": {
     "message": "正在下载 {0} → {1} 语言包… {2}%"
   },
@@ -468,6 +474,9 @@
   },
   "popup_shortcuts": {
     "message": "快捷键：Alt+Shift+P 播放/暂停 · Alt+Shift+N 下一条 · Alt+Shift+B 上一条"
+  },
+  "popup_showOverlay": {
+    "message": "在 x.com 上显示控制条"
   },
   "popup_skipAds": {
     "message": "跳过推广帖"

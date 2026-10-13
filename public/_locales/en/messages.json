@@ -280,6 +280,9 @@
   "overlay_followPostLanguage": {
     "message": "Match each post"
   },
+  "overlay_hideButton": {
+    "message": "Hide the reading bar (turn it back on from the toolbar icon)"
+  },
   "overlay_introBodyEnd": {
     "message": "to hear the post you're on. It scrolls to the next one for you, and gets out of the way the moment you scroll yourself."
   },
@@ -433,6 +436,9 @@
   "popup_openXFirst": {
     "message": "Open x.com first (or the dev mock page)"
   },
+  "popup_overlayHiddenHint": {
+    "message": "The bar is hidden on every x.com page. Turn it back on above."
+  },
   "popup_packDownloading": {
     "message": "Downloading the {0} → {1} language pack… {2}%"
   },
@@ -468,6 +474,9 @@
   },
   "popup_shortcuts": {
     "message": "Shortcuts: Alt+Shift+P play/pause · Alt+Shift+N next post · Alt+Shift+B previous post"
+  },
+  "popup_showOverlay": {
+    "message": "Show the reading bar on x.com"
   },
   "popup_skipAds": {
     "message": "Skip promoted posts"

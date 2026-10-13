@@ -55,6 +55,9 @@ Keyboard shortcuts: Alt+Shift+P to play or pause, Alt+Shift+N for the next post.
 Nothing is ever read unless you press play. If you scroll away, ReadX stops and
 picks up from wherever you are.
 
+Don't want the bar on screen? Click ✕ and it disappears from every x.com page —
+the choice sticks across reloads. Turn it back on any time from the toolbar icon.
+
 WHAT IT DOES
 
 • Reads posts aloud in the post's own language
@@ -131,6 +134,9 @@ ReadX 会滚动定位到一条帖子，判断它是什么语言，然后朗读�
 快捷键：Alt+Shift+P 播放/暂停，Alt+Shift+N 下一条。
 
 **你不按播放，它什么都不读。** 你自己滚动时它会停下，从你所在的位置接着读。
+
+不想让它占着屏幕？点 **✕**，它会从所有 x.com 页面上消失，刷新也不会回来。
+想恢复随时点工具栏上的扩展图标。
 
 它做什么
 

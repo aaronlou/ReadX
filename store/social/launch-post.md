@@ -64,7 +64,9 @@ How to use it:
 2. Open x.com — a control bar shows up in the bottom-right
 3. Hit ▶
 
-That's it. Alt+Shift+P toggles play/pause, Alt+Shift+N skips to the next post.
+That's it. Alt+Shift+P toggles play/pause, Alt+Shift+N skips ahead.
+
+Don't want it on screen? ✕ hides it everywhere; re-enable from the toolbar icon.
 ```
 
 **3/**

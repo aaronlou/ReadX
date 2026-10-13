@@ -40,6 +40,23 @@ export interface ReadXSettings {
   /** 是否已经看过首次使用引导（看过之后不再显示） */
   hasSeenIntro: boolean;
 
+  /**
+   * 是否在 x.com 上显示朗读控制条。
+   *
+   * 装了扩展就无条件往每个页面塞一条关不掉的横条，是很讨嫌的做法 ——
+   * 用户得能在**不卸载扩展**的前提下让它消失，而且这个选择必须持久化，
+   * 否则刷新一下就又回来了。关掉之后可以从 popup 再打开。
+   */
+  overlayEnabled: boolean;
+
+  /**
+   * 控制条是否折叠成一行。
+   *
+   * 也要持久化：折叠按钮原本是组件内的 `useState`，刷新即复位 ——
+   * 用户按了等于没按。
+   */
+  overlayCollapsed: boolean;
+
   // ---------------------------------------------------------------- 朗读引擎
   /** 用哪个引擎朗读 */
   ttsEngine: TtsEngine;
@@ -70,6 +87,8 @@ export const DEFAULT_SETTINGS: ReadXSettings = {
   voiceOverrides: {},
   readingLang: 'auto',
   hasSeenIntro: false,
+  overlayEnabled: true,
+  overlayCollapsed: false,
   ttsEngine: 'system',
   cloudProvider: DEFAULT_CLOUD_PROVIDER,
   cloudVoices: {},

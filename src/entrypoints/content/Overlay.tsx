@@ -58,7 +58,6 @@ export function Overlay({
   const [snap, setSnap] = useState<ReaderSnapshot>(() => reader.snapshot);
   const [settings, setSettings] = useState<ReadXSettings>(initialSettings);
   const [box, setBox] = useState<Box | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
   const lastBoxKey = useRef('');
 
   useEffect(() => {
@@ -143,6 +142,10 @@ export function Overlay({
     snap.sentenceCount > 0
       ? t('overlay_progress', [String(snap.sentenceIndex + 1), String(snap.sentenceCount)])
       : '';
+
+  // 用户在控制条上点了 ✕，或者从 popup 里关掉了 —— 直接不渲染，
+  // 页面上一点痕迹都不留。设置是持久化的，刷新也不会自己回来。
+  if (!settings.overlayEnabled) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -229,10 +232,29 @@ export function Overlay({
                 ⏹
               </IconButton>
               <IconButton
-                title={collapsed ? t('overlay_expandButton') : t('overlay_collapseButton')}
-                onClick={() => setCollapsed((c) => !c)}
+                title={
+                  settings.overlayCollapsed
+                    ? t('overlay_expandButton')
+                    : t('overlay_collapseButton')
+                }
+                onClick={() => update({ overlayCollapsed: !settings.overlayCollapsed })}
               >
-                {collapsed ? '⌃' : '⌄'}
+                {settings.overlayCollapsed ? '⌃' : '⌄'}
+              </IconButton>
+              {/*
+                ⚠️ 必须有一个"彻底关掉"的出口。只有折叠按钮的话，用户能做的
+                最彻底的事就是把横条缩成一行 —— 它还是赖在每一个 x.com 页面上，
+                不卸载扩展就永远去不掉。这个按钮是那条出路。
+                选择会写进设置，刷新后依然生效；想恢复从 popup 里打开。
+              */}
+              <IconButton
+                title={t('overlay_hideButton')}
+                onClick={() => {
+                  reader.stop();
+                  update({ overlayEnabled: false });
+                }}
+              >
+                ✕
               </IconButton>
             </div>
           </div>
@@ -267,7 +289,7 @@ export function Overlay({
           )}
 
           {/* 第二行：当前句子 */}
-          {!collapsed && (
+          {!settings.overlayCollapsed && (
             <>
               {(snap.sentence || snap.message) && (
                 <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-300">

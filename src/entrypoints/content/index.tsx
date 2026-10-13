@@ -51,6 +51,10 @@ export default defineContentScript({
 
     // 设置变化（来自 popup 或控制条）实时同步给朗读器和语音引擎
     watchSettings((next) => {
+      // 用户把控制条关掉了 → 立刻停朗读。否则会变成「页面上没有任何界面、
+      // 声音却还在读」，那是最让人莫名其妙的状态。
+      if (!next.overlayEnabled) reader.stop();
+
       settings = next;
       // 任何设置变化都清掉旧的降级告警：用户很可能刚去修了问题，
       // 我们再试一次。真没修好，下一次朗读会重新报出来。
