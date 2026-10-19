@@ -1,101 +1,115 @@
-# 商店页面更新操作单
+# 发布 0.1.2 操作单
 
-**我无法代你操作开发者后台**（那需要你的 Google 账号登录）。所以这份单子把
-「点哪里、粘什么、传哪个文件」全部写死，你照着做即可，不需要做任何判断。
+**我无法代你操作开发者后台**（那需要你的 Google 账号登录）。这份单子把
+「点哪里、粘什么、传哪个文件」全部写死，照着做即可。
 
-所有可复制的内容都在这几个文件里，直接 `Cmd + A` → `Cmd + C`：
-
-| 要填的字段 | 从这里复制 |
-| --- | --- |
-| Description（英文） | [`description.en.txt`](description.en.txt) |
-| Description（中文） | [`description.zh.txt`](description.zh.txt) |
+上传前我已经把能验的全验过了 —— **33 项预检全过**（包结构、权限、
+中英文案、截图尺寸格式、描述同步、仓库状态）。
 
 ---
 
-## 一、打开后台
+## 要上传/粘贴的文件
 
-<https://chrome.google.com/webstore/devconsole> → 点开 ReadX 这个条目
-（ID 是 `ecdjljbkaajlidofofjlopbcaigheeni`）。
+| 用途 | 文件 |
+| --- | --- |
+| **新版本包** | `.output/readx-0.1.2-chrome.zip` |
+| Description（英文） | [`description.en.txt`](description.en.txt) |
+| Description（中文） | [`description.zh.txt`](description.zh.txt) |
+| 截图（英文，3 张） | `../screenshots/en/01-intro.png` → `02-reading` → `03-settings` |
+| 截图（中文，3 张） | `../screenshots/zh/01-intro.png` → `02-reading` → `03-settings` |
 
-进 **Store listing** 标签页。
+> `.output` 是隐藏目录。Finder 里按 **`Cmd + Shift + .`** 才看得到。
+
+---
+
+## 一、上传新版本包
+
+1. 打开 <https://chrome.google.com/webstore/devconsole> → 点开 ReadX
+   （ID：`ecdjljbkaajlidofofjlopbcaigheeni`）
+2. 进 **Package** 标签页
+3. 点 **Upload new package**，选 `.output/readx-0.1.2-chrome.zip`
+4. 等它解析完，确认页面上显示的版本是 **0.1.2**
+
+> 如果报「版本号必须大于线上版本」，说明你选错文件了 ——
+> 检查一下是不是 `.output` 里还有别的 zip。正常情况下只有这一个。
 
 ---
 
 ## 二、更新描述（中英各一份）
 
+进 **Store listing** 标签页。
+
 ### 英文
 
-1. 页面上的语言选择器选 **English**
-2. 找到 **Description** 输入框（在 Product details 里）
-3. **全选清空**，然后粘贴 `description.en.txt` 的全部内容
-4. 点 **Save draft**
+1. 语言选择器选 **English**
+2. **Description** 输入框 → **全选清空** → 粘贴 `description.en.txt`
+3. **Save draft**
 
 ### 中文
 
 1. 语言选择器切到 **中文（简体）**
-2. 同样的 **Description** 输入框 → 全选清空 → 粘贴 `description.zh.txt`
-3. 点 **Save draft**
+2. 同样操作，粘贴 `description.zh.txt`
+3. **Save draft**
 
-> **为什么要全选清空**：这两份描述相对上一版新增了「怎么开始用」和
-> 「可以关掉控制条」两段，直接追加会比覆盖更容易出错。
+> **要全选清空，不要追加。** 新版描述新增了「怎么开始用」「可以关掉控制条」
+> 「跳过短帖」三处，覆盖比追加不容易出错。
 
 ---
 
-## 三、换截图（中英各三张）
+## 三、换截图
 
-在同一个 Store listing 页面的 **Graphic assets** 区域。
+同一页的 **Graphic assets** 区域。**顺序很重要** —— 第一张是搜索结果封面。
 
-**顺序很重要** —— 第一张是搜索结果里的封面。
+英文 listing 用 `../screenshots/en/`，中文 listing 用 `../screenshots/zh/`，
+都按 `01-intro` → `02-reading` → `03-settings` 的顺序。
 
-### 英文（语言选 English 时）
-
-| 顺序 | 传这个文件 |
-| --- | --- |
-| 1 | `../screenshots/en/01-intro.png` |
-| 2 | `../screenshots/en/02-reading.png` |
-| 3 | `../screenshots/en/03-settings.png` |
-
-### 中文（语言切到中文后）
-
-| 顺序 | 传这个文件 |
-| --- | --- |
-| 1 | `../screenshots/zh/01-intro.png` |
-| 2 | `../screenshots/zh/02-reading.png` |
-| 3 | `../screenshots/zh/03-settings.png` |
-
-> 六张都是 **1280×800、RGB、无 alpha 通道**，符合商店要求（商店明确拒绝带
-> alpha 的 PNG）。这一点已经逐个核对过。
+> 六张都是 1280×800 RGB 无 alpha，已逐个核对（商店明确拒绝带 alpha 的 PNG）。
 >
-> 这一版截图的主要变化：控制条右侧多了 **✕** 按钮 —— 就是新增的「关掉」出口。
+> 这一版截图的变化：控制条右侧有 ✕（关掉），设置行末尾有
+> `Skip short posts [Off]`（跳过短帖）。
 
 ---
 
-## 四、保存并提交
+## 四、提交
 
-1. 确认中英两份的 Description 和截图都填好了
-2. 点页面底部的 **Submit for review**
+确认三样都对：**包版本 0.1.2**、**中英描述都是新的**、**中英截图都换了**。
 
-> 只改 Store listing **不需要重新上传 zip**，走的是独立的审核流程，通常比
-> 首次审核快很多。
->
-> 如果你同时要发 `0.1.1` 的功能包，**建议先单独提交这次的 listing 更新**，
-> 两件事分开走，哪一步被卡住都好定位。
+然后点页面底部的 **Submit for review**。
 
 ---
 
-## 五、这一步之后还没做的
+## 五、审核期间 / 通过之后
 
-| 事项 | 说明 |
+**审核期间**：线上仍是旧版本，用户不受影响。看得到的是旧描述和旧截图 ——
+这是正常的，描述和截图会和新包一起生效。
+
+**通过之后**：商店会把版本更新到 0.1.2。老用户会在 Chrome 里收到更新提示
+（通常几小时内）。
+
+**建议通过后验一次**：从商店重新安装一遍，确认：
+- 控制条正常出现
+- 点 ✕ 能关掉，刷新不回来
+- 「跳过短帖」能设成 40 并真的跳过短帖
+
+---
+
+## 附：这次发布包含了什么
+
+对比 0.1.1：
+
+| | 变化 |
 | --- | --- |
-| **发 0.1.1 功能包** | 控制条的修复必须发新包，已有的用户才会拿到。改 `package.json` 的 `version` → `npm run zip` → Package 标签页上传 |
-| **宣传图** | 如果上次没传，`../promo-440x280.png` 和 `../marquee-1400x560.png` 也可以一并补上（可选） |
+| 🆕 | **跳过短帖** —— 可以设阈值，链接和 @提及不算字数 |
+| 🐛 | 控制条能彻底关掉了（✕ + popup 开关），且刷新不回来 |
+| 🐛 | 跳过短帖的折叠状态持久化（以前刷新复位） |
+| 📝 | 描述补了「怎么开始用」「可以关掉」「跳过短帖」 |
+| 📝 | 中英文案若干处措辞修正 |
 
 ---
 
-## 附：不用改的东西
+## 不用改的东西
 
-- **名称和简短说明** —— 来自包里的 `_ext_name` / `_ext_description`，
-  跟着浏览器语言自动切换，商店自己会读，不用手动填
-- **Category / Language** —— 上次已填，这次不用动
-- **Privacy 标签页** —— 这次没有涉及权限或数据行为的变化，不用重新填
-  （等你发 0.1.1 时也不需要重填）
+- **名称 / 简短说明** —— 来自包里的 `_locales`，跟着浏览器语言自动切换，
+  上传新包后自动更新，不用手动填
+- **Category / Language** —— 上次已填，这次不动
+- **Privacy 标签页** —— 这次没有涉及权限或数据行为的变化，不用重填
