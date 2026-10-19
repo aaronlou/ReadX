@@ -301,7 +301,7 @@ async function run({ locale, stripLocales }) {
     const hasThreshold = await cdp.eval(`
       (() => {
         const label = [...document.querySelectorAll('label')].find((l) =>
-          /skip posts shorter than|跳过短于/i.test(l.textContent || ''));
+          /skip short posts|跳过短帖/i.test(l.textContent || ''));
         const sel = label?.querySelector('select');
         return sel ? sel.options.length : 0;
       })()
