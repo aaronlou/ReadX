@@ -27,6 +27,7 @@ WHAT IT DOES
 • Scrolls to the next post automatically, so the reading never stops
 • Stops the moment you scroll yourself — it never fights you for the page
 • Skips promoted posts and posts with no text
+• Skips posts shorter than a length you choose — no more hearing "lol" and "+1"
 • Skips the author's name if you'd rather get straight to the content
 • Keyboard shortcuts: Alt+Shift+P to play or pause, Alt+Shift+N for the next post
 

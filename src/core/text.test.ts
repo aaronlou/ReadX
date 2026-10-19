@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { splitSentences } from './text';
+import { splitSentences, readableLength } from './text';
 
 describe('splitSentences', () => {
   it('英文按句末标点切分', () => {
@@ -40,5 +40,39 @@ describe('splitSentences', () => {
     expect(out.length).toBeGreaterThan(1);
     expect(out.every((s) => s.length <= 160)).toBe(true);
     expect(out.join('')).toBe(long);
+  });
+});
+
+describe('readableLength', () => {
+  it('数的是真正会被念出来的字数', () => {
+    expect(readableLength('hello')).toBe(5);
+    expect(readableLength('  你好  世界  ')).toBe(4); // 空白不算
+  });
+
+  it('链接不算内容', () => {
+    // 光是一条链接，念出来没有任何意义
+    expect(readableLength('https://t.co/abcdefghij')).toBe(0);
+    expect(readableLength('看这个 https://t.co/abcdefghij')).toBe(3);
+  });
+
+  it('@提及不算内容', () => {
+    expect(readableLength('@alice 谢谢')).toBe(2);
+    expect(readableLength('@alice')).toBe(0);
+  });
+
+  it('emoji 按 1 个算，不是 2 个', () => {
+    // 用 .length 数的话这里会是 4
+    expect(readableLength('🔥🔥')).toBe(2);
+  });
+
+  it('引用帖的正文要计入 —— 短帖配长引用是有信息量的', () => {
+    expect(readableLength('This 👇', '一段很长的引用内容，说的是一个完整的观点。')).toBeGreaterThan(
+      20,
+    );
+  });
+
+  it('什么都没有就是 0', () => {
+    expect(readableLength('')).toBe(0);
+    expect(readableLength('   ', '')).toBe(0);
   });
 });

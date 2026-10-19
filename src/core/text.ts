@@ -83,3 +83,25 @@ export function joinSegments(segments: string[]): string {
   }
   return out;
 }
+
+/**
+ * 一条帖子"实际有多少可读内容"，用来判断值不值得朗读。
+ *
+ * **不能直接数 `text.length`**：
+ *   - URL 一占就是几十个字符，但没有任何可听的内容
+ *   - `@handle` 同理，念出来也没有意义
+ *   - 空白不算内容
+ *   - 用码点数而不是 UTF-16 长度，否则一个 emoji 会被算成 2
+ *
+ * 引用帖的正文**要计入** —— 「This 👇」本身很短，但配上引用内容就有信息量了。
+ */
+export function readableLength(text: string, quotedText = ''): number {
+  const strip = (value: string) =>
+    value
+      .replace(/https?:\/\/\S+/g, ' ')
+      .replace(/(^|\s)@[A-Za-z0-9_]+/g, ' ')
+      .replace(/\s+/g, '');
+
+  // 用展开运算符按码点计数，emoji 才算 1
+  return [...strip(text)].length + [...strip(quotedText)].length;
+}

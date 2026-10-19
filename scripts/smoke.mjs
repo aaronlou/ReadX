@@ -22,15 +22,23 @@
 import { spawn } from 'node:child_process';
 import { cpSync, existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { attachToPage, collectErrors, enableLogging, launchWithExtension, sleep, waitFor } from './lib/cdp.mjs';
+import {
+  MOCK_URL,
+  attachToPage,
+  collectErrors,
+  enableLogging,
+  ensureMockServer,
+  launchWithExtension,
+  sleep,
+  stopMockServer,
+  waitFor,
+} from './lib/cdp.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BUILD = join(ROOT, '.output', 'chrome-mv3-screenshot');
 const PROFILE = join(ROOT, '.smoke-profile');
 const STAGING = join(ROOT, '.smoke-extension');
 const PORT = 9336;
-const MOCK_PORT = 5174;
-const MOCK = `http://localhost:${MOCK_PORT}/mock-timeline.html`;
 
 // ---------------------------------------------------------------- 断言
 
@@ -45,33 +53,6 @@ function check(ok, label, detail = '') {
     console.log(`    ✗ ${label}${detail ? ` — ${detail}` : ''}`);
     failures.push(label);
   }
-}
-
-// ---------------------------------------------------------------- mock 服务
-
-async function ensureMockServer() {
-  try {
-    const res = await fetch(MOCK);
-    if (res.ok) return null;
-  } catch {
-    /* 没起来 */
-  }
-
-  console.log('  启动 mock 服务…');
-  const server = spawn('node', [join(ROOT, 'scripts', 'serve-mock.mjs')], {
-    stdio: 'ignore',
-    detached: true,
-  });
-
-  for (let i = 0; i < 30; i += 1) {
-    await sleep(200);
-    try {
-      if ((await fetch(MOCK)).ok) return server;
-    } catch {
-      /* 继续等 */
-    }
-  }
-  throw new Error('mock 服务起不来');
 }
 
 // ---------------------------------------------------------------- 页面检查
@@ -160,7 +141,7 @@ async function run({ locale, stripLocales }) {
   try {
     // ---------- 1. 时间线 + 朗读流程 ----------
     console.log('  [timeline]');
-    await cdp.send('Page.navigate', { url: MOCK });
+    await cdp.send('Page.navigate', { url: MOCK_URL });
     check(await waitFor(cdp, 'document.readyState === "complete"', { label: '加载' }), '页面加载完成');
     check(
       await waitFor(cdp, '!!document.querySelector("readx-overlay")', { timeout: 8000 }),
@@ -169,6 +150,16 @@ async function run({ locale, stripLocales }) {
 
     const idleText = (await cdp.eval(OVERLAY_TEXT)) ?? '';
     check(idleText.length > 0, '控制条已渲染');
+
+    // 控制条上的下拉框：朗读语言 + 「跳过短帖」阈值 = 2 个。
+    // 加新下拉却忘了接到 UI 上，这里会立刻发现。
+    const selectCount = await cdp.eval(`
+      (() => {
+        const root = document.querySelector('readx-overlay')?.shadowRoot;
+        return root ? root.querySelectorAll('select').length : 0;
+      })()
+    `);
+    check(selectCount >= 2, '控制条上有朗读语言 + 跳过短帖两个下拉框', `实际 ${selectCount} 个`);
     check(/\d/.test(idleText) || idleText.length > 20, '控制条有实际文案（不是空壳）');
 
     // 关掉引导卡，免得挡住按钮
@@ -278,7 +269,7 @@ async function run({ locale, stripLocales }) {
     await sleep(700);
 
     // 回到时间线，确认它真的回来了
-    await cdp.send('Page.navigate', { url: MOCK });
+    await cdp.send('Page.navigate', { url: MOCK_URL });
     await waitFor(cdp, 'document.readyState === "complete"', { label: '时间线' });
     const restored = await waitFor(
       cdp,
@@ -305,6 +296,17 @@ async function run({ locale, stripLocales }) {
       url: `chrome-extension://${extId}/popup.html`,
       expectOverlay: false,
     });
+
+    // 「跳过短帖」的阈值选择器要真的渲染在 popup 上
+    const hasThreshold = await cdp.eval(`
+      (() => {
+        const label = [...document.querySelectorAll('label')].find((l) =>
+          /skip posts shorter than|跳过短于/i.test(l.textContent || ''));
+        const sel = label?.querySelector('select');
+        return sel ? sel.options.length : 0;
+      })()
+    `);
+    check(hasThreshold >= 5, 'popup 上有跳过短帖的阈值选择器', `选项 ${hasThreshold} 个`);
 
     // ---------- 4. 全程无报错 ----------
     check(allErrors.length === 0, '全程控制台无报错', allErrors.slice(0, 2).join(' | '));
@@ -389,7 +391,7 @@ async function main() {
     process.exit(1);
   }
 
-  const server = await ensureMockServer();
+  const server = await ensureMockServer(ROOT);
   const only = process.argv[2];
 
   const runs = [
@@ -403,13 +405,7 @@ async function main() {
     await checkReleaseBuild(PORT + 1, PROFILE);
   } finally {
     rmSync(PROFILE, { recursive: true, force: true });
-    if (server) {
-      try {
-        process.kill(-server.pid);
-      } catch {
-        /* 已经退了 */
-      }
-    }
+    await stopMockServer(server);
   }
 
   console.log(`\n${failures.length ? '✗' : '✓'} ${checks - failures.length}/${checks} 项通过`);

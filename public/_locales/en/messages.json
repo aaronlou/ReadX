@@ -50,6 +50,12 @@
   "cmdToggleReading": {
     "message": "Start / pause reading"
   },
+  "common_off": {
+    "message": "Off"
+  },
+  "common_underChars": {
+    "message": "under {0}"
+  },
   "content_noWebSpeech": {
     "message": "This browser has no Web Speech API — system voices are unavailable."
   },
@@ -352,6 +358,9 @@
   "overlay_skipAds": {
     "message": "Skip promoted posts"
   },
+  "overlay_skipShort": {
+    "message": "Skip short posts"
+  },
   "overlay_speechEngine": {
     "message": "Speech engine"
   },
@@ -405,6 +414,9 @@
   },
   "popup_followOriginal": {
     "message": "Match each post's language"
+  },
+  "popup_minPostChars": {
+    "message": "Skip short posts"
   },
   "popup_nextPost": {
     "message": "⏭ Next"
@@ -780,6 +792,9 @@
   },
   "reader_skipEmpty": {
     "message": "Skipped: no readable text in this post"
+  },
+  "reader_skipShort": {
+    "message": "Skipping a short post (under {0})…"
   },
   "reader_translationFailed": {
     "message": "Translation failed — reading the original"

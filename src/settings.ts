@@ -27,6 +27,17 @@ export interface ReadXSettings {
   skipAds: boolean;
   /** 跳过纯图片 / 视频，没有文字的帖子 */
   skipMediaOnly: boolean;
+  /**
+   * 跳过内容短于这个字数的帖子。0 = 不跳过。
+   *
+   * 时间线上有大量「🔥」「同意」「+1」这类没什么可读的短帖，
+   * 一路念下去很消耗耐心。这里按**可读内容**的字数判断 ——
+   * 链接、@提及、空白都不算（见 `readableLength`）。
+   *
+   * 注意这个阈值和语言有关：20 个汉字已经是一句话，20 个英文字母
+   * 才半句。所以它是个"凭手感调"的偏好，不给单一推荐值。
+   */
+  minPostChars: number;
   /** 系统引擎手动绑定的音色：lang -> voiceURI */
   voiceOverrides: Record<string, string>;
   /**
@@ -75,6 +86,15 @@ export interface ReadXSettings {
   cloudVoices: Record<string, Record<string, string>>;
 }
 
+/**
+ * 「跳过短帖」的可选阈值（字数）。0 = 不限。
+ *
+ * 用固定档位而不是自由输入框：这个值只能凭手感调，给一个漫无边际的输入框
+ * 反而让人不知道填多少。中文 20 字已经是一句话，英文 20 个字母才半句 ——
+ * 所以不给单一推荐值，让用户自己试。
+ */
+export const MIN_POST_CHARS_CHOICES = [0, 20, 40, 80, 150] as const;
+
 export const DEFAULT_SETTINGS: ReadXSettings = {
   rate: 1,
   pitch: 1,
@@ -84,6 +104,7 @@ export const DEFAULT_SETTINGS: ReadXSettings = {
   readAuthor: true,
   skipAds: true,
   skipMediaOnly: true,
+  minPostChars: 0,
   voiceOverrides: {},
   readingLang: 'auto',
   hasSeenIntro: false,

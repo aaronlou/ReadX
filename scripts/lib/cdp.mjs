@@ -216,3 +216,49 @@ export function collectErrors(cdp) {
 export async function enableLogging(cdp) {
   await cdp.send('Log.enable');
 }
+
+// ---------------------------------------------------------------- mock 服务
+
+export const MOCK_PORT = 5174;
+export const MOCK_URL = `http://localhost:${MOCK_PORT}/mock-timeline.html`;
+
+/**
+ * 确保本地 mock 时间线在跑，没跑就拉起来。
+ *
+ * 抽到这里是因为两个脚本都需要它，而**两边各管一次迟早出事** ——
+ * 实际发生过：冒烟测试结束时把自己的 mock 服务杀了，紧接着跑的截图脚本
+ * 没有自己拉，于是"成功"截下了一张 ERR_CONNECTION_REFUSED 的错误页。
+ *
+ * 返回 null 表示本来就在跑（不用我们收尾），否则返回子进程。
+ */
+export async function ensureMockServer(root) {
+  try {
+    if ((await fetch(MOCK_URL)).ok) return null;
+  } catch {
+    /* 没起来 */
+  }
+
+  const server = spawn('node', [join(root, 'scripts', 'serve-mock.mjs')], {
+    stdio: 'ignore',
+    detached: true,
+  });
+
+  for (let i = 0; i < 30; i += 1) {
+    await sleep(200);
+    try {
+      if ((await fetch(MOCK_URL)).ok) return server;
+    } catch {
+      /* 继续等 */
+    }
+  }
+  throw new Error('mock 服务起不来（先手动跑 npm run mock 看看报什么错）');
+}
+
+export async function stopMockServer(server) {
+  if (!server) return;
+  try {
+    process.kill(-server.pid);
+  } catch {
+    /* 已经退了 */
+  }
+}

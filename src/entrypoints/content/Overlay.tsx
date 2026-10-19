@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Reader } from '@/core/reader';
 import { t } from '@/i18n';
-import { patchSettings, watchSettings, type ReadXSettings } from '@/settings';
+import {
+  MIN_POST_CHARS_CHOICES,
+  patchSettings,
+  watchSettings,
+  type ReadXSettings,
+} from '@/settings';
 import { LANGUAGE_CHOICES, languageLabel, toApiCode } from '@/translate/languages';
 import type { ReaderSnapshot } from '@/types';
 
@@ -356,6 +361,25 @@ export function Overlay({
                     className="size-3.5 cursor-pointer accent-emerald-400"
                   />
                   {t('overlay_skipAds')}
+                </label>
+
+                {/*
+                  跳过短帖。和上面「跳过推广帖」是同一类偏好，所以放在一起。
+                  用固定档位而不是输入框 —— 这个值只能凭手感调。
+                */}
+                <label className="flex items-center gap-1.5">
+                  {t('overlay_skipShort')}
+                  <select
+                    value={settings.minPostChars}
+                    onChange={(e) => update({ minPostChars: Number(e.target.value) })}
+                    className="cursor-pointer rounded border border-white/15 bg-slate-900 px-1.5 py-0.5 text-[11px] text-slate-200"
+                  >
+                    {MIN_POST_CHARS_CHOICES.map((n) => (
+                      <option key={n} value={n}>
+                        {n === 0 ? t('common_off') : t('common_underChars', [String(n)])}
+                      </option>
+                    ))}
+                  </select>
                 </label>
 
                 {active && (

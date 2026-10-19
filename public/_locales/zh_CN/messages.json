@@ -50,6 +50,12 @@
   "cmdToggleReading": {
     "message": "开始 / 暂停朗读"
   },
+  "common_off": {
+    "message": "不限"
+  },
+  "common_underChars": {
+    "message": "{0} 字以下"
+  },
   "content_noWebSpeech": {
     "message": "当前浏览器没有 Web Speech API，系统语音不可用。"
   },
@@ -352,6 +358,9 @@
   "overlay_skipAds": {
     "message": "跳过推广帖"
   },
+  "overlay_skipShort": {
+    "message": "跳过短帖"
+  },
   "overlay_speechEngine": {
     "message": "语音引擎"
   },
@@ -405,6 +414,9 @@
   },
   "popup_followOriginal": {
     "message": "跟随原文（各读各的）"
+  },
+  "popup_minPostChars": {
+    "message": "跳过短帖"
   },
   "popup_nextPost": {
     "message": "⏭ 下一条"
@@ -780,6 +792,9 @@
   },
   "reader_skipEmpty": {
     "message": "跳过：这条帖子没有可读文字"
+  },
+  "reader_skipShort": {
+    "message": "跳过一条太短的帖子（短于 {0} 字）…"
   },
   "reader_translationFailed": {
     "message": "翻译失败，读原文"

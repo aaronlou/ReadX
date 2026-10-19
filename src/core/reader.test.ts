@@ -233,6 +233,82 @@ describe('语音预取', () => {
   });
 });
 
+describe('Reader 跳过短帖', () => {
+  // 时间线上「哈哈」「+1」「🔥」这类帖子很多，一路念下去很消耗耐心。
+  // 阈值靠 `readableLength` 判断 —— 链接、@提及、空白都不算字数。
+  it('短于阈值的帖子会被跳过，接着读下一条', async () => {
+    const posts = buildTimeline([
+      { text: '哈哈' },
+      { text: '这是一条足够长的帖子，值得念出来。' },
+    ]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const reader = makeReader(tts, new FakeTranslation(), {
+      minPostChars: 10,
+      readAuthor: false,
+    });
+
+    await reader.start();
+
+    expect(tts.spoken.join(' ')).not.toContain('哈哈');
+    expect(tts.spoken.join(' ')).toContain('值得念出来');
+  });
+
+  it('默认阈值 0 —— 不跳过任何东西', async () => {
+    const posts = buildTimeline([{ text: '哈哈' }]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const reader = makeReader(tts, new FakeTranslation(), { readAuthor: false });
+
+    await reader.start();
+
+    expect(tts.spoken).toContain('哈哈');
+  });
+
+  it('短帖配长引用不算短 —— 引用内容计入字数', async () => {
+    const posts = buildTimeline([
+      {
+        text: '看这个',
+        quote: {
+          name: 'Original Author',
+          handle: 'orig',
+          text: '一段很长的引用内容，说的是一个完整的观点，值得认真读完。',
+        },
+      },
+    ]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const reader = makeReader(tts, new FakeTranslation(), {
+      minPostChars: 10,
+      readAuthor: false,
+    });
+
+    await reader.start();
+
+    // 「看这个」只有 3 字，但配上引用就有信息量了，不该被跳过
+    expect(tts.spoken.join(' ')).toContain('看这个');
+  });
+
+  it('只有一条链接的帖子算短帖', async () => {
+    const posts = buildTimeline([{ text: 'https://t.co/abcdefghijklmnop' }]);
+    installFakeLayout(posts);
+
+    const tts = new FakeTts();
+    const reader = makeReader(tts, new FakeTranslation(), {
+      minPostChars: 10,
+      readAuthor: false,
+    });
+
+    await reader.start();
+
+    // 光是一条链接，念出来没有任何意义
+    expect(tts.spoken).not.toContain('https://t.co/abcdefghijklmnop');
+  });
+});
+
 describe('Reader 定位', () => {
   it('start() 从锚线所在的帖子开始读', async () => {
     const posts = buildTimeline(SEED.slice(0, 3));

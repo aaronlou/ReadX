@@ -16,7 +16,7 @@ import {
   waitForMorePosts,
   waitForScrollIdle,
 } from '../x/timeline';
-import { joinSegments, splitSentences } from './text';
+import { joinSegments, readableLength, splitSentences } from './text';
 
 /** 两条帖子之间的停顿，避免听起来像连读 */
 const INTER_POST_DELAY = 320;
@@ -319,6 +319,15 @@ export class Reader {
       }
       if (data.isEmpty && this.settings.skipMediaOnly) {
         this.patch({ message: t('reader_skipEmpty') });
+        post = await this.advance(post, myEpoch, signal);
+        continue;
+      }
+
+      // 太短的帖子不值得念。「🔥」「同意」「+1」这类在时间线上很多，
+      // 一路读下去很消耗耐心。按**可读内容**判断 —— 链接和 @提及不算字数。
+      const minChars = this.settings.minPostChars;
+      if (minChars > 0 && readableLength(data.text, data.quotedText) < minChars) {
+        this.patch({ message: t('reader_skipShort', [String(minChars)]) });
         post = await this.advance(post, myEpoch, signal);
         continue;
       }

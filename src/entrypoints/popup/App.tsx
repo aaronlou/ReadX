@@ -2,7 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { browser } from '#imports';
 import { getProviderCredentials } from '@/credentials';
 import { t } from '@/i18n';
-import { getSettings, patchSettings, type ReadXSettings } from '@/settings';
+import {
+  MIN_POST_CHARS_CHOICES,
+  getSettings,
+  patchSettings,
+  type ReadXSettings,
+} from '@/settings';
 import { LANGUAGE_CHOICES, languageLabel } from '@/translate/languages';
 import { CLOUD_TTS_PROVIDERS, type CloudTtsSpec } from '@/tts/providers';
 import { WebSpeechProvider } from '@/tts/webSpeech';
@@ -400,6 +405,26 @@ export default function App() {
               checked={settings.skipMediaOnly}
               onChange={(v) => update({ skipMediaOnly: v })}
             />
+
+            {/*
+              跳过短帖的阈值。放在"跳过"这一组里，因为性质相同。
+              用固定档位而不是输入框 —— 这个值只能凭手感调，
+              给个漫无边际的输入框反而让人不知道填多少。
+            */}
+            <label className="flex cursor-pointer items-center justify-between gap-2 text-xs text-slate-300">
+              {t('popup_minPostChars')}
+              <select
+                value={settings.minPostChars}
+                onChange={(e) => update({ minPostChars: Number(e.target.value) })}
+                className="cursor-pointer rounded border border-white/15 bg-slate-900 px-2 py-1 text-xs text-slate-200"
+              >
+                {MIN_POST_CHARS_CHOICES.map((n) => (
+                  <option key={n} value={n}>
+                    {n === 0 ? t('common_off') : t('common_underChars', [String(n)])}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
           <p className="pt-1 text-[11px] leading-relaxed text-slate-500">

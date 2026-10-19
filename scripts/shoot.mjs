@@ -18,7 +18,15 @@
  */
 import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { attachToPage, launchWithExtension, sleep, waitFor } from './lib/cdp.mjs';
+import {
+  MOCK_URL,
+  attachToPage,
+  ensureMockServer,
+  launchWithExtension,
+  sleep,
+  stopMockServer,
+  waitFor,
+} from './lib/cdp.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const SHOTS = join(ROOT, 'store', 'screenshots');
@@ -27,7 +35,6 @@ const BUILD = join(ROOT, '.output', 'chrome-mv3-screenshot');
 const PROFILE = join(ROOT, '.shot-profile');
 const STAGING = join(ROOT, '.shot-extension');
 const PORT = 9334;
-const MOCK = 'http://localhost:5174/mock-timeline.html';
 
 // 商店要 16:10；X 的时间线是 16:9，用 16:10 会被裁掉一点，所以社交图单独截
 const SOCIAL_MODE = process.argv.includes('--social');
@@ -76,10 +83,21 @@ async function capture({ locale, stripLocales }) {
   `;
 
   try {
-    await cdp.send('Page.navigate', { url: MOCK });
+    await cdp.send('Page.navigate', { url: MOCK_URL });
     await waitFor(cdp, 'document.readyState === "complete"');
+
+    // ⚠️ 必须确认页面**真的加载到了 mock 时间线**再截。
+    // 实际发生过：mock 服务没起来，Chrome 显示 ERR_CONNECTION_REFUSED，
+    // 脚本照样"成功"截下一张错误页 —— 那种图要是传进商店就闹大了。
+    const hasPosts = await waitFor(cdp, 'document.querySelectorAll("article").length > 0', {
+      timeout: 8000,
+    });
+    if (!hasPosts) {
+      throw new Error('页面上没有帖子内容（mock 服务没起来？）—— 拒绝截图');
+    }
+
     if (!(await waitFor(cdp, '!!document.querySelector("readx-overlay")', { timeout: 8000 }))) {
-      console.warn('  ⚠️  扩展没注入，截图里不会有控制条');
+      throw new Error('扩展没注入 —— 截出来的图里不会有控制条，拒绝截图');
     }
 
     await sleep(1500);
@@ -116,6 +134,8 @@ async function main() {
     process.exit(1);
   }
 
+  const mockServer = await ensureMockServer(ROOT);
+
   const only = process.argv.find((a) => a === 'en' || a === 'zh');
   const runs = (SOCIAL_MODE
     ? [{ locale: 'en', stripLocales: ['zh_CN'] }]
@@ -131,6 +151,7 @@ async function main() {
   }
 
   rmSync(PROFILE, { recursive: true, force: true });
+  await stopMockServer(mockServer);
   console.log(`\n截图在 ${SOCIAL_MODE ? 'store/social/' : 'store/screenshots/'}（${WIDTH}×${HEIGHT}）`);
   if (!SOCIAL_MODE) console.log('  上传时：英文 listing 用 en/，中文 listing 用 zh/');
 }
