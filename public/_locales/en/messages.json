@@ -571,6 +571,9 @@
   "provider_common_errNotFound": {
     "message": "Wrong API endpoint or model name"
   },
+  "provider_common_errQuotaExhausted": {
+    "message": "{0} says your balance or quota is used up. Retrying will not help — top up or switch to another provider."
+  },
   "provider_common_errRateLimited": {
     "message": "Rate limited or out of quota — try again in a moment"
   },
@@ -636,6 +639,72 @@
   },
   "provider_doubao_voiceNoteVideoNarration": {
     "message": "Video narration"
+  },
+  "provider_local_credBaseUrlHelp": {
+    "message": "Leave blank for http://localhost:8880/v1. Works with any OpenAI-compatible TTS server."
+  },
+  "provider_local_credBaseUrlLabel": {
+    "message": "Server address"
+  },
+  "provider_local_credModelHelp": {
+    "message": "Kokoro-FastAPI uses \"kokoro\". Other servers may ignore this."
+  },
+  "provider_local_credModelLabel": {
+    "message": "Model name"
+  },
+  "provider_local_errEmptyAudio": {
+    "message": "The local TTS server returned empty audio"
+  },
+  "provider_local_errFailureHint": {
+    "message": "Check that the voice name exists on your server, then try again."
+  },
+  "provider_local_errSynthesizeFailed": {
+    "message": "The local TTS server returned an error (HTTP {0})"
+  },
+  "provider_local_errUnreachable": {
+    "message": "Cannot reach the local TTS server at {0}"
+  },
+  "provider_local_errUnreachableHint": {
+    "message": "Is it running? For Kokoro-FastAPI: docker run -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-cpu:latest"
+  },
+  "provider_local_langEn": {
+    "message": "English"
+  },
+  "provider_local_langEs": {
+    "message": "Spanish"
+  },
+  "provider_local_langFr": {
+    "message": "French"
+  },
+  "provider_local_langJa": {
+    "message": "Japanese"
+  },
+  "provider_local_langZh": {
+    "message": "Chinese"
+  },
+  "provider_local_name": {
+    "message": "Local TTS server"
+  },
+  "provider_local_privacyNote": {
+    "message": "with the local server on, the text being read is sent to a service running on this machine. It never leaves your device — only a process on your own computer can read it."
+  },
+  "provider_local_summary": {
+    "message": "Runs on your own machine. Free, unlimited, and the audio never leaves your computer."
+  },
+  "provider_local_voiceBritish": {
+    "message": "British"
+  },
+  "provider_local_voiceFemale": {
+    "message": "female"
+  },
+  "provider_local_voiceMale": {
+    "message": "male"
+  },
+  "provider_local_voiceServerDefault": {
+    "message": "Server default"
+  },
+  "provider_local_voiceServerDefaultNote": {
+    "message": "Let the server pick. Always works."
   },
   "provider_openai_credApiKeyHelp": {
     "message": "Create one on the API keys page at platform.openai.com"

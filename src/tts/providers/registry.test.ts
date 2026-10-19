@@ -44,8 +44,15 @@ describe('云语音服务商注册表', () => {
     (_id, spec) => {
       expect(spec.origins.length).toBeGreaterThan(0);
       for (const origin of spec.origins) {
-        // 必须是 https，且以 /* 结尾 —— 别的写法在 optional_host_permissions 里会失效
-        expect(origin).toMatch(/^https:\/\/[^/]+\/\*$/);
+        // 必须以 /* 结尾 —— 别的写法在 optional_host_permissions 里会失效
+        expect(origin).toMatch(/^[^/]+\/\/[^/]+\/\*$/);
+
+        // 云端服务必须是 https。**本地服务是唯一合理的例外**：
+        // 用户自己在本机跑的服务没有证书，https 反而连不上。
+        // 放宽成 http 只允许回环地址，不是随便什么都放行。
+        if (!origin.startsWith('https://')) {
+          expect(origin).toMatch(/^http:\/\/(localhost|127\.0\.0\.1)\/\*$/);
+        }
       }
     },
   );
@@ -76,8 +83,14 @@ describe('云语音服务商注册表', () => {
   it.each(CLOUD_TTS_PROVIDERS.map((p) => [p.id, p] as const))(
     '%s 的凭据判断能区分"填了"和"没填"',
     (_id, spec) => {
-      expect(spec.isConfigured({})).toBe(false);
-      // 把所有字段都填上一定算配置完整
+      // 需要凭据的服务商：什么都不填必须是"没配好"，全填上必须是"配好了"。
+      // 本地服务是**不需要任何凭据**的（地址有默认值、没有密钥），
+      // 选上就该能用 —— 它的 isConfigured 恒为 true 是正确行为，
+      // 不是漏了校验。所以这里按 needsCredentials 分开断言。
+      if (spec.needsCredentials !== false) {
+        expect(spec.isConfigured({}), `${spec.id} 空凭据应当算未配置`).toBe(false);
+      }
+      // 所有字段都填上一定算配置完整
       const all = Object.fromEntries(spec.credentials.map((f) => [f.key, 'x']));
       expect(spec.isConfigured(all)).toBe(true);
     },

@@ -65,6 +65,8 @@ WHAT IT DOES
 • Stops the moment you scroll yourself — it never fights you for the page
 • Skips promoted posts and posts with no text
 • Skips posts shorter than a length you choose — no more hearing "lol" and "+1"
+• Can use a local TTS server you run yourself, so there's no per-character cost and
+  the audio never leaves your machine
 • Skips the author's name if you'd rather get straight to the content
 • Keyboard shortcuts: Alt+Shift+P to play or pause, Alt+Shift+N for the next post
 
@@ -146,6 +148,7 @@ ReadX 会滚动定位到一条帖子，判断它是什么语言，然后朗读�
 • 你自己一滚动它就停 —— 绝不跟你抢滚动条
 • 跳过推广帖和没有文字的帖子
 • 可以设置跳过短于 N 字的帖子 —— 不用再听「哈哈」「+1」这类
+• 可以接你自己在本机跑的语音服务：不按字数计费，音频也不出本机
 • 不想听作者名可以关掉，直接进正文
 • 快捷键：Alt+Shift+P 播放/暂停，Alt+Shift+N 下一条
 

@@ -1,4 +1,5 @@
 import { doubaoSpec } from './doubao';
+import { localSpec } from './local';
 import { openaiSpec } from './openai';
 import { openrouterSpec } from './openrouter';
 import type { CloudTtsSpec } from './types';
@@ -15,6 +16,8 @@ import type { CloudTtsSpec } from './types';
  *   2. OpenAI     —— 一个 Key，文档完善
  *   3. 豆包        —— 中文音色最好，但要火山引擎账号、控制台开通服务、
  *                    还得同时填 API Key 和 App ID，对海外用户门槛明显更高
+ *   4. 本地服务    —— 零成本、不限量、音频不出机器，但要用户自己在本机跑一个
+ *                    TTS 服务，所以排在最后
  *
  * 写新 spec 时的要点见 providers/types.ts 里 `CloudTtsSpec` 的注释。
  * 契约由 registry.test.ts 守着 —— 漏声明任何一项都会在那里立刻炸掉。
@@ -23,6 +26,7 @@ export const CLOUD_TTS_PROVIDERS: CloudTtsSpec[] = [
   openrouterSpec,
   openaiSpec,
   doubaoSpec,
+  localSpec,
 ];
 
 /**

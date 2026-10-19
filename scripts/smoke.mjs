@@ -28,6 +28,9 @@ import {
   collectErrors,
   enableLogging,
   ensureMockServer,
+  ensureMockTtsServer,
+  mockTtsStats,
+  resetMockTts,
   launchWithExtension,
   sleep,
   stopMockServer,
@@ -281,6 +284,68 @@ async function run({ locale, stripLocales }) {
     );
     check(restored, '从 popup 打开后控制条恢复了');
 
+    // ---------- 本地语音服务：整条云端链路 ----------
+    //
+    // 这是唯一会真的发 HTTP 出去的一段：扩展 → background → provider →
+    // localhost 上的假 TTS 服务 → 音频 → 播放器。
+    //
+    // 真跑 Kokoro 需要 Docker + 几百 MB 模型，不适合放进自动化测试；
+    // 但假服务实现的是同样的接口形状，所以 base URL 拼接、请求体、
+    // 响应解析、音频解码这些环节都是真的走了一遍。
+    console.log('  [local tts]');
+
+    await resetMockTts();
+
+    // 直接把设置写进 storage —— 比在设置页里点一堆控件稳得多
+    await cdp.send('Page.navigate', { url: `chrome-extension://${extId}/options.html` });
+    await waitFor(cdp, 'document.readyState === "complete"', { label: 'options' });
+    await sleep(800);
+
+    const configured = await cdp.eval(`
+      (async () => {
+        const current = (await chrome.storage.sync.get('settings')).settings ?? {};
+        await chrome.storage.sync.set({
+          settings: { ...current, ttsEngine: 'cloud', cloudProvider: 'local' },
+        });
+        await chrome.storage.local.set({
+          cloudCredentials: { local: { baseUrl: 'http://localhost:8899/v1' } },
+        });
+        return true;
+      })()
+    `);
+    check(configured === true, '把朗读引擎切到本地语音服务');
+
+    // 回到时间线，点播放
+    await cdp.send('Page.navigate', { url: MOCK_URL });
+    await waitFor(cdp, 'document.readyState === "complete"', { label: '时间线' });
+    await waitFor(cdp, '!!document.querySelector("readx-overlay")', { timeout: 8000 });
+    await sleep(1200);
+
+    await cdp.eval(clickInOverlay('/got it|知道了|明白了/i'));
+    await sleep(400);
+    const localPlayed = await cdp.eval(clickInOverlay('/play|pause|播放|暂停/i'));
+    check(localPlayed === 'clicked', '在本地服务模式下点了播放', localPlayed);
+    await sleep(3500);
+
+    const stats = await mockTtsStats();
+    check(stats.requests > 0, '假 TTS 服务收到了合成请求', `requests=${stats.requests}`);
+    check(
+      typeof stats.lastBody?.input === 'string' && stats.lastBody.input.length > 0,
+      '请求体带上了要念的文本',
+      JSON.stringify(stats.lastBody)?.slice(0, 120),
+    );
+    check(stats.lastPath === '/v1/audio/speech', '请求打到了 /v1/audio/speech', stats.lastPath);
+
+    const speakingNow = await cdp.eval(OVERLAY_TEXT);
+    check(
+      /speaking|reading|朗读|正在读/i.test(speakingNow ?? ''),
+      '拿到音频后进入了朗读状态',
+      (speakingNow ?? '').slice(0, 80),
+    );
+
+    // 换回系统音色，免得影响后面的检查
+    await cdp.eval(clickInOverlay('/stop|停止/i'));
+
     // ---------- 2. 选项页 ----------
     await checkPage(cdp, {
       locale,
@@ -392,6 +457,7 @@ async function main() {
   }
 
   const server = await ensureMockServer(ROOT);
+  const ttsServer = await ensureMockTtsServer(ROOT);
   const only = process.argv[2];
 
   const runs = [
@@ -406,6 +472,7 @@ async function main() {
   } finally {
     rmSync(PROFILE, { recursive: true, force: true });
     await stopMockServer(server);
+    await stopMockServer(ttsServer);
   }
 
   console.log(`\n${failures.length ? '✗' : '✓'} ${checks - failures.length}/${checks} 项通过`);

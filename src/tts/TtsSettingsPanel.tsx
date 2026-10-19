@@ -153,9 +153,17 @@ export function TtsSettingsPanel({
       </div>
 
       {settings.ttsEngine === 'cloud' && (
-        <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200/90">
+        // 本地服务用自己的说明，且**不要用警告色** ——
+        // "音频不出本机"是好消息，涂成 Amber 会让人以为出事了。
+        <p
+          className={
+            selected.privacyNote
+              ? 'rounded-lg bg-emerald-500/10 px-3 py-2 text-[11px] leading-relaxed text-emerald-200/90'
+              : 'rounded-lg bg-amber-500/10 px-3 py-2 text-[11px] leading-relaxed text-amber-200/90'
+          }
+        >
           <b>{t('tts_privacyNotice')}</b>
-          {t('tts_privacyBody', [selected.name])}
+          {selected.privacyNote ?? t('tts_privacyBody', [selected.name])}
         </p>
       )}
 

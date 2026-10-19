@@ -17,6 +17,10 @@ export const PROVIDER_ORIGINS = {
   openrouter: 'https://openrouter.ai/*',
   openai: 'https://api.openai.com/*',
   doubao: 'https://openspeech.bytedance.com/*',
+  // 用户自己在本机跑的 TTS 服务。两个都写上：默认用 localhost，
+  // 但有人习惯填 127.0.0.1，漏掉会得到一个很难懂的权限/CORS 错误。
+  local: 'http://localhost/*',
+  localIp: 'http://127.0.0.1/*',
 } as const;
 
 /** 去重后的全部域名，直接作为 optional_host_permissions */

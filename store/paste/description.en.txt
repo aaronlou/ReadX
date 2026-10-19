@@ -28,6 +28,8 @@ WHAT IT DOES
 • Stops the moment you scroll yourself — it never fights you for the page
 • Skips promoted posts and posts with no text
 • Skips posts shorter than a length you choose — no more hearing "lol" and "+1"
+• Can use a local TTS server you run yourself, so there's no per-character cost and
+  the audio never leaves your machine
 • Skips the author's name if you'd rather get straight to the content
 • Keyboard shortcuts: Alt+Shift+P to play or pause, Alt+Shift+N for the next post
 

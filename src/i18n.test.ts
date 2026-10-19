@@ -189,4 +189,14 @@ describe('i18n 文案完整性', () => {
       );
     }
   });
+
+  it('文案里没有 markdown 记号（界面是纯文本，会原样显示）', () => {
+    // 这条是踩出来的：写中文文案时手滑用了 **加粗**，用户看到的就是
+    // 两个星号。文案最终渲染在 HTML 里，但我们的 t() 不做 markdown 解析。
+    for (const locale of LOCALES) {
+      for (const [key, value] of Object.entries(loadLocale(locale))) {
+        expect(value.message, `${locale}/${key} 含 markdown 记号`).not.toMatch(/\*\*|`/);
+      }
+    }
+  });
 });

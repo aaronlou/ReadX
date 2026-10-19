@@ -95,7 +95,7 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
   if (!response.ok) {
     // 非 200 返回的是 JSON 错误体，不是音频
     const detail = (await response.json().catch(() => ({}))) as {
-      error?: { message?: string } | string;
+      error?: { message?: string; code?: string; type?: string } | string;
       message?: string;
     };
     const message =
@@ -105,7 +105,11 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
 
     throw new CloudTtsError(message, {
       code: response.status,
-      hint: hintForFailure(message, response.status),
+      hint: hintForFailure(
+        message,
+        response.status,
+        typeof detail.error === 'object' ? detail.error?.code : undefined,
+      ),
     });
   }
 
@@ -120,13 +124,17 @@ async function synthesizeOpenRouter(request: SynthesizeRequest): Promise<Synthes
   };
 }
 
-function hintForFailure(message: string, status: number): string | undefined {
+function hintForFailure(
+  message: string,
+  status: number,
+  errorCode?: string | null,
+): string | undefined {
   // 模型名写错在 OpenRouter 上很常见，而且报错不太直观
   if (/model/i.test(message) && /(not found|invalid|unsupported|no endpoints)/i.test(message)) {
     return t('provider_openrouter_errModelNotFoundHint');
   }
   if (status === 402) return t('provider_openrouter_errInsufficientCreditsHint');
-  return describeHttpFailure(status, t('provider_openrouter_name'));
+  return describeHttpFailure(status, t('provider_openrouter_name'), errorCode);
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {

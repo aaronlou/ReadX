@@ -107,13 +107,19 @@ async function synthesizeOpenAI(request: SynthesizeRequest): Promise<SynthesizeR
   if (!response.ok) {
     // 失败时返回的是 JSON，不是音频
     const detail = (await response.json().catch(() => ({}))) as {
-      error?: { message?: string };
+      error?: { message?: string; code?: string; type?: string };
     };
     throw new CloudTtsError(
       detail.error?.message || t('provider_openai_errSynthesizeFailed', String(response.status)),
       {
         code: response.status,
-        hint: describeHttpFailure(response.status, t('provider_openai_name')),
+        // code/type 是把「余额用完」和「请求太频繁」区分开的唯一依据 ——
+        // 两者都是 429，光看状态码分不出来
+        hint: describeHttpFailure(
+          response.status,
+          t('provider_openai_name'),
+          detail.error?.code ?? detail.error?.type,
+        ),
       },
     );
   }

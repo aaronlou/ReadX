@@ -59,6 +59,7 @@ provider to be synthesized into audio:
 | --- | --- | --- |
 | OpenRouter | `openrouter.ai` | <https://openrouter.ai/privacy> |
 | OpenAI | `api.openai.com` | <https://openai.com/policies/privacy-policy> |
+| Local TTS server | `localhost` / `127.0.0.1` | No third party — the request never leaves your machine |
 | Doubao (ByteDance / Volcengine) | `openspeech.bytedance.com` | <https://www.volcengine.com/docs/6256/64902> |
 
 Your API key for that provider is sent in the request header for authentication.
@@ -127,6 +128,7 @@ ReadX 没有能力把这些读出去，它们存在的唯一目的是记住你�
 | OpenRouter | `openrouter.ai` |
 | OpenAI | `api.openai.com` |
 | 豆包（字节跳动 / 火山引擎） | `openspeech.bytedance.com` |
+| 本地语音服务 | `localhost` / `127.0.0.1` —— 请求不离开你的机器，没有第三方 |
 
 请求头里会带上你为该服务商填的 API Key 用于鉴权，除此之外不发送任何与你有关的信息。
 想完全停止，切回「系统语音」即可 —— 那样什么都不会离开你的机器。

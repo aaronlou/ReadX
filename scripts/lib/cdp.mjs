@@ -262,3 +262,46 @@ export async function stopMockServer(server) {
     /* 已经退了 */
   }
 }
+
+// ---------------------------------------------------------------- mock TTS
+
+export const MOCK_TTS_PORT = 8899;
+export const MOCK_TTS_URL = `http://localhost:${MOCK_TTS_PORT}`;
+
+/**
+ * 拉起假的 OpenAI 兼容 TTS 服务。
+ *
+ * 和 mock 时间线一样，两个脚本（这里只有 smoke 用）共用一份实现。
+ * 真跑 Kokoro 需要 Docker + 模型，不适合放进自动化测试；
+ * 但接口形状是一样的，所以这条链路能真实地验一遍。
+ */
+export async function ensureMockTtsServer(root) {
+  try {
+    if ((await fetch(`${MOCK_TTS_URL}/__stats`)).ok) return null;
+  } catch {
+    /* 没起来 */
+  }
+
+  const server = spawn('node', [join(root, 'scripts', 'mock-tts.mjs')], {
+    stdio: 'ignore',
+    detached: true,
+  });
+
+  for (let i = 0; i < 30; i += 1) {
+    await sleep(200);
+    try {
+      if ((await fetch(`${MOCK_TTS_URL}/__stats`)).ok) return server;
+    } catch {
+      /* 继续等 */
+    }
+  }
+  throw new Error('mock TTS 服务起不来');
+}
+
+export async function mockTtsStats() {
+  return (await fetch(`${MOCK_TTS_URL}/__stats`)).json();
+}
+
+export async function resetMockTts() {
+  await fetch(`${MOCK_TTS_URL}/__reset`);
+}

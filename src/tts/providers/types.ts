@@ -105,6 +105,22 @@ export interface CloudTtsSpec {
    * 却能彻底避免撞配额。拿不准就填小。
    */
   maxConcurrency?: number;
+  /**
+   * 这家服务商专用的隐私提示，会**覆盖**通用的那句。
+   *
+   * 通用文案说的是「文本会离开你的设备」—— 这对**本地服务是事实错误**：
+   * 服务就跑在用户自己机器上，文本哪儿也没去。说错了比不说更伤信任，
+   * 所以本地服务必须覆盖它。
+   */
+  privacyNote?: string;
+  /**
+   * 是否需要用户填凭据才能用。**默认 true**。
+   *
+   * 只有本地服务是 false —— 地址有默认值、也不需要密钥，选上就能直接出声。
+   * 这个字段存在的意义是让注册表的契约测试能区分两种服务商，
+   * 而不是把所有服务商都硬套成"必须先填点什么"。
+   */
+  needsCredentials?: boolean;
   /** 凭据填全了吗 */
   isConfigured(credentials: Record<string, string>): boolean;
   /** 真正发请求 —— 只在 background 里调用 */
@@ -132,8 +148,26 @@ export function resolveVoice(
   return spec.fallbackVoice;
 }
 
-/** 把常见 HTTP 失败翻译成"下一步该干什么" */
-export function describeHttpFailure(status: number, serviceName: string): string | undefined {
+/**
+ * 把常见 HTTP 失败翻译成"下一步该干什么"。
+ *
+ * `errorCode` 是服务商响应体里的 `error.code`（或 `error.type`）。
+ * 有的失败光看状态码判断不了 —— 见下面 429 那段。
+ */
+export function describeHttpFailure(
+  status: number,
+  serviceName: string,
+  errorCode?: string | null,
+): string | undefined {
+  // ⚠️ OpenAI（以及照抄它错误格式的一票服务商）用**同一个 429** 表示两种
+  // 完全相反的情况：
+  //   rate_limit_exceeded —— 请求太频繁，等一下会好
+  //   insufficient_quota  —— 余额/额度用完了，**再等也不会好**
+  // 一律提示"请求太频繁"的话，余额用完的人会一直重试，永远好不了。
+  // 所以先看 body 里的 code，再回落状态码。
+  if (errorCode === 'insufficient_quota' || errorCode === 'billing_hard_limit_reached') {
+    return t('provider_common_errQuotaExhausted', serviceName);
+  }
   if (status === 401 || status === 403) return t('provider_common_errAuth', serviceName);
   if (status === 404) return t('provider_common_errNotFound');
   if (status === 429) return t('provider_common_errRateLimited');
