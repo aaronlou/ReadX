@@ -255,9 +255,23 @@ npm run shoot
 | `npm run mock` | 启动本地 mock 时间线 |
 | `npm run smoke` | 端到端冒烟测试（中英各一遍 + 正式包装载验证） |
 | `npm run shoot` | 自动截商店要的图 |
+| `npm run mock:tts` | 启动假的 OpenAI 兼容 TTS 服务（给端到端测试用） |
+| `npm run verify:local-tts` | 用**真的**本地 TTS 服务验一遍（需要先 `docker run`） |
 
-> 后两个会**真的把扩展装进 headless Chrome 跑一遍** —— 这是唯一能发现
-> 「构建通过、测试通过、但 Chrome 装不上」那类问题的办法。
+> `smoke` / `shoot` / `verify:local-tts` 都会**真的把扩展装进 headless Chrome
+> 跑一遍** —— 这是唯一能发现「构建通过、测试通过、但 Chrome 装不上」
+> 那类问题的办法。
+>
+> `verify:local-tts` 需要你自己先跑一个本地 TTS 服务，例如：
+>
+> ```bash
+> docker run -p 8880:8880 ghcr.io/remsky/kokoro-fastapi-cpu:latest
+> npm run build:screenshot
+> npm run verify:local-tts
+> ```
+>
+> 它判断"真的出声了"不看状态文字，而是看**句子计数器有没有自动推进** ——
+> 那只在前一段音频播完（`ended` 事件）之后才会发生。
 >
 > 命令块不带行内注释是有意的：注释被一起粘进终端会变成参数。
 

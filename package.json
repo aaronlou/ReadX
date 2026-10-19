@@ -17,7 +17,9 @@
     "shoot": "wxt build -m screenshot && node scripts/shoot.mjs",
     "smoke": "wxt build -m screenshot && node scripts/smoke.mjs",
     "shoot:social": "wxt build -m screenshot && node scripts/shoot.mjs --social",
-    "mock:tts": "node scripts/mock-tts.mjs"
+    "mock:tts": "node scripts/mock-tts.mjs",
+    "verify:local-tts": "node scripts/verify-local-tts.mjs",
+    "build:screenshot": "wxt build -m screenshot"
   },
   "dependencies": {
     "react": "^19.2.4",

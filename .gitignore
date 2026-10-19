@@ -55,3 +55,5 @@ web-ext.config.ts
 .real-ext/
 .diag-profile/
 .diag-ext/
+.verify-profile/
+.verify-ext/
