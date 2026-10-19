@@ -134,6 +134,30 @@ describe('本地服务 spec', () => {
     );
   });
 
+  it('认得 FastAPI 的错误形状（Kokoro 就是这种）', async () => {
+    // 实测出来的：Kokoro-FastAPI 返回的是 { detail: { error, message } }，
+    // 不是 OpenAI 的 { error: { message } }。只认后者的话，
+    // 那条最有用的 "Voice 'x' not found. Available voices: ..." 会被整个吞掉。
+    installFetch({
+      status: 400,
+      json: {
+        detail: {
+          error: 'validation_error',
+          message: "Voice 'nope' not found. Available voices: af_heart, af_bella",
+        },
+      },
+    });
+
+    await expect(localSpec.synthesize(request({ voice: 'nope' }))).rejects.toThrow(
+      /Voice 'nope' not found/,
+    );
+  });
+
+  it('detail 是纯字符串时也能读出来', async () => {
+    installFetch({ status: 500, json: { detail: 'Internal Server Error' } });
+    await expect(localSpec.synthesize(request())).rejects.toThrow('Internal Server Error');
+  });
+
   it('空音频算失败，不能让播放器静默卡住', async () => {
     installFetch({ binary: new ArrayBuffer(0) });
     await expect(localSpec.synthesize(request())).rejects.toThrow(

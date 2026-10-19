@@ -44,23 +44,33 @@ const VOICES: ProviderVoice[] = [
 
   // Kokoro-82M 的音色 ID。命名规则是「语种+性别_名字」：
   // a=美式英语, b=英式英语, z=中文, j=日文, e=西语, f=法语, p=葡语, i=意语, h=印地语
+  // ⚠️ 下面这些 ID 都**对着真跑起来的 Kokoro-FastAPI 核过**
+  // （`GET /v1/audio/voices` 返回 72 个，这里挑的 22 个全部存在）。
+  // 加新条目前请先确认服务端真的有，用不存在的 ID 只会换来一个 400。
   { id: 'af_heart', name: 'Heart', lang: 'en', note: t('provider_local_voiceFemale') },
   { id: 'af_bella', name: 'Bella', lang: 'en', note: t('provider_local_voiceFemale') },
+  { id: 'af_nova', name: 'Nova', lang: 'en', note: t('provider_local_voiceFemale') },
+  { id: 'af_sarah', name: 'Sarah', lang: 'en', note: t('provider_local_voiceFemale') },
   { id: 'am_michael', name: 'Michael', lang: 'en', note: t('provider_local_voiceMale') },
   { id: 'am_fenrir', name: 'Fenrir', lang: 'en', note: t('provider_local_voiceMale') },
+  { id: 'am_adam', name: 'Adam', lang: 'en', note: t('provider_local_voiceMale') },
   { id: 'bf_emma', name: 'Emma', lang: 'en', note: t('provider_local_voiceBritish') },
   { id: 'bm_george', name: 'George', lang: 'en', note: t('provider_local_voiceBritish') },
 
   { id: 'zf_xiaobei', name: '晓北', lang: 'zh', note: t('provider_local_voiceFemale') },
   { id: 'zf_xiaoxiao', name: '晓晓', lang: 'zh', note: t('provider_local_voiceFemale') },
+  { id: 'zf_xiaoyi', name: '晓伊', lang: 'zh', note: t('provider_local_voiceFemale') },
   { id: 'zm_yunxi', name: '云希', lang: 'zh', note: t('provider_local_voiceMale') },
   { id: 'zm_yunjian', name: '云健', lang: 'zh', note: t('provider_local_voiceMale') },
+  { id: 'zm_yunxia', name: '云夏', lang: 'zh', note: t('provider_local_voiceMale') },
 
   { id: 'jf_alpha', name: 'Alpha', lang: 'ja', note: t('provider_local_voiceFemale') },
+  { id: 'jf_gongitsune', name: 'Gongitsune', lang: 'ja', note: t('provider_local_voiceFemale') },
   { id: 'jm_kumo', name: 'Kumo', lang: 'ja', note: t('provider_local_voiceMale') },
 
   { id: 'ef_dora', name: 'Dora', lang: 'es', note: t('provider_local_voiceFemale') },
   { id: 'em_alex', name: 'Alex', lang: 'es', note: t('provider_local_voiceMale') },
+  { id: 'em_santa', name: 'Santa', lang: 'es', note: t('provider_local_voiceMale') },
 
   { id: 'ff_siwis', name: 'Siwis', lang: 'fr', note: t('provider_local_voiceFemale') },
 ];
@@ -162,19 +172,14 @@ async function synthesizeLocal(request: SynthesizeRequest): Promise<SynthesizeRe
   }
 
   if (!response.ok) {
-    const detail = (await response.json().catch(() => ({}))) as {
-      error?: { message?: string; code?: string; type?: string };
-    };
+    const error = await readErrorBody(response);
     throw new CloudTtsError(
-      detail.error?.message || t('provider_local_errSynthesizeFailed', String(response.status)),
+      error.message || t('provider_local_errSynthesizeFailed', String(response.status)),
       {
         code: response.status,
         hint:
-          describeHttpFailure(
-            response.status,
-            t('provider_local_name'),
-            detail.error?.code ?? detail.error?.type,
-          ) ?? t('provider_local_errFailureHint'),
+          describeHttpFailure(response.status, t('provider_local_name'), error.code) ??
+          t('provider_local_errFailureHint'),
       },
     );
   }
@@ -199,4 +204,44 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
     binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
   }
   return btoa(binary);
+}
+
+/**
+ * 读出错误响应里的可读信息。
+ *
+ * **不同服务的错误形状不一样**，这是实测出来的：
+ *   - OpenAI 系：`{ error: { message, type, code } }`
+ *   - FastAPI 系（Kokoro-FastAPI、openedai-speech）：
+ *     `{ detail: { error, message } }` 或 `{ detail: "..." }`
+ *
+ * 只认第一种的话，Kokoro 那条最有用的报错
+ * （`Voice 'x' not found. Available voices: ...`）会被整个吞掉，
+ * 用户只看到一句干巴巴的 "returned an error" —— 而那句话对解决问题毫无帮助。
+ */
+async function readErrorBody(response: Response): Promise<{ message?: string; code?: string }> {
+  const body = (await response.json().catch(() => ({}))) as {
+    error?: { message?: string; code?: string; type?: string } | string;
+    detail?: { message?: string; code?: string; type?: string; error?: string } | string;
+    message?: string;
+  };
+
+  const candidates = [body.error, body.detail];
+  let message: string | undefined;
+  let code: string | undefined;
+
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string') {
+      message ??= candidate;
+      continue;
+    }
+    if (!candidate || typeof candidate !== 'object') continue;
+    message ??= candidate.message;
+    code ??= candidate.code ?? candidate.type;
+    // FastAPI 的 `detail.error` 是个错误分类字符串（validation_error 之类）
+    if (!code && 'error' in candidate && typeof candidate.error === 'string') {
+      code = candidate.error;
+    }
+  }
+
+  return { message: message ?? body.message, code: code ?? undefined };
 }

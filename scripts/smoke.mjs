@@ -61,10 +61,23 @@ function check(ok, label, detail = '') {
 // ---------------------------------------------------------------- 页面检查
 
 /** 控制条面板里所有可见文字 */
+// 取控制条上真正的文案。
+//
+// 两个坑：
+//   - shadow root 的 `textContent` 把注入的 <style> 也算进去了，
+//     断言可能匹配到 CSS 里的词
+//   - 宿主元素的 `innerText` 不会穿透 shadow 边界，拿到的是空串
+// 所以收集所有叶子节点的文本，并把 STYLE/SCRIPT 排除掉。
 const OVERLAY_TEXT = `
   (() => {
-    const host = document.querySelector('readx-overlay');
-    return host?.shadowRoot?.textContent ?? null;
+    const root = document.querySelector('readx-overlay')?.shadowRoot;
+    if (!root) return null;
+    return [...root.querySelectorAll('*')]
+      .filter((el) => el.children.length === 0 && !/^(STYLE|SCRIPT)$/.test(el.tagName))
+      .map((el) => el.textContent ?? '')
+      .join(' ')
+      .replace(/\\s+/g, ' ')
+      .trim();
   })()
 `;
 
