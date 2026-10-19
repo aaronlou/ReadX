@@ -1,4 +1,4 @@
-# 发布 0.1.3 操作单
+# 发布 0.1.4 操作单
 
 **我无法代你操作开发者后台**（那需要你的 Google 账号登录）。这份单子把
 「点哪里、粘什么、传哪个文件」全部写死，照着做即可。
@@ -12,7 +12,7 @@
 
 | 用途 | 文件 |
 | --- | --- |
-| **新版本包** | `.output/readx-0.1.3-chrome.zip` |
+| **新版本包** | `.output/readx-0.1.4-chrome.zip` |
 | Description（英文） | [`description.en.txt`](description.en.txt) |
 | Description（中文） | [`description.zh.txt`](description.zh.txt) |
 | 截图（英文，3 张） | `../screenshots/en/01-intro.png` → `02-reading` → `03-settings` |
@@ -27,8 +27,8 @@
 1. 打开 <https://chrome.google.com/webstore/devconsole> → 点开 ReadX
    （ID：`ecdjljbkaajlidofofjlopbcaigheeni`）
 2. 进 **Package** 标签页
-3. 点 **Upload new package**，选 `.output/readx-0.1.3-chrome.zip`
-4. 等它解析完，确认页面上显示的版本是 **0.1.3**
+3. 点 **Upload new package**，选 `.output/readx-0.1.4-chrome.zip`
+4. 等它解析完，确认页面上显示的版本是 **0.1.4**
 
 > 如果报「版本号必须大于线上版本」，说明你选错文件了 ——
 > 检查一下是不是 `.output` 里还有别的 zip。正常情况下只有这一个。
@@ -83,7 +83,7 @@
 **审核期间**：线上仍是旧版本，用户不受影响。看得到的是旧描述和旧截图 ——
 这是正常的，描述和截图会和新包一起生效。
 
-**通过之后**：商店会把版本更新到 0.1.3。老用户会在 Chrome 里收到更新提示
+**通过之后**：商店会把版本更新到 0.1.4。老用户会在 Chrome 里收到更新提示
 （通常几小时内）。
 
 **建议通过后验一次**：从商店重新安装一遍，确认：
@@ -102,6 +102,7 @@
 | 🆕 | **本地语音服务** —— 接自己在本机跑的 OpenAI 兼容 TTS，不按字数计费、音频不出本机 |
 | 🐛 | **余额用完不再被误报成「请求太频繁」** —— OpenAI 用同一个 429 表示两种相反的情况，现在会读 body 里的 code 区分 |
 | 🐛 | 设置页的隐私提示原来写死「文本会离开你的设备」，对本地服务是事实错误，已按服务商区分 |
+| 🐛 | 本地服务的错误解析兼容 FastAPI 的 `detail` 形状 —— 之前会把「音色不存在」这条最有用的报错吞掉 |
 | 📝 | 商店描述补了本地服务这一条 |
 
 ---
